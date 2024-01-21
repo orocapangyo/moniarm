@@ -1,0 +1,17 @@
+#terminal #1
+zeta@zeta-nano:~/catkin_ws$ roslaunch jetson_csi_cam jetson_csi_cam.launch width:=416 height:=416 fps:=15
+
+#terminal #2
+zeta@zeta-nano:~/catkin_ws$ roslaunch darknet_ros yolo_v4.launch
+
+#terminal #3
+zeta@zeta-nano:~/catkin_ws$ roslaunch jessicar_control yolo_chase.launch
+
+#terminal #1
+zeta@zeta-nano:~/catkin_ws$ roslaunch jetson_csi_cam jetson_csi_cam.launch width:=416 height:=416 fps:=15
+
+#terminal #2
+zeta@zeta-nano:~/catkin_ws$ roslaunch darknet_ros yolo_v4_custom.launch
+
+#terminal #3
+zeta@zeta-nano:~/catkin_ws$ roslaunch jessicar_control yolo_gostop.launch

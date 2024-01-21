@@ -1,0 +1,5 @@
+roslaunch jessicar_control blob_control.launch
+
+rosrun jessicar_control blob_chase.py
+
+rosrun image_view image_view image:=/blob/image_blob

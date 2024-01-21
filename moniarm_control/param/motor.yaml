@@ -1,0 +1,15 @@
+/**:
+  ros__parameters:
+    steer_center : 380
+    steer_limit : 100
+    steer_dir : -1
+    speed_center: 0
+    speed_limit: 4096
+    has_steer : 1
+    isDCSteer : 0
+    i2cSteer: 64
+    i2cThrottle: 96
+    k_steer: 2.5
+    k_throttle: 0.2
+
+    DETECT_CLASS : "cup"

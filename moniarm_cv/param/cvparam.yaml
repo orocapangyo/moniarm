@@ -1,0 +1,18 @@
+#define: &blue_min [55,40,0]
+#define: &blue_max [150, 255, 255]
+#define: &white_min [16, 0, 66]
+#define: &white_max [133, 251, 255]
+#define: &pink_min [135, 41, 95]
+#define: &pink_max [255, 196, 255]
+#define: &green_min [39, 81, 71]
+#define: &green_max [75, 255, 255]
+#define: &orange_min [7, 109, 50]
+#define: &orange_max [76, 218, 234]
+#define: &red_min [0, 94, 92]
+#define: &red_max [255, 255, 255]
+
+/**:
+  ros__parameters:
+    camport: 0
+    blob_min: [39, 81, 71]
+    blob_max: [75, 255, 255]
