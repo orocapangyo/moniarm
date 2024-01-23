@@ -11,16 +11,16 @@ def generate_launch_description():
       PythonLaunchDescriptionSource([
         FindPackageShare("moniarm_cv"), '/launch', '/csicam.launch.py'])
     ),
-    
+
     IncludeLaunchDescription(
       PythonLaunchDescriptionSource([
         FindPackageShare("moniarm_control"), '/launch', '/yolo_chase.launch.py'])
-    ), 
+    ),
 
     IncludeLaunchDescription(
       PythonLaunchDescriptionSource([
         FindPackageShare("moniarm_control"), '/launch', '/blob_chase.launch.py'])
-    ), 
+    ),
 
   ])
 
