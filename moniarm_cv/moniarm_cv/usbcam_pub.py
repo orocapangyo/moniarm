@@ -13,7 +13,7 @@ class CameraeNode(Node):
         self.declare_parameters(
         namespace='',
         parameters=[
-            ('camport', None),
+            ('camport', 0),
         ])
 
         self.camport = self.get_parameter_or('camport').get_parameter_value().integer_value

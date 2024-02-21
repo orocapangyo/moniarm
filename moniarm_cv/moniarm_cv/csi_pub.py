@@ -37,12 +37,12 @@ class CameraeNode(Node):
     def __init__(self):
 
         super().__init__('csicam_node')
-        
+
         #for csi camera orientation
         self.cap = cv2.VideoCapture(gstreamer_pipeline(flip_method=0), cv2.CAP_GSTREAMER)
         self.image_pub = self.create_publisher(Image, 'image_raw', 10)
         self.bridge = CvBridge()
-        
+
         print("Camera Node created")
         # Create a timer that will gate the node actions twice a second
         timer_period = 0.05  # seconds
@@ -51,7 +51,7 @@ class CameraeNode(Node):
     def node_callback(self):
         # Capture frame-by-frame
         ret, cv_image = self.cap.read()
-        if ret == True:           
+        if ret == True:
             self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
         else:
             print("image read fail")
@@ -59,7 +59,7 @@ class CameraeNode(Node):
             cv2.destroyAllWindows()
 
 def main(args=None):
-    rclpy.init(args=args) 
+    rclpy.init(args=args)
     csiCamera = CameraeNode()
     rclpy.spin(csiCamera)
     csiCamera.destroy_node()
