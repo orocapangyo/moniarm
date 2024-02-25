@@ -52,9 +52,9 @@ msg = """
 Control Your Robot!
 ---------------------------
 Moving around:
-Left left/right: Base(M0), left/light
-Left up/down:    shoulder(M1) move
-Right up/down :  Elbow(M2) move
+Left Stick left/right: Base(M0), left/light
+Left Stick up/down:    shoulder(M1) move
+Right Stick up/down:   Elbow(M2) move
 
 'X' : gripper open/close
 'A' : Change led
