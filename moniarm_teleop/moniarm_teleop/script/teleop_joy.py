@@ -51,6 +51,12 @@ TIMER_JOY = 0.1
 msg = """
 Control Your Robot!
 ---------------------------
+Moving around:
+Left left/right: Base(M0), left/light
+Left up/down:    shoulder(M1) move
+Right up/down :  Elbow(M2) move
+
+'X' : gripper open/close
 'A' : Change led
 'B' : Play buzzer song
 'Y': Play OLED animation
@@ -64,8 +70,6 @@ class TeleopJoyNode(Node):
         self.declare_parameters(    # bring the param from yaml file
             namespace='',
             parameters=[
-                ('max_fwd_m_s', 0.0),
-                ('max_rev_m_s', 0.0),
                 ('max_rad_s', 0.0),
             ])
 
@@ -82,14 +86,10 @@ class TeleopJoyNode(Node):
         print(' moniarm Teleop Joystick controller')
         print(msg)
 
-        self.max_fwd_vel = self.get_parameter_or('max_fwd_m_s', Parameter('max_fwd_m_s', Parameter.Type.DOUBLE, 0.2)).get_parameter_value().double_value
-        self.max_rev_vel = self.get_parameter_or('max_rev_m_s', Parameter('max_rev_m_s', Parameter.Type.DOUBLE, 0.2)).get_parameter_value().double_value
         self.max_ang_vel = self.get_parameter_or('max_rad_s', Parameter('max_rad_s', Parameter.Type.DOUBLE, 0.2)).get_parameter_value().double_value
 
-        print('Param max fwd: %s m/s, max rev: -%s m/s, max ang: %s dev/s'%
-            (self.max_fwd_vel,
-            self.max_rev_vel,
-            self.max_ang_vel)
+        print('Param max ang: %s dev/s'%
+            (self.max_ang_vel)
         )
 
         print('CTRL-C to quit')
@@ -104,13 +104,6 @@ class TeleopJoyNode(Node):
         #generate variable for Twist type msg
 
     def cb_joy(self, joymsg):
-        if joymsg.axes[1] > 0.0:
-            self.twist.linear.x = joymsg.axes[1] * self.max_fwd_vel
-        elif joymsg.axes[1] < 0.0:
-            self.twist.linear.x = joymsg.axes[1] * self.max_rev_vel
-        else:
-            self.twist.linear.x = 0.0
-
         if joymsg.buttons[0] == 1 and self.mode_button_last == 0:
             print('colorIdx: %d'%(self.colorIdx))
             self.gMsg.data = self.colorIdx
@@ -142,9 +135,13 @@ class TeleopJoyNode(Node):
         self.twist.linear.z = 0.0
         self.twist.angular.x = 0.0
         self.twist.angular.y = 0.0
-        # change axes for turn
-        self.twist.angular.z = joymsg.axes[2] * self.max_ang_vel
-        # print('V= %.2f m/s, W= %.2f deg/s'%(self.twist.linear.x, self.twist.angular.z))
+
+        # Make jostick -> /cmd_vel
+        self.twist.linear.x = joymsg.axes[1] * self.max_ang_vel
+        self.twist.linear.y = joymsg.axes[3] * self.max_ang_vel
+        self.twist.angular.z = joymsg.axes[0] * self.max_ang_vel
+
+        print('M1= %.2f, M2 %.2f, M0= %.2f'%(self.twist.linear.x, self.twist.linear.y,self.twist.angular.z))
 
     def cb_timer(self):
         self.pub_twist.publish(self.twist)  # publishing 'cmd_vel'

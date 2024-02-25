@@ -50,10 +50,10 @@ else:
     import tty
 
 
-MAX_LIN_VEL = 0.2
-MAX_ANG_VEL = 0.8
-LIN_VEL_STEP_SIZE = 0.03
-ANG_VEL_STEP_SIZE = 0.1
+MAX_LIN_VEL = 1.57
+MAX_ANG_VEL = 1.57
+LIN_VEL_STEP_SIZE = 0.157
+ANG_VEL_STEP_SIZE = 0.157
 
 MAX_SONG = 5
 MAX_ANIM = 3
@@ -63,18 +63,15 @@ msg = """
 Control Your Robot!
 ---------------------------
 Moving around:
-        w
-   a    s    d
-        x
-
-w/x : increase/decrease linear velocity
-a/d : increase/decrease angular velocity
+a/d : base(M0), left/light
+w/x : shoulder(M1) move
+q/z : Elbow(M2) move
 
 space key, s : force stop
 
 c: Change led
-z: play buzzer song
-p: OLED animation
+u: play buzzer song
+o: OLED animation
 
 CTRL-C to quit
 """
@@ -96,9 +93,10 @@ def get_key(settings):
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
     return key
 
-def print_vels(target_linear_velocity, target_angular_velocity):
-    print('currently:\tlinear velocity {0}\t angular velocity {1} '.format(
+def print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity):
+    print('M1 {0}\t M2 {1} \t M0 {2} \t'.format(
         target_linear_velocity,
+        target_linear1_velocity,
         target_angular_velocity))
 
 def make_simple_profile(output, input, slop):
@@ -151,9 +149,13 @@ def main():
 
     status = 0
     target_linear_velocity = 0.0
+    target_linear1_velocity = 0.0
     target_angular_velocity = 0.0
+    target_angular_velocity = 0.0
+    control_linear1_velocity = 0.0
     control_linear_velocity = 0.0
     control_angular_velocity = 0.0
+
     colorIdx = 0                                        # variable for saving data in ledSub's msg data field
     songIdx = 0                                         # variable for saving data in songSub's msg data field
     lcdIdx = 0
@@ -167,28 +169,42 @@ def main():
                 target_linear_velocity = \
                     check_linear_limit_velocity(target_linear_velocity + LIN_VEL_STEP_SIZE)
                 status = status + 1
-                print_vels(target_linear_velocity, target_angular_velocity)
+                print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
             elif key == 'x':            # linear speed down
                 target_linear_velocity = \
                     check_linear_limit_velocity(target_linear_velocity - LIN_VEL_STEP_SIZE)
                 status = status + 1
-                print_vels(target_linear_velocity, target_angular_velocity)
+                print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
+            elif key == 'q':              # linear speed up
+                target_linear1_velocity = \
+                    check_linear_limit_velocity(target_linear1_velocity + LIN_VEL_STEP_SIZE)
+                status = status + 1
+                print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
+            elif key == 'z':            # linear speed down
+                target_linear1_velocity = \
+                    check_linear_limit_velocity(target_linear1_velocity - LIN_VEL_STEP_SIZE)
+                status = status + 1
+                print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
             elif key == 'a':            # left angle spped up
                 target_angular_velocity = \
                     check_angular_limit_velocity(target_angular_velocity + ANG_VEL_STEP_SIZE)
                 status = status + 1
-                print_vels(target_linear_velocity, target_angular_velocity)
+                print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
             elif key == 'd':            # right angle spped up
                 target_angular_velocity = \
                     check_angular_limit_velocity(target_angular_velocity - ANG_VEL_STEP_SIZE)
                 status = status + 1
-                print_vels(target_linear_velocity, target_angular_velocity)
+                print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
+
             elif key == ' ' or key == 's':  # pause
                 target_linear_velocity = 0.0
                 control_linear_velocity = 0.0
+                target_linear1_velocity = 0.0
+                control_linear1_velocity = 0.0
                 target_angular_velocity = 0.0
                 control_angular_velocity = 0.0
-                print_vels(target_linear_velocity, target_angular_velocity)
+                print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
+
             elif key == 'c':                # led control
                 print('colorIdx: %d'%(colorIdx))
                 gMsg.data = colorIdx
@@ -197,7 +213,7 @@ def main():
                 if colorIdx >= MAX_COLOR:
                     colorIdx = 0
 
-            elif key == 'z':                # play buzzer song
+            elif key == 'u':                # play buzzer song
                 print('songIdx: %d'%(songIdx))
                 gMsg.data = songIdx
                 songpub.publish(gMsg)
@@ -205,7 +221,7 @@ def main():
                 if songIdx >= MAX_SONG:
                     songIdx = 0
 
-            elif key == 'p':                # play oled animation
+            elif key == 'o':                # play oled animation
                 print('lcdIdx: %d'%(lcdIdx))
                 gMsg.data = lcdIdx
                 lcdpub.publish(gMsg)
@@ -228,18 +244,23 @@ def main():
                 target_linear_velocity,
                 (LIN_VEL_STEP_SIZE / 2.0))
 
+            control_linear1_velocity = make_simple_profile(
+                control_linear1_velocity,
+                target_linear1_velocity,
+                (LIN_VEL_STEP_SIZE / 2.0))
+
             twist.linear.x = control_linear_velocity
-            twist.linear.y = 0.0
+            twist.linear.y = control_linear1_velocity
             twist.linear.z = 0.0
 
             control_angular_velocity = make_simple_profile(
                 control_angular_velocity,
                 target_angular_velocity,
                 (ANG_VEL_STEP_SIZE / 2.0))
+
             twist.angular.x = 0.0
             twist.angular.y = 0.0
             twist.angular.z = control_angular_velocity
-
             pub.publish(twist)      #publishing 'cmd_vel'
 
     except Exception as e:

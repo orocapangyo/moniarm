@@ -27,5 +27,4 @@ def generate_launch_description():
 	    output='screen', emulate_tty=True,
       parameters=[motor_parameter],
     ),
-    
   ])
