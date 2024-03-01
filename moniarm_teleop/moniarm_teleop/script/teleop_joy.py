@@ -60,7 +60,6 @@ Right Stick up/down:   Elbow(M2) move
 'A' : Change led
 'B' : Play buzzer song
 'Y': Play OLED animation
-
 """
 
 class TeleopJoyNode(Node):

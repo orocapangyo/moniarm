@@ -12,15 +12,18 @@
 
 #include <std_msgs/msg/int32.h>
 #include <std_msgs/msg/float32.h>
+#include <std_msgs/msg/int32_multi_array.h>
 #include <geometry_msgs/msg/twist.h>
+
+#include <Herkulex.h>
 
 #include "songlcdled.h"
 
 #define DOMAINID 11
 
-rcl_subscription_t cmd_vel_sub, ledSub, songSub, lcdSub;
-geometry_msgs__msg__Twist cmd_vel;
+rcl_subscription_t motorSub, ledSub, songSub, lcdSub;
 std_msgs__msg__Int32 ledMsg, songMsg, lcdMsg;
+std_msgs__msg__Int32MultiArray motorMsg;
 
 rclc_executor_t executor;
 rclc_support_t support;
@@ -33,6 +36,13 @@ enum states {
   AGENT_CONNECTED,
   AGENT_DISCONNECTED
 } state;
+
+#define M0_ID 6
+#define M1_ID 7
+#define M2_ID 8
+
+#define RXD1 15
+#define TXD1 23
 
 #define RXD2 16
 #define TXD2 17
@@ -86,11 +96,25 @@ float lastCmdVelReceived = 0.0;
 
 
 // Take the velocity command as input and calculate the PWM values.
-void cmd_vel_callback(const void *msgin) {
-  const geometry_msgs__msg__Twist *cmdVel = (const geometry_msgs__msg__Twist *)msgin;
+void motor_callback(const void *msgin) {
+  const std_msgs__msg__Int32MultiArray *msg = (const std_msgs__msg__Int32MultiArray *)msgin;
+  int angle0, angle1, angle2, angle3;
 
-  // Record timestamp of last velocity command received
-  lastCmdVelReceived = (millis() / 1000.0);
+  angle0 = msg->data.data[0];
+  angle1 = msg->data.data[1];
+  angle2 = msg->data.data[2];
+
+  Herkulex.moveOneAngle(M0_ID, angle0, 500, LED_RED);
+  delay(10);
+  Herkulex.moveOneAngle(M1_ID, angle1, 500, LED_RED);
+  delay(10);
+  Herkulex.moveOneAngle(M2_ID, angle2, 500, LED_RED);
+  //DEBUG_PRINT("M0:");
+  //DEBUG_PRINT(angle0);
+  //DEBUG_PRINT(" ,M1:");
+  //DEBUG_PRINT(angle1);
+  //DEBUG_PRINT(" ,M2:");
+  //DEBUG_PRINTLN(angle2);
 }
 
 void subled_callback(const void *msgin) {
@@ -110,11 +134,14 @@ void sublcd_callback(const void *msgin) {
 
 void setup() {
   int i;
+
 #if (DEBUG == 1)
   Serial2.begin(115200);
   Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2);
 #endif
   DEBUG_PRINTLN("Enc/Motor/MPU6050/Other Starts");
+
+  Herkulex.beginSerial1(115200, RXD1, TXD1);  //open serial1 for motor communication
 
   pinMode(LED_L, OUTPUT);
   pinMode(LED_R, OUTPUT);
@@ -134,7 +161,19 @@ void setup() {
   DEBUG_PRINTLN("ROS Starts");
   set_microros_transports();
 
-  delay(2000);
+  Herkulex.reboot(M0_ID);
+  Herkulex.reboot(M1_ID);
+  Herkulex.reboot(M2_ID);
+  delay(500);
+  Herkulex.initialize();  //initialize motors
+  delay(1500);
+
+  DEBUG_PRINT("M0:");
+  DEBUG_PRINT(Herkulex.getAngle(M0_ID));
+  DEBUG_PRINT(" ,M1:");
+  DEBUG_PRINT(Herkulex.getAngle(M1_ID));
+  DEBUG_PRINT(" ,M2:");
+  DEBUG_PRINTLN(Herkulex.getAngle(M2_ID));
 
   //wait agent comes up
   do {
@@ -147,6 +186,22 @@ void setup() {
     if (state == AGENT_AVAILABLE)
       break;
   } while (1);
+
+  // Init the memory of your array in order to provide it to the executor.
+  // If a message from ROS comes and it is bigger than this, it will be ignored, so ensure that capacities here are big enought.
+  motorMsg.data.capacity = 4;
+  motorMsg.data.size = 0;
+  motorMsg.data.data = (int32_t *)malloc(motorMsg.data.capacity * sizeof(int32_t));
+
+  motorMsg.layout.dim.capacity = 4;
+  motorMsg.layout.dim.size = 0;
+  motorMsg.layout.dim.data = (std_msgs__msg__MultiArrayDimension *)malloc(motorMsg.layout.dim.capacity * sizeof(std_msgs__msg__MultiArrayDimension));
+
+  for (size_t i = 0; i < motorMsg.layout.dim.capacity; i++) {
+    motorMsg.layout.dim.data[i].label.capacity = 4;
+    motorMsg.layout.dim.data[i].label.size = 0;
+    motorMsg.layout.dim.data[i].label.data = (char *)malloc(motorMsg.layout.dim.data[i].label.capacity * sizeof(char));
+  }
 
   allocator = rcl_get_default_allocator();
 
@@ -181,19 +236,19 @@ void setup() {
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
     "lcdSub"));
 
-  // create cmd_vel subscriber
-  RCCHECK(rclc_subscription_init_best_effort(
-    &cmd_vel_sub,
+  // create motor control subscriber
+  RCCHECK(rclc_subscription_init_default(
+    &motorSub,
     &node,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-    "cmd_vel"));
+    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32MultiArray),
+    "motorSub"));
 
   // create executor
   RCCHECK(rclc_executor_init(&executor, &support.context, 4, &allocator));
   RCCHECK(rclc_executor_add_subscription(&executor, &ledSub, &ledMsg, &subled_callback, ON_NEW_DATA));
   RCCHECK(rclc_executor_add_subscription(&executor, &songSub, &songMsg, &subsong_callback, ON_NEW_DATA));
   RCCHECK(rclc_executor_add_subscription(&executor, &lcdSub, &lcdMsg, &sublcd_callback, ON_NEW_DATA));
-  RCCHECK(rclc_executor_add_subscription(&executor, &cmd_vel_sub, &cmd_vel, cmd_vel_callback, ON_NEW_DATA));
+  RCCHECK(rclc_executor_add_subscription(&executor, &motorSub, &motorMsg, &motor_callback, ON_NEW_DATA));
 
   DEBUG_PRINTLN("ROS established");
   DEBUG_PRINTLN("Done setup");
@@ -226,11 +281,5 @@ void loop() {
   // and calculate the velocities.
   if (currentMillis - previousMillis > INTERVAL) {
     previousMillis = currentMillis;
-    DEBUG_PRINTLN("Add any action here");
-  }
-
-  // Stop the car if there are no cmd_vel messages
-  if ((millis() / 1000) - lastCmdVelReceived > 1) {
-    DEBUG_PRINTLN("Add arm stop code");
   }
 }
