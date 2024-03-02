@@ -281,5 +281,6 @@ void loop() {
   // and calculate the velocities.
   if (currentMillis - previousMillis > INTERVAL) {
     previousMillis = currentMillis;
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
   }
 }

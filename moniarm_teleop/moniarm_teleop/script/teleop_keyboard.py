@@ -41,6 +41,7 @@ from rclpy.node import Node
 
 from geometry_msgs.msg import Twist  # linear speed,angle speed msg type (for x,y,z)
 from std_msgs.msg import Int32
+from std_msgs.msg import Int32MultiArray
 from rclpy.qos import QoSProfile
 
 if os.name == 'nt':
@@ -140,10 +141,12 @@ def main():
 
     qos = QoSProfile(depth=10)
     node = rclpy.create_node('teleop_keyboard_node')        # generate node
-    pub = node.create_publisher(Twist, 'cmd_vel', qos)      # generate publisher for 'cmd_vel'
+
     ledpub = node.create_publisher(Int32, 'ledSub',10)      # generate publisher for 'ledSub'
     songpub = node.create_publisher(Int32, 'songSub',10)    # generate publisher for 'songpub'
     lcdpub = node.create_publisher(Int32, 'lcdSub',10)      # generate publisher for 'lcdpub'
+    motorpub= node.create_publisher(Int32MultiArray, 'motorSub', qos)
+                                                            # generate publisher for 'cmd_vel'
 
     print('moniarm Teleop Keyboard controller')
 
@@ -238,7 +241,8 @@ def main():
                 status = 0
 
             twist = Twist()         #generate variable for Twist type msg
-
+            motorMsg = Int32MultiArray()
+            motorMsg.data = [0, 0, 0, 0]
             control_linear_velocity = make_simple_profile(
                 control_linear_velocity,
                 target_linear_velocity,
@@ -261,22 +265,21 @@ def main():
             twist.angular.x = 0.0
             twist.angular.y = 0.0
             twist.angular.z = control_angular_velocity
-            pub.publish(twist)      #publishing 'cmd_vel'
+
+            motorMsg.data[0] = int(twist.angular.z*180/3.14)    #M0, degree
+            motorMsg.data[1] = int(twist.linear.x*180/3.14)     #M1, degree
+            motorMsg.data[2] = int(twist.linear.y*180/3.14)     #M2, degree
+            motorMsg.data[3] = 0                                #Gripper
+            motorpub.publish(motorMsg)
 
     except Exception as e:
         print(e)
 
     finally:  #
-        twist = Twist()
-        twist.linear.x = 0.0
-        twist.linear.y = 0.0
-        twist.linear.z = 0.0
-
-        twist.angular.x = 0.0
-        twist.angular.y = 0.0
-        twist.angular.z = 0.0
-
-        pub.publish(twist)
+        #motor parking angle
+        motorMsg = Int32MultiArray()
+        motorMsg.data = [0, 0, 0, 0]
+        motorpub.publish(motorMsg)
 
         if os.name != 'nt':
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
