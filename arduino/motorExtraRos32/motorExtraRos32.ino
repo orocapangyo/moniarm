@@ -19,7 +19,7 @@
 
 #include "songlcdled.h"
 
-#define DOMAINID 11
+#define DOMAINID 108
 
 rcl_subscription_t motorSub, ledSub, songSub, lcdSub;
 std_msgs__msg__Int32 ledMsg, songMsg, lcdMsg;
