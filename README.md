@@ -184,7 +184,7 @@ zeta@zeta-nano:~/ros2_ws$ ros2 launch moniarm_control yolo_chase.launch
 ### **Moveit2 state publisher**  
 joint_states publisher -> Move robot arm accordingly  
 <p align="center">
-    <img src='Images/moveitplan.gif' width=500 />
+    <img src='Images/moveitstate.gif' width=500 />
 </p>
 
 ```bash
@@ -197,7 +197,7 @@ zeta@changwhan-ASUS:~/ros2_ws$ ros2 launch moniarm_description moniarm.launch
 ### **Moveit2 planner**
 moveit planner -> Move robot arm accordingly  
 <p align="center">
-    <img src='Images/moveitstate.gif' width=500 />
+    <img src='Images/moveitplan.gif' width=500 />
 </p>
 
 ```bash

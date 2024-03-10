@@ -4,6 +4,7 @@ from setuptools import find_packages
 from setuptools import setup
 
 package_name = 'moniarm_teleop'
+submodules = "moniarm_teleop/submodules"
 
 setup(
     name=package_name,
@@ -19,10 +20,10 @@ setup(
         'setuptools',
     ],
     zip_safe=True,
-    author='Bishop Pearson',
-    author_email='bishopearson@gmail.com',
-    maintainer='Bishop Pearson',
-    maintainer_email='bishopearson@gmail.com',
+    author='ChangWhan Lee',
+    author_email='zeta0707@gmail.com',
+    maintainer='ChangWhan Lee',
+    maintainer_email='zeta0707@gmail.com',
     keywords=['ROS'],
     classifiers=[
         'Intended Audience :: Developers',
@@ -38,7 +39,7 @@ setup(
     entry_points={
         'console_scripts': [
             'teleop_keyboard = moniarm_teleop.script.teleop_keyboard:main',
-            'teleop_joy = moniarm_teleop.script.teleop_joy:main'
+            'teleop_joy = moniarm_teleop.script.teleop_joy:main',
         ],
     },
 )

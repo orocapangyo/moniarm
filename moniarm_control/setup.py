@@ -8,7 +8,7 @@ submodules = "moniarm_control/submodules"
 
 setup(
     name=package_name,
-    version='0.0.1',
+    version='0.9.1',
     packages=find_packages(exclude=[]),
     data_files=[
         ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
@@ -32,17 +32,16 @@ setup(
         'Topic :: Software Development',
     ],
     description=(
-        'Teleoperation node using keyboard or joystick for the moniarm'
+        'Robot arm control nodes'
     ),
     license='Apache License, Version 2.0',
     entry_points={
         'console_scripts': [
-            'blob_chase = moniarm_control.blob_chase:main',
-            'chase_the_ball = moniarm_control.chase_the_ball:main', 
-            'joy_control = moniarm_control.joy_control:main',
-            'motor_control = moniarm_control.motor_control:main',
-            'chase_object_yolo = moniarm_control.chase_object_yolo:main', 
-            'chase_traffic_yolo = moniarm_control.chase_traffic_yolo:main', 
+            'lowlevel_control = moniarm_control.lowlevel_control:main',
+            'chase_the_ball = moniarm_control.chase_the_ball:main',
+            'chase_object_yolo = moniarm_control.chase_object_yolo:main',
+            'chase_moveit = moniarm_control.chase_moveit:main',
+            'mimic_teleop = moniarm_control.mimic_teleop:main',
         ],
     },
 )

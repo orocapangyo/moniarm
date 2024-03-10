@@ -57,6 +57,8 @@ enum states {
 #define DEBUG_PRINTLN(x)
 #endif
 
+#define PRINT_ANGLE 1
+
 #define INTERVAL 50
 long previousMillis = 0;
 long currentMillis = 0;
@@ -109,12 +111,14 @@ void motor_callback(const void *msgin) {
   Herkulex.moveOneAngle(M1_ID, angle1, 500, LED_RED);
   delay(10);
   Herkulex.moveOneAngle(M2_ID, angle2, 500, LED_RED);
-  //DEBUG_PRINT("M0:");
-  //DEBUG_PRINT(angle0);
-  //DEBUG_PRINT(" ,M1:");
-  //DEBUG_PRINT(angle1);
-  //DEBUG_PRINT(" ,M2:");
-  //DEBUG_PRINTLN(angle2);
+#if (PRINT_ANGLE == 1)
+  DEBUG_PRINT("M0:");
+  DEBUG_PRINT(angle0);
+  DEBUG_PRINT(" ,M1:");
+  DEBUG_PRINT(angle1);
+  DEBUG_PRINT(" ,M2:");
+  DEBUG_PRINTLN(angle2);
+#endif
 }
 
 void subled_callback(const void *msgin) {
@@ -162,11 +166,13 @@ void setup() {
   set_microros_transports();
 
   Herkulex.reboot(M0_ID);
+  delay(200);
   Herkulex.reboot(M1_ID);
+  delay(200);
   Herkulex.reboot(M2_ID);
-  delay(500);
+  delay(200);
   Herkulex.initialize();  //initialize motors
-  delay(1500);
+  delay(1000);
 
   DEBUG_PRINT("M0:");
   DEBUG_PRINT(Herkulex.getAngle(M0_ID));

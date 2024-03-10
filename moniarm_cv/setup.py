@@ -8,7 +8,7 @@ submodules = "moniarm_cv/submodules"
 
 setup(
     name=package_name,
-    version='0.0.1',
+    version='0.9.1',
     packages=find_packages(exclude=[]),
     data_files=[
         ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
@@ -22,7 +22,7 @@ setup(
     zip_safe=True,
     author='ChangWhan Lee',
     author_email='zeta0707@gmail.com',
-    maintainer='BChangWhan Lee',
+    maintainer='ChangWhan Lee',
     maintainer_email='zeta0707@gmail.com',
     keywords=['ROS'],
     classifiers=[
@@ -39,7 +39,7 @@ setup(
         'console_scripts': [
             'csi_pub = moniarm_cv.csi_pub:main',
             'usbcam_pub = moniarm_cv.usbcam_pub:main',
-            'find_ball = moniarm_cv.find_ball:main',           
+            'find_ball = moniarm_cv.find_ball:main',
         ],
     },
 )

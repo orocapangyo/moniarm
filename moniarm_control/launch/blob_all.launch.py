@@ -24,7 +24,7 @@ def generate_launch_description():
 
     IncludeLaunchDescription(
       PythonLaunchDescriptionSource([
-        FindPackageShare("moniarm_control"), '/launch', '/blob_chase.launch.py'])
+        FindPackageShare("moniarm_control"), '/launch', '/lowlevel_ctl.launch.py'])
     ),
   ])
 

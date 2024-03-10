@@ -1,0 +1,3 @@
+teleop_joy_node:
+  ros__parameters:
+    max_rad_s: 1.57

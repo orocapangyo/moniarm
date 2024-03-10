@@ -18,7 +18,7 @@ def generate_launch_description():
     'teleop_joy_parameter',
     default=os.path.join(
       get_package_share_directory('moniarm_teleop'),
-      'param/teleop_joy.param.yaml'
+      'param/teleop_joy.yaml'
     )
   )
   return LaunchDescription([
