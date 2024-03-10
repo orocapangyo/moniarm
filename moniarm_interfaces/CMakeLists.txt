@@ -11,6 +11,11 @@ find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
     "msg/Arm3dof.msg"
+    "msg/Joint.msg"
+    "msg/Arm.msg"
+    "srv/GetStatus.srv"
+    "srv/Init.srv"
+    "action/Grab.action"
  )
 
 if(BUILD_TESTING)

@@ -1,0 +1,10 @@
+#Goal
+float32 goal
+---
+
+# Result
+float32 total
+
+---
+# Feedback
+string[] forumla
