@@ -32,33 +32,24 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from time import sleep, time
 import os
 import select
 import sys
 import rclpy
 from rclpy.logging import get_logger
 from rclpy.node import Node
-
-from geometry_msgs.msg import Twist  # linear speed,angle speed msg type (for x,y,z)
 from std_msgs.msg import Int32
 from std_msgs.msg import Int32MultiArray
 from rclpy.qos import QoSProfile
+from .submodules.myutil import Moniarm, radiansToDegrees, trimLimits
+from .submodules.myconfig import *
 
 if os.name == 'nt':
     import msvcrt
 else:
     import termios
     import tty
-
-
-MAX_LIN_VEL = 1.57
-MAX_ANG_VEL = 1.57
-LIN_VEL_STEP_SIZE = 0.157
-ANG_VEL_STEP_SIZE = 0.157
-
-MAX_SONG = 5
-MAX_ANIM = 3
-MAX_COLOR = 6
 
 msg = """
 Control Your Robot!
@@ -95,7 +86,7 @@ def get_key(settings):
     return key
 
 def print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity):
-    print('M1 {0}\t M2 {1} \t M0 {2} \t'.format(
+    print('M0= %.2f, M1 %.2f, M2= %.2f'%(
         target_linear_velocity,
         target_linear1_velocity,
         target_angular_velocity))
@@ -124,9 +115,9 @@ def constrain(input_vel, low_bound, high_bound):
 def check_linear_limit_velocity(velocity):
     return constrain(velocity, -MAX_LIN_VEL, MAX_LIN_VEL)
 
-
 def check_angular_limit_velocity(velocity):
     return constrain(velocity, -MAX_ANG_VEL, MAX_ANG_VEL)
+
 def main():
     settings = None
     if os.name != 'nt':
@@ -141,6 +132,9 @@ def main():
 
     qos = QoSProfile(depth=10)
     node = rclpy.create_node('teleop_keyboard_node')        # generate node
+
+    robotarm = Moniarm()
+    robotarm.home()
 
     ledpub = node.create_publisher(Int32, 'ledSub',10)      # generate publisher for 'ledSub'
     songpub = node.create_publisher(Int32, 'songSub',10)    # generate publisher for 'songpub'
@@ -164,6 +158,13 @@ def main():
     lcdIdx = 0
     gMsg = Int32()
 
+    #generate variable for Twist type msg
+    rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_control/moniarm_control/')
+    fhandle = open(rosPath + 'automove.txt', 'w')
+
+    prev_time = time()
+    timediff = 0.0
+
     try:
         print(msg)
         while(1):
@@ -172,32 +173,32 @@ def main():
                 target_linear_velocity = \
                     check_linear_limit_velocity(target_linear_velocity + LIN_VEL_STEP_SIZE)
                 status = status + 1
-                print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
+                #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
             elif key == 'x':            # linear speed down
                 target_linear_velocity = \
                     check_linear_limit_velocity(target_linear_velocity - LIN_VEL_STEP_SIZE)
                 status = status + 1
-                print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
+                #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
             elif key == 'q':              # linear speed up
                 target_linear1_velocity = \
                     check_linear_limit_velocity(target_linear1_velocity + LIN_VEL_STEP_SIZE)
                 status = status + 1
-                print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
+                #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
             elif key == 'z':            # linear speed down
                 target_linear1_velocity = \
                     check_linear_limit_velocity(target_linear1_velocity - LIN_VEL_STEP_SIZE)
                 status = status + 1
-                print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
+                #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
             elif key == 'a':            # left angle spped up
                 target_angular_velocity = \
                     check_angular_limit_velocity(target_angular_velocity + ANG_VEL_STEP_SIZE)
                 status = status + 1
-                print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
+                #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
             elif key == 'd':            # right angle spped up
                 target_angular_velocity = \
                     check_angular_limit_velocity(target_angular_velocity - ANG_VEL_STEP_SIZE)
                 status = status + 1
-                print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
+                #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
 
             elif key == ' ' or key == 's':  # pause
                 target_linear_velocity = 0.0
@@ -206,7 +207,7 @@ def main():
                 control_linear1_velocity = 0.0
                 target_angular_velocity = 0.0
                 control_angular_velocity = 0.0
-                print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
+                #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
 
             elif key == 'c':                # led control
                 print('colorIdx: %d'%(colorIdx))
@@ -233,14 +234,17 @@ def main():
                     lcdIdx = 0
 
             else:
+                #Ctrl-C, then stop working
                 if (key == '\x03'):
                     break
+                #no valid input, then don't control arm
+                else:
+                    continue
 
             if status == 20:
                 print(msg)
                 status = 0
 
-            twist = Twist()         #generate variable for Twist type msg
             motorMsg = Int32MultiArray()
             motorMsg.data = [0, 0, 0, 0]
             control_linear_velocity = make_simple_profile(
@@ -253,33 +257,29 @@ def main():
                 target_linear1_velocity,
                 (LIN_VEL_STEP_SIZE / 2.0))
 
-            twist.linear.x = control_linear_velocity
-            twist.linear.y = control_linear1_velocity
-            twist.linear.z = 0.0
-
             control_angular_velocity = make_simple_profile(
                 control_angular_velocity,
                 target_angular_velocity,
                 (ANG_VEL_STEP_SIZE / 2.0))
 
-            twist.angular.x = 0.0
-            twist.angular.y = 0.0
-            twist.angular.z = control_angular_velocity
+            motorMsg.data[0] = trimLimits(radiansToDegrees(control_angular_velocity))       #M0, degree
+            motorMsg.data[1] = trimLimits(radiansToDegrees(control_linear_velocity))        #M1, degree
+            motorMsg.data[2] = trimLimits(radiansToDegrees(control_linear1_velocity))       #M2, degree
+            motorMsg.data[3] = 0                                                            #Gripper
+            robotarm.run(motorMsg)
+            print('M0= %.2f, M1 %.2f, M2= %.2f'%(motorMsg.data[0], motorMsg.data[1],motorMsg.data[2]))
 
-            motorMsg.data[0] = int(twist.angular.z*180/3.14)    #M0, degree
-            motorMsg.data[1] = int(twist.linear.x*180/3.14)     #M1, degree
-            motorMsg.data[2] = int(twist.linear.y*180/3.14)     #M2, degree
-            motorMsg.data[3] = 0                                #Gripper
-            motorpub.publish(motorMsg)
+            timediff = time() - prev_time
+            prev_time = time()
+            fhandle.write(str(motorMsg.data[0]) + ':' + str(motorMsg.data[1] ) + ':' + str(motorMsg.data[2] ) 
+                + ':' + str(motorMsg.data[3] ) + ':' + str(timediff) + '\n')
 
     except Exception as e:
         print(e)
 
     finally:  #
         #motor parking angle
-        motorMsg = Int32MultiArray()
-        motorMsg.data = [0, 0, 0, 0]
-        motorpub.publish(motorMsg)
+        robotarm.park()
 
         if os.name != 'nt':
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)

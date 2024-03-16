@@ -103,8 +103,8 @@ void motor_callback(const void *msgin) {
   int angle0, angle1, angle2, angle3;
 
   angle0 = msg->data.data[0];
-  angle1 = msg->data.data[1];
-  angle2 = msg->data.data[2];
+  angle1 = msg->data.data[1]; angle1 = 0 - angle1;    //motor angle is reverse
+  angle2 = msg->data.data[2]; angle2 = 0 - angle2;    //motor angle is reverse
 
   Herkulex.moveOneAngle(M0_ID, angle0, 500, LED_RED);
   delay(10);

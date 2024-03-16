@@ -32,21 +32,18 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from tokenize import Double
+from time import sleep, time
+import os
 import rclpy
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.logging import get_logger
 from std_msgs.msg import Int32
-from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 from rclpy.qos import QoSProfile
-
-MAX_SONG = 5
-MAX_ANIM = 3
-MAX_COLOR = 6
-MAX_CHAT = 5
-TIMER_JOY = 0.1
+from .submodules.myutil import Moniarm, radiansToDegrees, trimLimits, clamp
+from .submodules.myconfig import *
+from std_msgs.msg import Int32MultiArray
 
 msg = """
 Control Your Robot!
@@ -70,6 +67,7 @@ class TeleopJoyNode(Node):
             namespace='',
             parameters=[
                 ('max_rad_s', 0.0),
+                ('step_rad_s', 0.0),
             ])
 
         self.auto_mode = False
@@ -77,31 +75,43 @@ class TeleopJoyNode(Node):
         self.mode_button_last = 0
         self.colorIdx = 0           # variable for saving data in ledSub's msg data field
         self.songIdx = 0            # variable for saving data in songSub's msg data field
-        self.lcdIdx = 0             # variable for saving data in songSub's msg data field
+        self.lcdIdx = 0             # variable for saving data in lcdSub's msg data field
+        self.control_linear_velocity = 0.0
+        self.control_linear1_velocity = 0.0
+        self.control_angular_velocity = 0.0
         self.gMsg  =  Int32()
         self.pub_led = self.create_publisher(Int32, 'ledSub',10)
         self.pub_song = self.create_publisher(Int32, 'songSub',10)
         self.pub_lcd = self.create_publisher(Int32, 'lcdSub',10)
+
         print(' moniarm Teleop Joystick controller')
         print(msg)
-
-        self.max_ang_vel = self.get_parameter_or('max_rad_s', Parameter('max_rad_s', Parameter.Type.DOUBLE, 0.2)).get_parameter_value().double_value
-
-        print('Param max ang: %s dev/s'%
-            (self.max_ang_vel)
+        self.max_ang_vel = self.get_parameter_or('max_rad_s', Parameter('max_rad_s', Parameter.Type.DOUBLE, 3.14)).get_parameter_value().double_value
+        self.step_ang_vel = self.get_parameter_or('step_rad_s', Parameter('step_rad_s', Parameter.Type.DOUBLE, 20.0)).get_parameter_value().double_value
+        print('max ang: %s rad/s, step angle: %s'%
+            (self.max_ang_vel,
+            self.step_ang_vel)
         )
-
         print('CTRL-C to quit')
 
+        self.motorMsg = Int32MultiArray()
+        self.motorMsg.data = [0, 0, 0, 0]
+
+        self.robotarm = Moniarm()
+        self.robotarm.home()
+
         self.qos = QoSProfile(depth=10)
-        self.pub_twist = self.create_publisher(Twist, 'cmd_vel', self.qos)
         # generate publisher for 'cmd_vel'
         self.sub = self.create_subscription(Joy, 'joy', self.cb_joy, 10)
         # generate publisher for 'ledSub
         self.timer = self.create_timer(TIMER_JOY, self.cb_timer)
-        self.twist = Twist()
-        #generate variable for Twist type msg
 
+        #generate variable for Twist type msg
+        rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_control/moniarm_control/')
+        self.fhandle = open(rosPath + 'automove.txt', 'w')
+
+        self.prev_time = time()
+        self.timediff = 0.0
     def cb_joy(self, joymsg):
         if joymsg.buttons[0] == 1 and self.mode_button_last == 0:
             print('colorIdx: %d'%(self.colorIdx))
@@ -130,24 +140,41 @@ class TeleopJoyNode(Node):
                 self.lcdIdx=0
             self.mode_button_last = joymsg.buttons[4]
 
-        self.twist.linear.y = 0.0
-        self.twist.linear.z = 0.0
-        self.twist.angular.x = 0.0
-        self.twist.angular.y = 0.0
-
         # Make jostick -> /cmd_vel
-        self.twist.linear.x = joymsg.axes[1] * self.max_ang_vel
-        self.twist.linear.y = joymsg.axes[3] * self.max_ang_vel
-        self.twist.angular.z = joymsg.axes[0] * self.max_ang_vel
+        elif joymsg.axes[1] != 0:
+            self.control_linear_velocity += joymsg.axes[1] * self.max_ang_vel / self.step_ang_vel
+            self.control_linear_velocity = clamp(self.control_linear_velocity, -self.max_ang_vel, self.max_ang_vel)
+        elif joymsg.axes[3] != 0:
+            self.control_linear1_velocity += joymsg.axes[3] * self.max_ang_vel / self.step_ang_vel
+            self.control_linear1_velocity = clamp(self.control_linear1_velocity, -self.max_ang_vel, self.max_ang_vel)
+        elif joymsg.axes[0] != 0:        
+            self.control_angular_velocity += joymsg.axes[0] * self.max_ang_vel / self.step_ang_vel
+            self.control_angular_velocity = clamp(self.control_angular_velocity, -self.max_ang_vel, self.max_ang_vel)
+        else:
+            #nothing to do, then return
+            return True
 
-        print('M1= %.2f, M2 %.2f, M0= %.2f'%(self.twist.linear.x, self.twist.linear.y,self.twist.angular.z))
+        self.motorMsg.data[0] = trimLimits(radiansToDegrees(self.control_angular_velocity))       #M0, degree
+        self.motorMsg.data[1] = trimLimits(radiansToDegrees(self.control_linear_velocity))        #M1, degree
+        self.motorMsg.data[2] = trimLimits(radiansToDegrees(self.control_linear1_velocity))       #M2, degree
+        self.motorMsg.data[3] = 0                                                                 #Gripper
+        self.robotarm.run(self.motorMsg)
+        print('M0= %.2f, M1 %.2f, M2= %.2f'%(self.motorMsg.data[0], self.motorMsg.data[1],self.motorMsg.data[2]))
+
+        self.timediff = time() - self.prev_time
+        self.prev_time = time()
+        self.fhandle.write(str(self.motorMsg.data[0]) + ':' + str(self.motorMsg.data[1] ) + ':' + str(self.motorMsg.data[2] ) 
+        + ':' + str(self.motorMsg.data[3] ) + ':' + str(self.timediff) + '\n')
 
     def cb_timer(self):
-        self.pub_twist.publish(self.twist)  # publishing 'cmd_vel'
-        self.chatCount += 1                 # protect chattering
+        self.chatCount += 1                     # protect chattering
         if self.chatCount > MAX_CHAT:
             self.mode_button_last = 0
             self.chatCount = 0
+
+    def __del__(self):
+        print("Arm class release")
+        self.robotarm.park()
 
 def main(args=None):
     rclpy.init(args=args)

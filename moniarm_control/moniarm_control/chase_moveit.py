@@ -45,7 +45,7 @@ class ChaseMoveit(Node):
         self.prev_time = time()
         print( str(motorMsg.data[0]) + ':' + str(motorMsg.data[1]) + ':' + str(motorMsg.data[2])
         + ':' + str(motorMsg.data[3]) + ':' + str(self.timediff))
-        
+
     def __del__(self):
         print("Arm class release")
         self.robotarm.park()
