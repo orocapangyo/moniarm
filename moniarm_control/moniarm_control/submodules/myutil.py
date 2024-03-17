@@ -2,48 +2,7 @@ from time import sleep
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int32MultiArray
-
-#turn left or right of base
-MOTOR0_ZERO = 0
-MOTOR0_HOME = 0
-MOTOR0_OFF = MOTOR0_HOME
-YAW_MIN = -150
-YAW_MAX = 150
-MOTOR0_PLACE1 = YAW_MIN
-MOTOR0_PLACE2 = YAW_MAX
-
-#forward or backward
-#roll, 2 DOF
-ROLL_TOTAL_MAX = 90
-ROLL_TOTAL_MIN = -90
-
-MOTOR1_ZERO = 0
-MOTOR1_HOME = 90
-MOTOR1_PICKUP = (MOTOR1_HOME - 10)
-MOTOR1_OFF = MOTOR1_HOME
-MOTOR1_MIN  = (MOTOR1_HOME - 30)
-MOTOR1_MAX  = (MOTOR1_HOME + 30)
-MOTOR1_DIF_MIN = (MOTOR1_MIN - MOTOR1_HOME)
-MOTOR1_DIF_MAX = (MOTOR1_MAX - MOTOR1_HOME)
-
-MOTOR2_ZERO = 0
-MOTOR2_HOME = 0
-MOTOR2_PICKUP = (MOTOR2_HOME - 30)
-MOTOR2_OFF = (MOTOR2_HOME + 20)
-
-MOTOR2_MIN  = (MOTOR2_HOME - 30)
-MOTOR2_MAX  = (MOTOR2_HOME + 30)
-MOTOR2_DIF_MIN = (MOTOR2_MIN - MOTOR2_HOME)
-MOTOR2_DIF_MAX = (MOTOR2_MAX - MOTOR2_HOME)
-
-#gripper open/close
-GRIPPER_OPEN = 0
-GRIPPER_CLOSE = 1
-GRIPPER_ZERO = GRIPPER_OPEN
-GRIPPER_HOME = GRIPPER_OPEN
-GRIPPER_OFF = GRIPPER_OPEN
-GRIPPER_MIN = GRIPPER_OPEN
-GRIPPER_MAX = GRIPPER_CLOSE
+from . myconfig import *
 
 def clamp(n, minn, maxn):
     if n < minn:
@@ -88,17 +47,31 @@ class Moniarm(Node):
 
     def park(self):
         self.motorMsg.data[0] = MOTOR0_OFF
+        self.motorPub.publish(self.motorMsg)
+        sleep(0.5)
         self.motorMsg.data[1] = MOTOR1_OFF
+        self.motorPub.publish(self.motorMsg)
+        sleep(0.5)
         self.motorMsg.data[2] = MOTOR2_OFF
+        self.motorPub.publish(self.motorMsg)
+        sleep(0.5)
         self.motorMsg.data[3] = GRIPPER_OFF
         self.motorPub.publish(self.motorMsg)
+        sleep(0.5)
 
     def home(self):
         self.motorMsg.data[0] = MOTOR0_HOME
+        self.motorPub.publish(self.motorMsg)
+        sleep(0.5)
         self.motorMsg.data[1] = MOTOR1_HOME
+        self.motorPub.publish(self.motorMsg)
+        sleep(0.5)
         self.motorMsg.data[2] = MOTOR2_HOME
+        self.motorPub.publish(self.motorMsg)
+        sleep(0.5)
         self.motorMsg.data[3] = GRIPPER_HOME
         self.motorPub.publish(self.motorMsg)
+        sleep(0.5)
 
     def picknplace(self, object):
         #pose for pikcing up

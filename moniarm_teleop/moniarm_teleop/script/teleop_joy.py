@@ -66,8 +66,8 @@ class TeleopJoyNode(Node):
         self.declare_parameters(    # bring the param from yaml file
             namespace='',
             parameters=[
-                ('max_rad_s', 0.0),
-                ('step_rad_s', 0.0),
+                ('max_deg', 120),
+                ('step_deg', 20),
             ])
 
         self.auto_mode = False
@@ -76,9 +76,11 @@ class TeleopJoyNode(Node):
         self.colorIdx = 0           # variable for saving data in ledSub's msg data field
         self.songIdx = 0            # variable for saving data in songSub's msg data field
         self.lcdIdx = 0             # variable for saving data in lcdSub's msg data field
-        self.control_linear_velocity = 0.0
-        self.control_linear1_velocity = 0.0
-        self.control_angular_velocity = 0.0
+
+        self.control_linear_velocity = MOTOR1_HOME
+        self.control_linear1_velocity = MOTOR2_HOME
+        self.control_angular_velocity = MOTOR0_HOME
+
         self.gMsg  =  Int32()
         self.pub_led = self.create_publisher(Int32, 'ledSub',10)
         self.pub_song = self.create_publisher(Int32, 'songSub',10)
@@ -86,11 +88,11 @@ class TeleopJoyNode(Node):
 
         print(' moniarm Teleop Joystick controller')
         print(msg)
-        self.max_ang_vel = self.get_parameter_or('max_rad_s', Parameter('max_rad_s', Parameter.Type.DOUBLE, 3.14)).get_parameter_value().double_value
-        self.step_ang_vel = self.get_parameter_or('step_rad_s', Parameter('step_rad_s', Parameter.Type.DOUBLE, 20.0)).get_parameter_value().double_value
+        self.max_deg = self.get_parameter_or('max_deg', Parameter('max_deg', Parameter.Type.INTEGER, 120)).get_parameter_value().integer_value
+        self.step_deg = self.get_parameter_or('step_deg', Parameter('step_deg', Parameter.Type.INTEGER, 20)).get_parameter_value().integer_value
         print('max ang: %s rad/s, step angle: %s'%
-            (self.max_ang_vel,
-            self.step_ang_vel)
+            (self.max_deg,
+            self.step_deg)
         )
         print('CTRL-C to quit')
 
@@ -142,28 +144,29 @@ class TeleopJoyNode(Node):
 
         # Make jostick -> /cmd_vel
         elif joymsg.axes[1] != 0:
-            self.control_linear_velocity += joymsg.axes[1] * self.max_ang_vel / self.step_ang_vel
-            self.control_linear_velocity = clamp(self.control_linear_velocity, -self.max_ang_vel, self.max_ang_vel)
+            self.control_linear_velocity += joymsg.axes[1] * self.max_deg / self.step_deg
         elif joymsg.axes[3] != 0:
-            self.control_linear1_velocity += joymsg.axes[3] * self.max_ang_vel / self.step_ang_vel
-            self.control_linear1_velocity = clamp(self.control_linear1_velocity, -self.max_ang_vel, self.max_ang_vel)
-        elif joymsg.axes[0] != 0:        
-            self.control_angular_velocity += joymsg.axes[0] * self.max_ang_vel / self.step_ang_vel
-            self.control_angular_velocity = clamp(self.control_angular_velocity, -self.max_ang_vel, self.max_ang_vel)
+            self.control_linear1_velocity += joymsg.axes[3] * self.max_deg / self.step_deg
+        elif joymsg.axes[0] != 0:
+            self.control_angular_velocity += joymsg.axes[0] * self.max_deg / self.step_deg
         else:
             #nothing to do, then return
             return True
 
-        self.motorMsg.data[0] = trimLimits(radiansToDegrees(self.control_angular_velocity))       #M0, degree
-        self.motorMsg.data[1] = trimLimits(radiansToDegrees(self.control_linear_velocity))        #M1, degree
-        self.motorMsg.data[2] = trimLimits(radiansToDegrees(self.control_linear1_velocity))       #M2, degree
-        self.motorMsg.data[3] = 0                                                                 #Gripper
+        self.control_angular_velocity = int(clamp(self.control_angular_velocity, -self.max_deg, self.max_deg))
+        self.control_linear_velocity = int(clamp(self.control_linear_velocity, -self.max_deg, self.max_deg))
+        self.control_linear1_velocity = int(clamp(self.control_linear1_velocity, -self.max_deg, self.max_deg))
+
+        self.motorMsg.data[0] = self.control_angular_velocity         #M0, degree
+        self.motorMsg.data[1] = self.control_linear_velocity          #M1, degree
+        self.motorMsg.data[2] = self.control_linear1_velocity         #M2, degree
+        self.motorMsg.data[3] = 0                                #Gripper
         self.robotarm.run(self.motorMsg)
         print('M0= %.2f, M1 %.2f, M2= %.2f'%(self.motorMsg.data[0], self.motorMsg.data[1],self.motorMsg.data[2]))
 
         self.timediff = time() - self.prev_time
         self.prev_time = time()
-        self.fhandle.write(str(self.motorMsg.data[0]) + ':' + str(self.motorMsg.data[1] ) + ':' + str(self.motorMsg.data[2] ) 
+        self.fhandle.write(str(self.motorMsg.data[0]) + ':' + str(self.motorMsg.data[1] ) + ':' + str(self.motorMsg.data[2] )
         + ':' + str(self.motorMsg.data[3] ) + ':' + str(self.timediff) + '\n')
 
     def cb_timer(self):
@@ -173,7 +176,7 @@ class TeleopJoyNode(Node):
             self.chatCount = 0
 
     def __del__(self):
-        print("Arm class release")
+        print('Arm parking, be careful')
         self.robotarm.park()
 
 def main(args=None):

@@ -41,8 +41,7 @@ from rclpy.logging import get_logger
 from rclpy.node import Node
 from std_msgs.msg import Int32
 from std_msgs.msg import Int32MultiArray
-from rclpy.qos import QoSProfile
-from .submodules.myutil import Moniarm, radiansToDegrees, trimLimits
+from .submodules.myutil import Moniarm, radiansToDegrees, trimLimits, clamp
 from .submodules.myconfig import *
 
 if os.name == 'nt':
@@ -116,7 +115,7 @@ def check_linear_limit_velocity(velocity):
     return constrain(velocity, -MAX_LIN_VEL, MAX_LIN_VEL)
 
 def check_angular_limit_velocity(velocity):
-    return constrain(velocity, -MAX_ANG_VEL, MAX_ANG_VEL)
+    return constrain(velocity, -MAX_LIN_VEL, MAX_LIN_VEL)
 
 def main():
     settings = None
@@ -125,12 +124,11 @@ def main():
 
     rclpy.init()
 
-    print('Param max lin: %s m/s, max ang: %s rad/s, lin step: %s m/s ang step: %s rad/s'%
-        (MAX_LIN_VEL, MAX_ANG_VEL,
-        LIN_VEL_STEP_SIZE, ANG_VEL_STEP_SIZE)
+    print('Param max lin: %s deg, lin step: %s deg'%
+        (MAX_LIN_VEL,
+        LIN_VEL_STEP_SIZE)
     )
 
-    qos = QoSProfile(depth=10)
     node = rclpy.create_node('teleop_keyboard_node')        # generate node
 
     robotarm = Moniarm()
@@ -139,19 +137,16 @@ def main():
     ledpub = node.create_publisher(Int32, 'ledSub',10)      # generate publisher for 'ledSub'
     songpub = node.create_publisher(Int32, 'songSub',10)    # generate publisher for 'songpub'
     lcdpub = node.create_publisher(Int32, 'lcdSub',10)      # generate publisher for 'lcdpub'
-    motorpub= node.create_publisher(Int32MultiArray, 'motorSub', qos)
-                                                            # generate publisher for 'cmd_vel'
-
     print('moniarm Teleop Keyboard controller')
 
     status = 0
-    target_linear_velocity = 0.0
-    target_linear1_velocity = 0.0
-    target_angular_velocity = 0.0
-    target_angular_velocity = 0.0
-    control_linear1_velocity = 0.0
-    control_linear_velocity = 0.0
-    control_angular_velocity = 0.0
+
+    target_angular_velocity = MOTOR0_HOME
+    control_angular_velocity = MOTOR0_HOME
+    target_linear_velocity = MOTOR1_HOME
+    control_linear_velocity = MOTOR1_HOME
+    target_linear1_velocity = MOTOR2_HOME
+    control_linear1_velocity = MOTOR2_HOME
 
     colorIdx = 0                                        # variable for saving data in ledSub's msg data field
     songIdx = 0                                         # variable for saving data in songSub's msg data field
@@ -191,22 +186,22 @@ def main():
                 #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
             elif key == 'a':            # left angle spped up
                 target_angular_velocity = \
-                    check_angular_limit_velocity(target_angular_velocity + ANG_VEL_STEP_SIZE)
+                    check_angular_limit_velocity(target_angular_velocity + LIN_VEL_STEP_SIZE)
                 status = status + 1
                 #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
             elif key == 'd':            # right angle spped up
                 target_angular_velocity = \
-                    check_angular_limit_velocity(target_angular_velocity - ANG_VEL_STEP_SIZE)
+                    check_angular_limit_velocity(target_angular_velocity - LIN_VEL_STEP_SIZE)
                 status = status + 1
                 #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
 
             elif key == ' ' or key == 's':  # pause
-                target_linear_velocity = 0.0
-                control_linear_velocity = 0.0
-                target_linear1_velocity = 0.0
-                control_linear1_velocity = 0.0
-                target_angular_velocity = 0.0
-                control_angular_velocity = 0.0
+                target_angular_velocity = MOTOR0_HOME
+                control_angular_velocity = MOTOR0_HOME
+                target_linear_velocity = MOTOR1_HOME
+                control_linear_velocity =  MOTOR1_HOME
+                target_linear1_velocity = MOTOR2_HOME
+                control_linear1_velocity = MOTOR2_HOME
                 #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
 
             elif key == 'c':                # led control
@@ -260,18 +255,22 @@ def main():
             control_angular_velocity = make_simple_profile(
                 control_angular_velocity,
                 target_angular_velocity,
-                (ANG_VEL_STEP_SIZE / 2.0))
+                (LIN_VEL_STEP_SIZE / 2.0))
 
-            motorMsg.data[0] = trimLimits(radiansToDegrees(control_angular_velocity))       #M0, degree
-            motorMsg.data[1] = trimLimits(radiansToDegrees(control_linear_velocity))        #M1, degree
-            motorMsg.data[2] = trimLimits(radiansToDegrees(control_linear1_velocity))       #M2, degree
-            motorMsg.data[3] = 0                                                            #Gripper
+            control_angular_velocity = int(clamp(control_angular_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
+            control_linear_velocity = int(clamp(control_linear_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
+            control_linear1_velocity = int(clamp(control_linear1_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
+
+            motorMsg.data[0] = control_angular_velocity         #M0, degree
+            motorMsg.data[1] = control_linear_velocity          #M1, degree
+            motorMsg.data[2] = control_linear1_velocity         #M2, degree
+            motorMsg.data[3] = 0                                #Gripper
             robotarm.run(motorMsg)
             print('M0= %.2f, M1 %.2f, M2= %.2f'%(motorMsg.data[0], motorMsg.data[1],motorMsg.data[2]))
 
             timediff = time() - prev_time
             prev_time = time()
-            fhandle.write(str(motorMsg.data[0]) + ':' + str(motorMsg.data[1] ) + ':' + str(motorMsg.data[2] ) 
+            fhandle.write(str(motorMsg.data[0]) + ':' + str(motorMsg.data[1] ) + ':' + str(motorMsg.data[2] )
                 + ':' + str(motorMsg.data[3] ) + ':' + str(timediff) + '\n')
 
     except Exception as e:
@@ -279,6 +278,7 @@ def main():
 
     finally:  #
         #motor parking angle
+        print('Arm parking, be careful')
         robotarm.park()
 
         if os.name != 'nt':
