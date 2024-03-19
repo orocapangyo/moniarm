@@ -21,11 +21,13 @@ const int INTERVAL = 100;
 long previousMillis = 0;
 long currentMillis = 0;
 
-bool blinkState = false;
+bool blinkStatus = false;
 
 int motorID, targetAngle;
 
 void setup() {
+  // configure LED for output
+  pinMode(LED_BUILTIN, OUTPUT);
   pinMode(LED_L, OUTPUT);
   pinMode(LED_R, OUTPUT);
   pinMode(LED_F, OUTPUT);
@@ -45,25 +47,38 @@ void setup() {
   Herkulex.beginSerial1(115200, RXD1, TXD1);  //open serial1 for motor communication
 
   Herkulex.reboot(M0_ID);
-  Herkulex.reboot(M1_ID);
-  Herkulex.reboot(M2_ID);
-  delay(500);
-  Herkulex.initialize();  //initialize motors
   delay(200);
+  Herkulex.reboot(M1_ID);
+  delay(200);
+  Herkulex.reboot(M2_ID);
+  delay(200);
+  Herkulex.initialize();  //initialize motors
+  delay(500);
 }
 
 void loop() {
   // Record the time
   currentMillis = millis();
 
-  // If the time interval has passed, publish the number of ticks,
-  // and calculate the velocities.
+  // If the time interval has passed, receive command input
+  // LED blink on ESP32, change color on Herkulex
   if (currentMillis - previousMillis > INTERVAL) {
     previousMillis = currentMillis;
 
+    if (blinkStatus == false) {
+      Herkulex.setLed(M0_ID, LED_RED);
+      Herkulex.setLed(M1_ID, LED_GREEN);
+      Herkulex.setLed(M2_ID, LED_BLUE);
+      blinkStatus = true;
+    } else {
+      Herkulex.setLed(M0_ID, 0);
+      Herkulex.setLed(M1_ID, 0);
+      Herkulex.setLed(M2_ID, 0);
+      blinkStatus = false;
+    }
+
     // blink LED to indicate activity
-    blinkState = !blinkState;
-    digitalWrite(LED_BUILTIN, blinkState);
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
 
     //input ID angle
     if (Serial.available() > 0) {

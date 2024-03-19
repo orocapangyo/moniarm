@@ -38,10 +38,10 @@ def main():
             if not line:
                 break
 
-            motor0, motor1, motor2, motor3, motor4, motor5, time_diff = line.split(':')
+            motor0, motor1, motor2, motor3, time_diff = line.split(':')
             motorMsg.data[0] = int(motor0)
-            motorMsg.data[1] = int(motor2)
-            motorMsg.data[2] = int(motor3)
+            motorMsg.data[1] = int(motor1)
+            motorMsg.data[2] = int(motor2)
             motorMsg.data[3] = int(motor3)
 
             try:
@@ -52,7 +52,7 @@ def main():
             robotarm.run(motorMsg)
             sys.stdout.write(str(motor0)+':'+str(motor1)+':'+str(motor2)+ ':' + str(time_diff))
             sys.stdout.flush()
-
+            
     except Exception as e:
         print(e)
 
