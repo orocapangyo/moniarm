@@ -1,3 +1,4 @@
+MOTOR_NOMOVE = 360
 #turn left or right of base
 MOTOR0_ZERO = 0
 MOTOR0_HOME = 0

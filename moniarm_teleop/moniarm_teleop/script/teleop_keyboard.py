@@ -140,12 +140,8 @@ def main():
     print('moniarm Teleop Keyboard controller')
 
     status = 0
-
-    target_angular_velocity = MOTOR0_HOME
     control_angular_velocity = MOTOR0_HOME
-    target_linear_velocity = MOTOR1_HOME
     control_linear_velocity = MOTOR1_HOME
-    target_linear1_velocity = MOTOR2_HOME
     control_linear1_velocity = MOTOR2_HOME
 
     colorIdx = 0                                        # variable for saving data in ledSub's msg data field
@@ -165,45 +161,23 @@ def main():
         while(1):
             key = get_key(settings)
             if key == 'w':              # linear speed up
-                target_linear_velocity = \
-                    check_linear_limit_velocity(target_linear_velocity + LIN_VEL_STEP_SIZE)
+                control_linear_velocity = check_linear_limit_velocity(control_linear_velocity + LIN_VEL_STEP_SIZE)
                 status = status + 1
-                #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
             elif key == 'x':            # linear speed down
-                target_linear_velocity = \
-                    check_linear_limit_velocity(target_linear_velocity - LIN_VEL_STEP_SIZE)
+                control_linear_velocity = check_linear_limit_velocity(control_linear_velocity - LIN_VEL_STEP_SIZE)
                 status = status + 1
-                #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
             elif key == 'q':              # linear speed up
-                target_linear1_velocity = \
-                    check_linear_limit_velocity(target_linear1_velocity + LIN_VEL_STEP_SIZE)
+                control_linear1_velocity = check_linear_limit_velocity(control_linear1_velocity + LIN_VEL_STEP_SIZE)
                 status = status + 1
-                #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
             elif key == 'z':            # linear speed down
-                target_linear1_velocity = \
-                    check_linear_limit_velocity(target_linear1_velocity - LIN_VEL_STEP_SIZE)
+                control_linear1_velocity = check_linear_limit_velocity(control_linear1_velocity - LIN_VEL_STEP_SIZE)
                 status = status + 1
-                #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
             elif key == 'a':            # left angle spped up
-                target_angular_velocity = \
-                    check_angular_limit_velocity(target_angular_velocity + LIN_VEL_STEP_SIZE)
+                control_angular_velocity = check_angular_limit_velocity(control_angular_velocity + LIN_VEL_STEP_SIZE)
                 status = status + 1
-                #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
             elif key == 'd':            # right angle spped up
-                target_angular_velocity = \
-                    check_angular_limit_velocity(target_angular_velocity - LIN_VEL_STEP_SIZE)
+                control_angular_velocity = check_angular_limit_velocity(control_angular_velocity - LIN_VEL_STEP_SIZE)
                 status = status + 1
-                #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
-
-            elif key == ' ' or key == 's':  # pause
-                target_angular_velocity = MOTOR0_HOME
-                control_angular_velocity = MOTOR0_HOME
-                target_linear_velocity = MOTOR1_HOME
-                control_linear_velocity =  MOTOR1_HOME
-                target_linear1_velocity = MOTOR2_HOME
-                control_linear1_velocity = MOTOR2_HOME
-                #print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity)
-
             elif key == 'c':                # led control
                 print('colorIdx: %d'%(colorIdx))
                 gMsg.data = colorIdx
@@ -242,20 +216,6 @@ def main():
 
             motorMsg = Int32MultiArray()
             motorMsg.data = [0, 0, 0, 0]
-            control_linear_velocity = make_simple_profile(
-                control_linear_velocity,
-                target_linear_velocity,
-                (LIN_VEL_STEP_SIZE / 2.0))
-
-            control_linear1_velocity = make_simple_profile(
-                control_linear1_velocity,
-                target_linear1_velocity,
-                (LIN_VEL_STEP_SIZE / 2.0))
-
-            control_angular_velocity = make_simple_profile(
-                control_angular_velocity,
-                target_angular_velocity,
-                (LIN_VEL_STEP_SIZE / 2.0))
 
             control_angular_velocity = int(clamp(control_angular_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
             control_linear_velocity = int(clamp(control_linear_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))

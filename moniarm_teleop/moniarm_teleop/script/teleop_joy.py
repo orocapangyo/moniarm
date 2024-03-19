@@ -90,7 +90,7 @@ class TeleopJoyNode(Node):
         print(msg)
         self.max_deg = self.get_parameter_or('max_deg', Parameter('max_deg', Parameter.Type.INTEGER, 120)).get_parameter_value().integer_value
         self.step_deg = self.get_parameter_or('step_deg', Parameter('step_deg', Parameter.Type.INTEGER, 20)).get_parameter_value().integer_value
-        print('max ang: %s rad/s, step angle: %s'%
+        print('max ang: %s rad/s, step: %s'%
             (self.max_deg,
             self.step_deg)
         )
@@ -157,10 +157,10 @@ class TeleopJoyNode(Node):
         self.control_linear_velocity = int(clamp(self.control_linear_velocity, -self.max_deg, self.max_deg))
         self.control_linear1_velocity = int(clamp(self.control_linear1_velocity, -self.max_deg, self.max_deg))
 
-        self.motorMsg.data[0] = self.control_angular_velocity         #M0, degree
-        self.motorMsg.data[1] = self.control_linear_velocity          #M1, degree
-        self.motorMsg.data[2] = self.control_linear1_velocity         #M2, degree
-        self.motorMsg.data[3] = 0                                #Gripper
+        self.motorMsg.data[0] = self.control_angular_velocity           #M0, degree
+        self.motorMsg.data[1] = self.control_linear_velocity            #M1, degree
+        self.motorMsg.data[2] = self.control_linear1_velocity           #M2, degree
+        self.motorMsg.data[3] = 0                                       #Gripper
         self.robotarm.run(self.motorMsg)
         print('M0= %.2f, M1 %.2f, M2= %.2f'%(self.motorMsg.data[0], self.motorMsg.data[1],self.motorMsg.data[2]))
 

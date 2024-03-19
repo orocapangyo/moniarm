@@ -47,29 +47,47 @@ class Moniarm(Node):
 
     def park(self):
         self.motorMsg.data[0] = MOTOR0_OFF
+        self.motorMsg.data[1] = MOTOR_NOMOVE
+        self.motorMsg.data[2] = MOTOR_NOMOVE
         self.motorPub.publish(self.motorMsg)
         sleep(0.5)
         self.motorMsg.data[1] = MOTOR1_OFF
+        self.motorMsg.data[0] = MOTOR_NOMOVE
+        self.motorMsg.data[2] = MOTOR_NOMOVE
         self.motorPub.publish(self.motorMsg)
         sleep(0.5)
         self.motorMsg.data[2] = MOTOR2_OFF
+        self.motorMsg.data[0] = MOTOR_NOMOVE
+        self.motorMsg.data[1] = MOTOR_NOMOVE
         self.motorPub.publish(self.motorMsg)
         sleep(0.5)
         self.motorMsg.data[3] = GRIPPER_OFF
+        self.motorMsg.data[0] = MOTOR_NOMOVE
+        self.motorMsg.data[1] = MOTOR_NOMOVE
+        self.motorMsg.data[2] = MOTOR_NOMOVE
         self.motorPub.publish(self.motorMsg)
         sleep(0.5)
 
     def home(self):
         self.motorMsg.data[0] = MOTOR0_HOME
+        self.motorMsg.data[1] = MOTOR_NOMOVE
+        self.motorMsg.data[2] = MOTOR_NOMOVE
         self.motorPub.publish(self.motorMsg)
         sleep(0.5)
         self.motorMsg.data[1] = MOTOR1_HOME
+        self.motorMsg.data[0] = MOTOR_NOMOVE
+        self.motorMsg.data[2] = MOTOR_NOMOVE
         self.motorPub.publish(self.motorMsg)
         sleep(0.5)
         self.motorMsg.data[2] = MOTOR2_HOME
+        self.motorMsg.data[0] = MOTOR_NOMOVE
+        self.motorMsg.data[1] = MOTOR_NOMOVE
         self.motorPub.publish(self.motorMsg)
         sleep(0.5)
         self.motorMsg.data[3] = GRIPPER_HOME
+        self.motorMsg.data[0] = MOTOR_NOMOVE
+        self.motorMsg.data[1] = MOTOR_NOMOVE
+        self.motorMsg.data[2] = MOTOR_NOMOVE
         self.motorPub.publish(self.motorMsg)
         sleep(0.5)
 

@@ -37,6 +37,8 @@ enum states {
   AGENT_DISCONNECTED
 } state;
 
+#define NOTMOVE 360
+
 #define M0_ID 6
 #define M1_ID 7
 #define M2_ID 8
@@ -106,11 +108,13 @@ void motor_callback(const void *msgin) {
   angle1 = msg->data.data[1]; //angle1 = 0 - angle1;    //motor angle is reverse
   angle2 = msg->data.data[2]; //angle2 = 0 - angle2;    //motor angle is reverse
 
-  Herkulex.moveOneAngle(M0_ID, angle0, 500, LED_RED);
-  delay(10);
-  Herkulex.moveOneAngle(M1_ID, angle1, 500, LED_RED);
-  delay(10);
-  Herkulex.moveOneAngle(M2_ID, angle2, 500, LED_RED);
+  if (angle0 != NOTMOVE)
+    Herkulex.moveOneAngle(M0_ID, angle0, 500, LED_RED);
+  if (angle1 != NOTMOVE)
+    Herkulex.moveOneAngle(M1_ID, angle1, 500, LED_RED);
+  if (angle2 != NOTMOVE)
+    Herkulex.moveOneAngle(M2_ID, angle2, 500, LED_RED);
+    
 #if (PRINT_ANGLE == 1)
   DEBUG_PRINT("M0:");
   DEBUG_PRINT(angle0);
