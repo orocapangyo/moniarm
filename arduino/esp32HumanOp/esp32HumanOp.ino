@@ -17,9 +17,10 @@
 #define TXD2 17
 
 // Time interval for measurements in milliseconds
-const int INTERVAL = 100;
+const int INTERVAL = 300;
 long previousMillis = 0;
 long currentMillis = 0;
+long previousPress = 0;
 
 bool blinkStatus = false;
 
@@ -43,8 +44,6 @@ void setup() {
 
   delay(2000);           //a delay to have time for serial monitor opening
   Serial.begin(115200);  // Open serial communications for debug
-  Serial.println("Begin Herkulex Angle Capture");
-  Serial.println("Press c: continous capture, s: capture only 's'");
 
   Herkulex.beginSerial1(115200, RXD1, TXD1);  //open serial1 for motor communication
 
@@ -60,20 +59,26 @@ void setup() {
   Herkulex.torqueOFF(M2_ID);
   delay(500);
 
+  Serial.println("Begin Herkulex Angle Capture");
+  Serial.println("Press 'p': periodic capture, ' ': capture only ' ' key input");
+
   while (1) {
     if (Serial.available()) {
       keyinput = Serial.read();
-      if (keyinput == 'c') {
+      if (keyinput == 'p') {
         captureMode = 1;
-        Serial.println(captureMode);
+        //Serial.println(captureMode);
         break;
-      } else if (keyinput == 's') {
-        captureMode = 2; keyinput=0;
-        Serial.println(captureMode);
+      } else if (keyinput == ' ') {
+        captureMode = 2;
+        keyinput = 0;
+        //Serial.println(captureMode);
         break;
       } else Serial.println('Input differnent key');
     }
   }
+
+  previousPress = millis();
 }
 
 void loop() {
@@ -110,7 +115,9 @@ void loop() {
       Serial.print(':');
       Serial.print(Herkulex.getAngle(M2_ID));
       Serial.print(':');
-      Serial.println(0.101);
+      Serial.println(float(currentMillis - previousPress)/1000.0, 3);
+      previousPress = currentMillis;
     }
+    previousMillis = currentMillis;
   }
 }
