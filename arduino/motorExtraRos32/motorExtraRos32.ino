@@ -38,6 +38,7 @@ enum states {
 } state;
 
 #define NOTMOVE 360
+#define MAX_MOVE_TIME 1500
 
 #define M0_ID 6
 #define M1_ID 7
@@ -61,7 +62,7 @@ enum states {
 
 #define PRINT_ANGLE 1
 
-#define INTERVAL 50
+#define INTERVAL 100
 long previousMillis = 0;
 long currentMillis = 0;
 
@@ -99,22 +100,34 @@ float lastCmdVelReceived = 0.0;
   } while (0)
 
 
+void motorMoving(int mid, int tarAngle) {
+  int curAngle, moveTime;
+
+  //don't move angle input
+  if (tarAngle == NOTMOVE)
+    return;
+  //calculate moving time at first, should be enough for smooth operation
+  else {
+    curAngle = int(Herkulex.getAngle(mid));
+    moveTime = abs(tarAngle - curAngle)*30;
+    if (moveTime > MAX_MOVE_TIME)
+      moveTime =  MAX_MOVE_TIME;
+    Herkulex.moveOneAngle(mid, tarAngle, moveTime, LED_RED);
+  }
+}
 // Take the velocity command as input and calculate the PWM values.
 void motor_callback(const void *msgin) {
   const std_msgs__msg__Int32MultiArray *msg = (const std_msgs__msg__Int32MultiArray *)msgin;
   int angle0, angle1, angle2, angle3;
 
   angle0 = msg->data.data[0];
-  angle1 = msg->data.data[1]; //angle1 = 0 - angle1;    //motor angle is reverse
-  angle2 = msg->data.data[2]; //angle2 = 0 - angle2;    //motor angle is reverse
+  angle1 = msg->data.data[1];  //angle1 = 0 - angle1;    //motor angle is reverse
+  angle2 = msg->data.data[2];  //angle2 = 0 - angle2;    //motor angle is reverse
 
-  if (angle0 != NOTMOVE)
-    Herkulex.moveOneAngle(M0_ID, angle0, 500, LED_RED);
-  if (angle1 != NOTMOVE)
-    Herkulex.moveOneAngle(M1_ID, angle1, 500, LED_RED);
-  if (angle2 != NOTMOVE)
-    Herkulex.moveOneAngle(M2_ID, angle2, 500, LED_RED);
-    
+  motorMoving(M0_ID, angle0);
+  motorMoving(M1_ID, angle1);
+  motorMoving(M2_ID, angle2);
+
 #if (PRINT_ANGLE == 1)
   DEBUG_PRINT("M0:");
   DEBUG_PRINT(angle0);
