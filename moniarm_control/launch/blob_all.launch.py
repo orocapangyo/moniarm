@@ -9,7 +9,7 @@ def generate_launch_description():
   return LaunchDescription([
     IncludeLaunchDescription(
       PythonLaunchDescriptionSource([
-        FindPackageShare("moniarm_bringup"), '/launch', '/pc.launch.py'])
+        FindPackageShare("moniarm_bringup"), '/launch', '/mcu.launch.py'])
     ),
 
     IncludeLaunchDescription(

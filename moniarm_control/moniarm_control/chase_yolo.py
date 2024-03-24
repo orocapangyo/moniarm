@@ -46,6 +46,7 @@ class ChaseObject(Node):
 
         self.blob_x = 0.0
         self.blob_y = 0.0
+        self.yolo_target = 0.0
         self._time_detected = 0.0
 
         self.sub_center = self.create_subscription(BoundingBoxes, "/darknet_ros/bounding_boxes", self.update_object, 10)
@@ -72,15 +73,17 @@ class ChaseObject(Node):
             #
             #yolov4-tiny, 416x416
             if (box.class_id == self.DETECT_CLASS1) or (box.class_id == self.DETECT_CLASS2):
-                self.blob_x = float((box.xmax + box.xmin)/PICTURE_SIZE_X/2.0) - 0.5
-                self.blob_y = float((box.ymax + box.ymin)/PICTURE_SIZE_Y/2.0) - 0.5
+                self.blob_x = float((box.xmax + box.xmin)/PICTURE_YOLO/2.0) - 0.5
+                self.blob_y = float((box.ymax + box.ymin)/PICTURE_YOLO/2.0) - 0.5
                 self._time_detected = time.time()
 
                 if box.class_id == self.DETECT_CLASS1:
-                    self.yolo_target = 1
+                    self.yolo_target = 1.0
                 else:
-                    self.yolo_target = 2
+                    self.yolo_target = 2.0
                 self.get_logger().info("object detected: %.2f  %.2f "%(self.blob_x, self.blob_y))
+            else:
+                self.yolo_target = 0.0
 
     def get_control_action(self):
         """
@@ -102,7 +105,7 @@ class ChaseObject(Node):
                 final_steer_action = clamp(final_steer_action, -1.0, 1.0)
                 self._message.angular.y = 0.0
 
-            object_detect = 1.0
+            object_detect = self.yolo_target
             #if object is detected, go forward with defined power
             self.get_logger().info("Steering = %.2f" % (final_steer_action))
 
