@@ -13,11 +13,12 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.logging import get_logger
 from geometry_msgs.msg import Twist
-from .submodules.myutil import clamp, Moniarm, radiansToDegrees, trimLimits
 from std_msgs.msg import Int32, Int32MultiArray
+from .submodules.myutil import clamp, Moniarm, radiansToDegrees, trimLimits
+from .submodules.myconfig import *
 
 class ServoConvert:
-    def __init__(self, id=1, center_value=0, range=180, direction=1):
+    def __init__(self, id=1, center_value=0, range=MAX_LIN_VEL, direction=1):
         self.value = 0.0
         self.value_out = center_value
         self._center = center_value
@@ -48,84 +49,101 @@ class LowLevelCtrl(Node):
         timer_period = 0.1  # seconds
         self.timer = self.create_timer(timer_period, self.node_callback)
 
-        self.robotarm = Moniarm()
-        self.robotarm.home()
-
         self.motorMsg = Int32MultiArray()
         self.motorMsg.data = [0, 0, 0, 0]
         self.get_logger().info("Setting Up low level arm control node...")
 
-        self.SPEED_CENTER = 0
-        self.SPEED_LIMIT = 180
-        self.STEER_CENTER = 0
-        self.STEER_LIMIT = 180
-
         self.actuators = {}
-        self.actuators["throttle"] = ServoConvert(id=1, center_value=self.SPEED_CENTER, range=self.SPEED_LIMIT*2, direction=1)
-        self.actuators["steering"] = ServoConvert(id=2, center_value=self.STEER_CENTER, range=self.STEER_LIMIT*2, direction=1)
-        self.get_logger().info("> Actuators corrrectly initialized")
+        self.actuators["steering"] = ServoConvert(id=1, center_value=0, range=MAX_LIN_VEL, direction=1)
+        self.get_logger().info("> actuator corrrectly initialized")
 
         # --- Create the Subscriber to obstacle_avoidance commands
         self.ros_sub_twist = self.create_subscription(Twist, "/dkcar/control/cmd_vel", self.update_message_from_chase, 10)
         self.get_logger().info("> Subscriber corrrectly initialized")
 
-        self.throttle_cmd = 0.0
-        self.throttle_chase = 0.0
         self.steer_cmd = 0.0
         self.steer_chase = 0.0
+        self.steer_prev = 0.0
+        self.steer_count = 0
 
         # --- Get the last time e got a commands
         self._last_time_cmd_rcv = time.time()
         self._last_time_chase_rcv = time.time()
         self._timeout_ctrl = 100
-        self._timeout_blob = 1
+        self._timeout_blob = 3
+        self.object_detect = 0.0
+        self.inrange = 0.0
+
+        self.armStatus = "Homing"
+        self.robotarm = Moniarm()
+        self.robotarm.home()
 
         self.get_logger().info("Initialization complete")
 
+    #don't use this function
     def update_message_from_command(self, message):
         self._last_time_cmd_rcv = time.time()
-        self.throttle_cmd = message.linear.x
         self.steer_cmd = message.angular.z
+        #self.get_logger().info("command: " +str(self.steer_cmd))
 
     def update_message_from_chase(self, message):
         self._last_time_chase_rcv = time.time()
-        self.throttle_chase = message.linear.x
+        self.object_detect = message.linear.x
         self.steer_chase = message.angular.z
-        #print(self.throttle_chase, self.steer_chase)
+        self.inrange = message.angular.y
+        #self.get_logger().info("chase: " + str(self.steer_chase))
 
     def compose_command_velocity(self):
-        self.throttle = clamp(self.throttle_cmd + self.throttle_chase, -1, 1)
-        # -- Add steering
-        self.steer = clamp(self.steer_cmd + self.steer_chase, -1, 1)
-        self.set_actuators_from_cmdvel(self.throttle, self.steer)
+        #if object is detected
+        if (self.object_detect > 0.0):
+            self.set_actuators_from_cmdvel(self.object_detect, self.steer_chase)
 
-    def set_actuators_from_cmdvel(self, throttle, steering):
+    def set_actuators_from_cmdvel(self, object_detect, steering):
         """
         Get a message from cmd_vel, assuming a maximum input of 1
         """
+        if object_detect > 0.0:
+            self.armStatus = "Searching"
+            self.steer_count += 1
+            #chase slowly
+            if self.steer_count < 5:
+                return
+            else:
+                self.steer_count = 0
+
+        # steering is chase cmmand
+        if self.inrange == 1.0:
+            self.armStatus = "PickingUp"
+            steerAngle=int(self.actuators["steering"].get_value_out(steering))
+            self.set_angles(steerAngle)
+            self.get_logger().info("Object is in range, pick from %d, chase: %2.2f"%(steerAngle, steering))
+            self.robotarm.picknplace(object_detect)
+            self.robotarm.home()
+
         # -- Convert vel into servo values
-        self.actuators["throttle"].get_value_out(throttle)
-        self.actuators["steering"].get_value_out(steering)
-        # self.get_logger().info("Got a command v = %2.1f  s = %2.1f"%(throttle, steering))
+        steerAngle=int(self.actuators["steering"].get_value_out(steering))
+        self.set_angles(steerAngle)
+        self.get_logger().info("Got a command det = %1.0f  steer = %1.2f angle = %d"%(object_detect, steering, steerAngle))
 
-        self.set_pwm_pulse(self.actuators["throttle"].value_out, self.actuators["steering"].value_out)
-        print( "throttle: " + str(self.actuators["throttle"].value_out) +  ", steering: " + str(self.actuators["steering"].value_out))
-
-
-    def set_pwm_pulse(self, speed_pulse, steering_pulse):
-        self.motorMsg.data[0] = steering_pulse
-        self.motorMsg.data[0] = speed_pulse
+    def set_angles(self, steering_angle):
+        self.motorMsg.data[0] = steering_angle
+        self.motorMsg.data[1] = MOTOR_NOMOVE
+        self.motorMsg.data[2] = MOTOR_NOMOVE
         self.robotarm.run(self.motorMsg)
 
     def set_actuators_idle(self):
         # -- Convert vel into servo values
-        self.throttle_cmd = 0.0
         self.steer_cmd = 0.0
+        self.object_detect = 0.0
+        #self.get_logger().info("go to idle")
 
     def reset_avoid(self):
-        self.throttle_chase = 0.0
-        self.steer_avoid = 0.0
-
+        self.object_detect = 0.0
+        self.motorMsg.data[0] = MOTOR0_HOME
+        self.motorMsg.data[1] = MOTOR_NOMOVE
+        self.motorMsg.data[2] = MOTOR_NOMOVE
+        self.robotarm.run(self.motorMsg)
+        #self.get_logger().info("reset avoid")
     @property
     def is_controller_connected(self):
         # print time.time() - self._last_time_cmd_rcv
@@ -136,13 +154,16 @@ class LowLevelCtrl(Node):
         return time.time() - self._last_time_chase_rcv < self._timeout_blob
 
     def node_callback(self):
-
         self.compose_command_velocity()
         if not self.is_controller_connected:
             self.set_actuators_idle()
 
         if not self.is_chase_connected:
             self.reset_avoid()
+
+    def __del__(self):
+        self.get_logger().info('Arm parking, be careful')
+        self.robotarm.park()
 
 def main(args=None):
     rclpy.init(args=args)

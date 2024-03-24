@@ -37,9 +37,9 @@ setup(
     license='Apache License, Version 2.0',
     entry_points={
         'console_scripts': [
-            'lowlevel_control = moniarm_control.lowlevel_control:main',
-            'chase_the_ball = moniarm_control.chase_the_ball:main',
-            'chase_object_yolo = moniarm_control.chase_object_yolo:main',
+            'motor_chase= moniarm_control.motor_chase:main',
+            'chase_ball = moniarm_control.chase_ball:main',
+            'chase_yolo = moniarm_control.chase_yolo:main',
             'chase_moveit = moniarm_control.chase_moveit:main',
             'mimic_teleop = moniarm_control.mimic_teleop:main',
         ],

@@ -18,17 +18,8 @@ from rclpy.parameter import Parameter
 from rclpy.logging import get_logger
 from geometry_msgs.msg import Twist
 from darknet_ros_msgs.msg import BoundingBoxes
-from rclpy.logging import get_logger
-
-PICTURE_SIZE = 416.0
-
-def saturate(value, min, max):
-    if value <= min:
-        return min
-    elif value >= max:
-        return max
-    else:
-        return value
+from .submodules.myutil import clamp, Moniarm, radiansToDegrees, trimLimits
+from .submodules.myconfig import *
 
 class ChaseObject(Node):
     def __init__(self):
@@ -39,19 +30,18 @@ class ChaseObject(Node):
             namespace='',
             parameters=[
                 ('k_steer', 2.5),
-                ('k_throttle', 0.2),
-                ('DETECT_CLASS', "cup"),
+                ('DETECT_CLASS1', "RedStar"),
+                ('DETECT_CLASS2', "BlueCylinder"),
            ])
         self.get_logger().info("Setting Up the Node...")
-
         self.K_LAT_DIST_TO_STEER = self.get_parameter_or('k_steer').get_parameter_value().double_value
-        self.K_LAT_DIST_TO_THROTTLE = self.get_parameter_or('k_throttle').get_parameter_value().double_value
-        self.DETECT_CLASS = self.get_parameter_or('DETECT_CLASS').get_parameter_value().string_value
+        self.DETECT_CLASS1 = self.get_parameter_or('DETECT_CLASS1').get_parameter_value().string_value
+        self.DETECT_CLASS2 = self.get_parameter_or('DETECT_CLASS2').get_parameter_value().string_value
 
-        print('k_steer: %s, k_throttle: %s, DETECT_CLASS: %s'%
+        print('k_steer: %s, DETECT_CLASS 1: %s, DETECT_CLASS 2: %s'%
             (self.K_LAT_DIST_TO_STEER,
-            self.K_LAT_DIST_TO_THROTTLE,
-            self.DETECT_CLASS)
+            self.DETECT_CLASS1,
+            self.DETECT_CLASS2)
         )
 
         self.blob_x = 0.0
@@ -81,46 +71,57 @@ class ChaseObject(Node):
         for box in message.bounding_boxes:
             #
             #yolov4-tiny, 416x416
-            if box.class_id == self.DETECT_CLASS:
-                self.blob_x = float((box.xmax + box.xmin)/PICTURE_SIZE/2.0) - 0.5
-                self.blob_y = float((box.ymax + box.ymin)/PICTURE_SIZE/2.0) - 0.5
+            if (box.class_id == self.DETECT_CLASS1) or (box.class_id == self.DETECT_CLASS2):
+                self.blob_x = float((box.xmax + box.xmin)/PICTURE_SIZE_X/2.0) - 0.5
+                self.blob_y = float((box.ymax + box.ymin)/PICTURE_SIZE_Y/2.0) - 0.5
                 self._time_detected = time.time()
+
+                if box.class_id == self.DETECT_CLASS1:
+                    self.yolo_target = 1
+                else:
+                    self.yolo_target = 2
                 self.get_logger().info("object detected: %.2f  %.2f "%(self.blob_x, self.blob_y))
-                #self.get_logger().info(
-                #    "Xmin: {}, Xmax: {} Ymin: {}, Ymax: {} Class: {}".format
-                #    (box.xmin, box.xmax, box.ymin, box.ymax, box.Class) )
+
     def get_control_action(self):
         """
         Based on the current ranges, calculate the command
-        Steer will be added to the commanded throttle
-        throttle will be multiplied by the commanded throttle
         """
         steer_action = 0.0
-        throttle_action = 0.0
+        object_detect = 0.0
+        final_steer_action = 0.0
 
         if self.is_detected:
             # --- Apply steering, proportional to how close is the object
-            steer_action = self.K_LAT_DIST_TO_STEER * self.blob_x
-            steer_action = saturate(steer_action, -1.5, 1.5)
-            self.get_logger().info("BlobX %.2f" % self.blob_x)
+            blobx_diff = self.blob_x - 0.5
+            if ((blobx_diff > IN_RANGE_MIN) and (blobx_diff < IN_RANGE_MAX)) :
+                final_steer_action = 0.0
+                self._message.angular.y = 1.0
+            else:
+                steer_action = DIR_TO_STEER * blobx_diff
+                final_steer_action = steer_action*self.K_LAT_DIST_TO_STEER
+                final_steer_action = clamp(final_steer_action, -1.0, 1.0)
+                self._message.angular.y = 0.0
 
+            object_detect = 1.0
             #if object is detected, go forward with defined power
-            throttle_action = self.K_LAT_DIST_TO_THROTTLE
-            self.get_logger().info("is _detected, Steering = %3.1f Throttle = %3.1f" % (steer_action, throttle_action))
+            self.get_logger().info("Steering = %.2f" % (final_steer_action))
 
-        return (steer_action, throttle_action)
+        return (object_detect, final_steer_action)
 
     def node_callback(self):
         # -- Get the control action
-        steer_action, throttle_action = self.get_control_action()
-        self.get_logger().info("RUN, Steering = %3.1f Throttle = %3.1f" % (steer_action, throttle_action))
+        object_detect, steer_action = self.get_control_action()
+        #self.get_logger().info("RUN, Steering = %3.1f Detected = %3.1f" % (steer_action, object_detect))
 
         # -- update the message
-        self._message.linear.x = throttle_action
+        self._message.linear.x = object_detect
         self._message.angular.z = steer_action
 
-        # -- publish it
-        self.pub_twist.publish(self._message)
+        # -- publish it, only blob detected
+        if self.is_detected:
+            #self.get_logger().info("Steering = %.2f, object_detect = %.2f" %(steer_action, object_detect))
+            self.pub_twist.publish(self._message)
+
 
 def main(args=None):
     rclpy.init(args=args)

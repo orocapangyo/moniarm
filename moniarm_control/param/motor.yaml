@@ -1,7 +1,5 @@
 /**:
   ros__parameters:
-    k_steer: 2.5
-    k_throttle: 2.5
-
+    k_steer: 0.3
     DETECT_CLASS1 : "RedStar"
     DETECT_CLASS2 : "BlueCylinder"

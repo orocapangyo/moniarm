@@ -24,7 +24,7 @@ def generate_launch_description():
     DeclareLaunchArgument('motor_parameter', default_value=motor_parameter),
 
     Node(
-      package='moniarm_control',  executable='chase_object_yolo',  name='chase_object_node',
+      package='moniarm_control',  executable='chase_yolo',  name='chase_object_node',
       output='screen',  emulate_tty=True,
       parameters=[motor_parameter],
       namespace='',

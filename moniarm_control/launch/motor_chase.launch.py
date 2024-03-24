@@ -23,7 +23,7 @@ def generate_launch_description():
     DeclareLaunchArgument('motor_parameter', default_value=motor_parameter),
 
     Node(
-      package='moniarm_control', executable='lowlevel_control', name='lowlevel_control_node',
+      package='moniarm_control', executable='motor_chase', name='lowlevel_control_node',
 	    #output='screen', emulate_tty=True,
       emulate_tty=True,
       parameters=[motor_parameter],

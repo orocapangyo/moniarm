@@ -9,7 +9,12 @@ def generate_launch_description():
   return LaunchDescription([
     IncludeLaunchDescription(
       PythonLaunchDescriptionSource([
-        FindPackageShare("moniarm_cv"), '/launch', '/csicam.launch.py'])
+        FindPackageShare("moniarm_bringup"), '/launch', '/pc.launch.py'])
+    ),
+
+    IncludeLaunchDescription(
+      PythonLaunchDescriptionSource([
+        FindPackageShare("moniarm_cv"), '/launch', '/usbcam.launch.py'])
     ),
 
     IncludeLaunchDescription(
@@ -19,12 +24,12 @@ def generate_launch_description():
 
     IncludeLaunchDescription(
       PythonLaunchDescriptionSource([
-        FindPackageShare("moniarm_control"), '/launch', '/chase_the_ball.launch.py'])
+        FindPackageShare("moniarm_control"), '/launch', '/chase_ball.launch.py'])
     ),
 
     IncludeLaunchDescription(
       PythonLaunchDescriptionSource([
-        FindPackageShare("moniarm_control"), '/launch', '/lowlevel_ctl.launch.py'])
+        FindPackageShare("moniarm_control"), '/launch', '/motor_chase.launch.py'])
     ),
   ])
 

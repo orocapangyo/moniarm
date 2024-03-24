@@ -114,6 +114,7 @@ class TeleopJoyNode(Node):
 
         self.prev_time = time()
         self.timediff = 0.0
+        
     def cb_joy(self, joymsg):
         if joymsg.buttons[0] == 1 and self.mode_button_last == 0:
             print('colorIdx: %d'%(self.colorIdx))
