@@ -1,0 +1,9 @@
+<library path="moniarm_hardware">
+  <class name="moniarm_hardware/MONIARMSystemPositionHardware"
+         type="moniarm_hardware::MONIARMSystemPositionHardware"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      This is moniarm hardware
+    </description>
+  </class>
+</library>

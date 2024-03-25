@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!-- Revolute-Revolute Manipulator -->
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="2dof_robot">
+  <xacro:arg name="prefix" default="" />
+
+  <!-- Import moniarm macro -->
+  <xacro:include filename="$(find moniarm_description)/xacro/moniarm_description.urdf.xacro" />
+
+  <!-- Import Rviz colors -->
+  <xacro:include filename="$(find moniarm_description)/xacro/moniarm.materials.xacro" />
+
+  <!-- Import moniarm ros2_control description -->
+  <xacro:include filename="$(find moniarm_description)/xacro/moniarm.ros2_control.xacro" />
+
+  <!-- Used for fixing robot -->
+  <link name="world"/>
+  <gazebo reference="world">
+    <static>true</static>
+  </gazebo>
+
+  <xacro:moniarm parent="world" prefix="$(arg prefix)">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </xacro:moniarm>
+
+  <xacro:moniarm_ros2_control
+    name="moniarm" prefix="$(arg prefix)" />
+
+</robot>
