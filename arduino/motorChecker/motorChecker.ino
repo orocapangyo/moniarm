@@ -6,9 +6,9 @@
 #define LED_F 5
 #define BUZZER 13
 
-#define M0_ID 6
-#define M1_ID 7
-#define M2_ID 8
+#define M0_ID 2
+#define M1_ID 1
+#define M2_ID 6
 
 #define RXD1 15
 #define TXD1 23

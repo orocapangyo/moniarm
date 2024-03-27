@@ -12,9 +12,7 @@
   <author email="bishopearson@gmail.com">Bishop Pearson</author>
   <buildtool_depend>ament_cmake</buildtool_depend>
   <exec_depend>moniarm_bringup</exec_depend>
-  <exec_depend>moniarm_cartographer</exec_depend>
   <exec_depend>moniarm_description</exec_depend>
-  <exec_depend>moniarm_navigation2</exec_depend>
   <exec_depend>moniarm_teleop</exec_depend>
   <export>
     <build_type>ament_cmake</build_type>

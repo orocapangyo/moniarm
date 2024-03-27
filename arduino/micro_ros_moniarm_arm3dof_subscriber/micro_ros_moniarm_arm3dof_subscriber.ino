@@ -20,19 +20,15 @@ rcl_allocator_t allocator;
 rcl_node_t node;
 rcl_timer_t timer;
 
-
-
 rcl_service_t service;
 //rcl_wait_set_t wait_t
-
 
 moniarm_interfaces__srv__GetStatus_Request req;
 moniarm_interfaces__srv__GetStatus_Response res;
 
 int flag;
 
-
-#define DOMAINID 103
+#define DOMAINID 108
 
 int led_status;
 int led_success;
