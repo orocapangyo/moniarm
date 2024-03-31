@@ -84,22 +84,6 @@ def get_key(settings):
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
     return key
 
-def print_vels(target_linear_velocity, target_linear1_velocity, target_angular_velocity):
-    print('M0= %.2f, M1 %.2f, M2= %.2f'%(
-        target_linear_velocity,
-        target_linear1_velocity,
-        target_angular_velocity))
-
-def make_simple_profile(output, input, slop):
-    if input > output:
-        output = min(input, output + slop)
-    elif input < output:  # if variance is bigger
-        output = max(input, output - slop)
-    else:
-        output = input
-
-    return output
-
 def constrain(input_vel, low_bound, high_bound):
     if input_vel < low_bound:
         input_vel = low_bound
@@ -110,11 +94,7 @@ def constrain(input_vel, low_bound, high_bound):
 
     return input_vel
 
-
 def check_linear_limit_velocity(velocity):
-    return constrain(velocity, -MAX_LIN_VEL, MAX_LIN_VEL)
-
-def check_angular_limit_velocity(velocity):
     return constrain(velocity, -MAX_LIN_VEL, MAX_LIN_VEL)
 
 def main():
@@ -140,16 +120,15 @@ def main():
     print('moniarm Teleop Keyboard controller')
 
     status = 0
-    control_angular_velocity = MOTOR0_HOME
-    control_linear_velocity = MOTOR1_HOME
-    control_linear1_velocity = MOTOR2_HOME
+    control_motor0_velocity = MOTOR0_HOME
+    control_motor1_velocity = MOTOR1_HOME
+    control_motor2_velocity = MOTOR2_HOME
 
     colorIdx = 0                                        # variable for saving data in ledSub's msg data field
     songIdx = 0                                         # variable for saving data in songSub's msg data field
     lcdIdx = 0
     gMsg = Int32()
 
-    #generate variable for Twist type msg
     rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_control/moniarm_control/')
     fhandle = open(rosPath + 'automove.txt', 'w')
 
@@ -160,25 +139,25 @@ def main():
         print(msg)
         while(1):
             key = get_key(settings)
-            if key == 'w':              # linear speed up
-                control_linear_velocity = check_linear_limit_velocity(control_linear_velocity + LIN_VEL_STEP_SIZE)
+            if key == 'w':              # motor1
+                control_motor1_velocity = check_linear_limit_velocity(control_motor1_velocity + LIN_VEL_STEP_SIZE)
                 status = status + 1
-            elif key == 'x':            # linear speed down
-                control_linear_velocity = check_linear_limit_velocity(control_linear_velocity - LIN_VEL_STEP_SIZE)
+            elif key == 'x':            # motor1
+                control_motor1_velocity = check_linear_limit_velocity(control_motor1_velocity - LIN_VEL_STEP_SIZE)
                 status = status + 1
-            elif key == 'q':              # linear speed up
-                control_linear1_velocity = check_linear_limit_velocity(control_linear1_velocity + LIN_VEL_STEP_SIZE)
+            elif key == 'q':            # motor2
+                control_motor2_velocity = check_linear_limit_velocity(control_motor2_velocity + LIN_VEL_STEP_SIZE)
                 status = status + 1
-            elif key == 'z':            # linear speed down
-                control_linear1_velocity = check_linear_limit_velocity(control_linear1_velocity - LIN_VEL_STEP_SIZE)
+            elif key == 'z':            # motor2
+                control_motor2_velocity = check_linear_limit_velocity(control_motor2_velocity - LIN_VEL_STEP_SIZE)
                 status = status + 1
-            elif key == 'a':            # left angle spped up
-                control_angular_velocity = check_angular_limit_velocity(control_angular_velocity + LIN_VEL_STEP_SIZE)
+            elif key == 'a':            # motor0
+                control_motor0_velocity = check_linear_limit_velocity(control_motor0_velocity + LIN_VEL_STEP_SIZE)
                 status = status + 1
-            elif key == 'd':            # right angle spped up
-                control_angular_velocity = check_angular_limit_velocity(control_angular_velocity - LIN_VEL_STEP_SIZE)
+            elif key == 'd':            # motor0
+                control_motor0_velocity = check_linear_limit_velocity(control_motor0_velocity - LIN_VEL_STEP_SIZE)
                 status = status + 1
-            elif key == 'c':                # led control
+            elif key == 'c':            # led control
                 print('colorIdx: %d'%(colorIdx))
                 gMsg.data = colorIdx
                 ledpub.publish(gMsg)
@@ -217,13 +196,13 @@ def main():
             motorMsg = Int32MultiArray()
             motorMsg.data = [0, 0, 0, 0]
 
-            control_angular_velocity = int(clamp(control_angular_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
-            control_linear_velocity = int(clamp(control_linear_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
-            control_linear1_velocity = int(clamp(control_linear1_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
+            control_motor0_velocity = int(clamp(control_motor0_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
+            control_motor1_velocity = int(clamp(control_motor1_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
+            control_motor2_velocity = int(clamp(control_motor2_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
 
-            motorMsg.data[0] = control_angular_velocity         #M0, degree
-            motorMsg.data[1] = control_linear_velocity          #M1, degree
-            motorMsg.data[2] = control_linear1_velocity         #M2, degree
+            motorMsg.data[0] = control_motor0_velocity          #M0, degree
+            motorMsg.data[1] = control_motor1_velocity          #M1, degree
+            motorMsg.data[2] = control_motor2_velocity          #M2, degree
             motorMsg.data[3] = 0                                #Gripper
             robotarm.run(motorMsg)
             print('M0= %.2f, M1 %.2f, M2= %.2f'%(motorMsg.data[0], motorMsg.data[1],motorMsg.data[2]))

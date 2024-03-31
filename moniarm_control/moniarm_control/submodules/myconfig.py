@@ -54,7 +54,7 @@ IN_RANGE_MIN = -0.02
 IN_RANGE_MAX = 0.02
 
 #object tracking parameter
-DIR_TO_STEER = -1.0
+DIR_TO_X = -1.0
 
 #teleop parameter
 MAX_SONG = 5

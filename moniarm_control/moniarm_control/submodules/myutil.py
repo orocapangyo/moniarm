@@ -107,7 +107,7 @@ class Moniarm(Node):
         self.motorPub.publish(self.motorMsg)
 
         #move to place position
-        if object == 1.0:
+        if object == 1:
             self.motorMsg.data[0] = MOTOR0_PLACE1
         else:
             self.motorMsg.data[0] = MOTOR0_PLACE2

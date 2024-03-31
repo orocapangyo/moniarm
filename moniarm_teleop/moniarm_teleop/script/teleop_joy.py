@@ -77,9 +77,9 @@ class TeleopJoyNode(Node):
         self.songIdx = 0            # variable for saving data in songSub's msg data field
         self.lcdIdx = 0             # variable for saving data in lcdSub's msg data field
 
-        self.control_linear_velocity = MOTOR1_HOME
-        self.control_linear1_velocity = MOTOR2_HOME
-        self.control_angular_velocity = MOTOR0_HOME
+        self.control_motor0_velocity = MOTOR0_HOME
+        self.control_motor1_velocity = MOTOR1_HOME
+        self.control_motor2_velocity = MOTOR2_HOME
 
         self.gMsg  =  Int32()
         self.pub_led = self.create_publisher(Int32, 'ledSub',10)
@@ -108,13 +108,12 @@ class TeleopJoyNode(Node):
         # generate publisher for 'ledSub
         self.timer = self.create_timer(TIMER_JOY, self.cb_timer)
 
-        #generate variable for Twist type msg
         rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_control/moniarm_control/')
         self.fhandle = open(rosPath + 'automove.txt', 'w')
 
         self.prev_time = time()
         self.timediff = 0.0
-        
+
     def cb_joy(self, joymsg):
         if joymsg.buttons[0] == 1 and self.mode_button_last == 0:
             print('colorIdx: %d'%(self.colorIdx))
@@ -145,22 +144,22 @@ class TeleopJoyNode(Node):
 
         # Make jostick -> /cmd_vel
         elif joymsg.axes[1] != 0:
-            self.control_linear_velocity += joymsg.axes[1] * self.max_deg / self.step_deg
+            self.control_motor1_velocity += joymsg.axes[1] * self.max_deg / self.step_deg
         elif joymsg.axes[3] != 0:
-            self.control_linear1_velocity += joymsg.axes[3] * self.max_deg / self.step_deg
+            self.control_motor2_velocity += joymsg.axes[3] * self.max_deg / self.step_deg
         elif joymsg.axes[0] != 0:
-            self.control_angular_velocity += joymsg.axes[0] * self.max_deg / self.step_deg
+            self.control_motor0_velocity += joymsg.axes[0] * self.max_deg / self.step_deg
         else:
             #nothing to do, then return
             return True
 
-        self.control_angular_velocity = int(clamp(self.control_angular_velocity, -self.max_deg, self.max_deg))
-        self.control_linear_velocity = int(clamp(self.control_linear_velocity, -self.max_deg, self.max_deg))
-        self.control_linear1_velocity = int(clamp(self.control_linear1_velocity, -self.max_deg, self.max_deg))
+        self.control_motor0_velocity = int(clamp(self.control_motor0_velocity, -self.max_deg, self.max_deg))
+        self.control_motor1_velocity = int(clamp(self.control_motor1_velocity, -self.max_deg, self.max_deg))
+        self.control_motor2_velocity = int(clamp(self.control_motor2_velocity, -self.max_deg, self.max_deg))
 
-        self.motorMsg.data[0] = self.control_angular_velocity           #M0, degree
-        self.motorMsg.data[1] = self.control_linear_velocity            #M1, degree
-        self.motorMsg.data[2] = self.control_linear1_velocity           #M2, degree
+        self.motorMsg.data[0] = self.control_motor0_velocity            #M0, degree
+        self.motorMsg.data[1] = self.control_motor1_velocity            #M1, degree
+        self.motorMsg.data[2] = self.control_motor2_velocity            #M2, degree
         self.motorMsg.data[3] = 0                                       #Gripper
         self.robotarm.run(self.motorMsg)
         print('M0= %.2f, M1 %.2f, M2= %.2f'%(self.motorMsg.data[0], self.motorMsg.data[1],self.motorMsg.data[2]))
