@@ -169,9 +169,9 @@ void setup() {
   pinMode(LED_F, OUTPUT);
   RGB(ALL_OFF);  // RGB LED all off
 
-  ledcSetup(BUZZER, 5000, 8);  //enB, channel: 1, 5000Hz, 8bits = 256(0 ~ 255)
+  ledcSetup(BUZZER, 5000, 8);               //BUZZER, channel: 2, 5000Hz, 8bits = 256(0 ~ 255)
   ledcAttachPin(BUZZER, BUZZER_CH);
-  ledcWrite(BUZZER, 0);
+  ledcWrite(BUZZER_CH, 0);
 
   // configure LED for output
   pinMode(LED_BUILTIN, OUTPUT);
