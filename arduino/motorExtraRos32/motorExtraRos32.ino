@@ -43,6 +43,7 @@ enum states {
 #define M0_ID 6
 #define M1_ID 7
 #define M2_ID 8
+#define M3_ID 13
 
 #define RXD1 15
 #define TXD1 23
@@ -123,10 +124,12 @@ void motor_callback(const void *msgin) {
   angle0 = msg->data.data[0];
   angle1 = msg->data.data[1];  //angle1 = 0 - angle1;    //motor angle is reverse
   angle2 = msg->data.data[2];  //angle2 = 0 - angle2;    //motor angle is reverse
+  angle3 = msg->data.data[3];
 
   motorMoving(M0_ID, angle0);
   motorMoving(M1_ID, angle1);
   motorMoving(M2_ID, angle2);
+  motorMoving(M3_ID, angle3);
 
 #if (PRINT_ANGLE == 1)
   DEBUG_PRINT("M0:");
@@ -134,7 +137,9 @@ void motor_callback(const void *msgin) {
   DEBUG_PRINT(" ,M1:");
   DEBUG_PRINT(angle1);
   DEBUG_PRINT(" ,M2:");
-  DEBUG_PRINTLN(angle2);
+  DEBUG_PRINT(angle2);
+  DEBUG_PRINT(" ,M3:");
+  DEBUG_PRINTLN(angle3);
 #endif
 }
 
@@ -188,6 +193,8 @@ void setup() {
   delay(200);
   Herkulex.reboot(M2_ID);
   delay(200);
+  Herkulex.reboot(M3_ID);
+  delay(200);
   Herkulex.initialize();  //initialize motors
   delay(1000);
 
@@ -196,7 +203,9 @@ void setup() {
   DEBUG_PRINT(" ,M1:");
   DEBUG_PRINT(Herkulex.getAngle(M1_ID));
   DEBUG_PRINT(" ,M2:");
-  DEBUG_PRINTLN(Herkulex.getAngle(M2_ID));
+  DEBUG_PRINT(Herkulex.getAngle(M2_ID));
+  DEBUG_PRINT(" ,M3:");
+  DEBUG_PRINTLN(Herkulex.getAngle(M3_ID));
 
   //wait agent comes up
   do {

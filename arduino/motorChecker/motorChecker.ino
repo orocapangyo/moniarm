@@ -6,9 +6,10 @@
 #define LED_F 5
 #define BUZZER 13
 
-#define M0_ID 2
-#define M1_ID 1
-#define M2_ID 6
+#define M0_ID 6
+#define M1_ID 7
+#define M2_ID 8
+#define M3_ID 13
 
 #define RXD1 15
 #define TXD1 23
@@ -52,6 +53,8 @@ void setup() {
   delay(200);
   Herkulex.reboot(M2_ID);
   delay(200);
+  Herkulex.reboot(M3_ID);
+  delay(200);
   Herkulex.initialize();  //initialize motors
   delay(500);
 }
@@ -69,11 +72,13 @@ void loop() {
       Herkulex.setLed(M0_ID, LED_RED);
       Herkulex.setLed(M1_ID, LED_GREEN);
       Herkulex.setLed(M2_ID, LED_BLUE);
+      Herkulex.setLed(M3_ID, LED_RED);
       blinkStatus = true;
     } else {
       Herkulex.setLed(M0_ID, 0);
       Herkulex.setLed(M1_ID, 0);
       Herkulex.setLed(M2_ID, 0);
+      Herkulex.setLed(M3_ID, 0);
       blinkStatus = false;
     }
 
