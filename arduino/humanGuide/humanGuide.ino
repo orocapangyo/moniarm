@@ -1,3 +1,7 @@
+/*
+ * Human guide, capture each motor's angle after human move robot arm
+ * ZETA7, zeta0707@gmail.com
+*/
 #include <Herkulex.h>
 
 // LED control pins
@@ -9,7 +13,7 @@
 #define M0_ID 6
 #define M1_ID 7
 #define M2_ID 8
-#define M3_ID 13
+#define M3_ID 15
 
 #define RXD1 15
 #define TXD1 23
@@ -57,12 +61,9 @@ void setup() {
   Herkulex.reboot(M3_ID);
   delay(200);
   Herkulex.initialize();  //initialize motors
-  
-  Herkulex.torqueOFF(M0_ID);
-  Herkulex.torqueOFF(M1_ID);
-  Herkulex.torqueOFF(M2_ID);
-  Herkulex.torqueOFF(M3_ID);
-  delay(500);
+  delay(1000);
+
+  Herkulex.torqueOFF(BROADCAST_ID);
 
   Serial.println("Begin Herkulex Angle Capture");
   Serial.println("Press 'p': periodic capture, ' ': capture only ' ' key input");
@@ -104,6 +105,7 @@ void loop() {
       Herkulex.setLed(M0_ID, 0);
       Herkulex.setLed(M1_ID, 0);
       Herkulex.setLed(M2_ID, 0);
+      Herkulex.setLed(M3_ID, 0);
       blinkStatus = false;
     }
     // blink LED to indicate activity
@@ -123,7 +125,7 @@ void loop() {
       Serial.print(':');
       Serial.print(int(Herkulex.getAngle(M3_ID)));
       Serial.print(':');
-      Serial.println(float(currentMillis - previousPress)/1000.0, 3);
+      Serial.println(float(currentMillis - previousPress) / 1000.0, 3);
       previousPress = currentMillis;
     }
     previousMillis = currentMillis;

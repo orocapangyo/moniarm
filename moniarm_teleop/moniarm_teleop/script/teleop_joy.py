@@ -80,6 +80,7 @@ class TeleopJoyNode(Node):
         self.control_motor0_velocity = MOTOR0_HOME
         self.control_motor1_velocity = MOTOR1_HOME
         self.control_motor2_velocity = MOTOR2_HOME
+        self.control_motor3_velocity = GRIPPER_OPEN
 
         self.gMsg  =  Int32()
         self.pub_led = self.create_publisher(Int32, 'ledSub',10)
@@ -95,9 +96,6 @@ class TeleopJoyNode(Node):
             self.step_deg)
         )
         print('CTRL-C to quit')
-
-        self.motorMsg = Int32MultiArray()
-        self.motorMsg.data = [0, 0, 0, 0]
 
         self.robotarm = Moniarm()
         self.robotarm.home()
@@ -115,6 +113,11 @@ class TeleopJoyNode(Node):
         self.timediff = 0.0
 
     def cb_joy(self, joymsg):
+        status = 0
+        motorMsg = Int32MultiArray()
+        #M0, M3 torque off by default
+        motorMsg.data = [MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF]
+
         if joymsg.buttons[0] == 1 and self.mode_button_last == 0:
             print('colorIdx: %d'%(self.colorIdx))
             self.gMsg.data = self.colorIdx
@@ -142,32 +145,54 @@ class TeleopJoyNode(Node):
                 self.lcdIdx=0
             self.mode_button_last = joymsg.buttons[4]
 
+        elif joymsg.buttons[3] == 1 and self.mode_button_last == 0:
+            status = status + 1
+            if self.control_motor3_velocity == 0:
+                self.control_motor3_velocity = 1
+            else:
+                self.control_motor3_velocity = 0
+            self.mode_button_last = joymsg.buttons[3]
+
         # Make jostick -> /cmd_vel
         elif joymsg.axes[1] != 0:
+            status = status + 1
             self.control_motor1_velocity += joymsg.axes[1] * self.max_deg / self.step_deg
         elif joymsg.axes[3] != 0:
+            status = status + 1
             self.control_motor2_velocity += joymsg.axes[3] * self.max_deg / self.step_deg
         elif joymsg.axes[0] != 0:
+            status = status + 1
             self.control_motor0_velocity += joymsg.axes[0] * self.max_deg / self.step_deg
         else:
             #nothing to do, then return
             return True
 
-        self.control_motor0_velocity = int(clamp(self.control_motor0_velocity, -self.max_deg, self.max_deg))
-        self.control_motor1_velocity = int(clamp(self.control_motor1_velocity, -self.max_deg, self.max_deg))
-        self.control_motor2_velocity = int(clamp(self.control_motor2_velocity, -self.max_deg, self.max_deg))
+        motorMsg = Int32MultiArray()
+        #M0, M3 torque off by default
+        motorMsg.data = [MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF]
 
-        self.motorMsg.data[0] = self.control_motor0_velocity            #M0, degree
-        self.motorMsg.data[1] = self.control_motor1_velocity            #M1, degree
-        self.motorMsg.data[2] = self.control_motor2_velocity            #M2, degree
-        self.motorMsg.data[3] = 0                                       #Gripper
-        self.robotarm.run(self.motorMsg)
-        print('M0= %.2f, M1 %.2f, M2= %.2f'%(self.motorMsg.data[0], self.motorMsg.data[1],self.motorMsg.data[2]))
+        #key pressed, torque
+        if status == 1:
+            if self.control_motor3_velocity == 0:
+                motorMsg.data[3] = GRIPPER_OPEN
+            else:
+                motorMsg.data[3] = GRIPPER_CLOSE
+            self.control_motor0_velocity = int(clamp(self.control_motor0_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
+            motorMsg.data[0] = self.control_motor0_velocity      #M0, degree
 
-        self.timediff = time() - self.prev_time
+        self.control_motor1_velocity = int(clamp(self.control_motor1_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
+        self.control_motor2_velocity = int(clamp(self.control_motor2_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
+        motorMsg.data[1] = self.control_motor1_velocity          #M1, degree
+        motorMsg.data[2] = self.control_motor2_velocity          #M2, degree
+
+        self.robotarm.run(motorMsg)
+        print('M0= %.2f, M1 %.2f, M2= %.2f, M3= %.2f'%(motorMsg.data[0], motorMsg.data[1],motorMsg.data[2], motorMsg.data[3]))
+
+        timediff = time() - self.prev_time
         self.prev_time = time()
-        self.fhandle.write(str(self.motorMsg.data[0]) + ':' + str(self.motorMsg.data[1] ) + ':' + str(self.motorMsg.data[2] )
-        + ':' + str(self.motorMsg.data[3] ) + ':' + str(self.timediff) + '\n')
+        self.fhandle.write(str(motorMsg.data[0]) + ':' + str(motorMsg.data[1]) + ':' + str(motorMsg.data[2]) + ':' + str(motorMsg.data[3])+ ':' + str(timediff) + '\n')
+
+        status = 0
 
     def cb_timer(self):
         self.chatCount += 1                     # protect chattering

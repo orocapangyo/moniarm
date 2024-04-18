@@ -16,6 +16,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     "msg/CmdChase.msg"
     "srv/GetStatus.srv"
     "srv/Init.srv"
+    "srv/SetLED.srv"
+    "srv/PlaySong.srv"
+    "srv/PlayAni.srv"
     "action/Grab.action"
  )
 

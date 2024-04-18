@@ -123,6 +123,7 @@ def main():
     control_motor0_velocity = MOTOR0_HOME
     control_motor1_velocity = MOTOR1_HOME
     control_motor2_velocity = MOTOR2_HOME
+    control_motor3_velocity = GRIPPER_OPEN
 
     colorIdx = 0                                        # variable for saving data in ledSub's msg data field
     songIdx = 0                                         # variable for saving data in songSub's msg data field
@@ -139,16 +140,16 @@ def main():
         print(msg)
         while(1):
             key = get_key(settings)
-            if key == 'w':              # motor1
+            if key == 'x':              # motor1
                 control_motor1_velocity = check_linear_limit_velocity(control_motor1_velocity + LIN_VEL_STEP_SIZE)
                 status = status + 1
-            elif key == 'x':            # motor1
+            elif key == 'w':            # motor1
                 control_motor1_velocity = check_linear_limit_velocity(control_motor1_velocity - LIN_VEL_STEP_SIZE)
                 status = status + 1
-            elif key == 'q':            # motor2
+            elif key == 'z':            # motor2
                 control_motor2_velocity = check_linear_limit_velocity(control_motor2_velocity + LIN_VEL_STEP_SIZE)
                 status = status + 1
-            elif key == 'z':            # motor2
+            elif key == 'q':            # motor2
                 control_motor2_velocity = check_linear_limit_velocity(control_motor2_velocity - LIN_VEL_STEP_SIZE)
                 status = status + 1
             elif key == 'a':            # motor0
@@ -181,6 +182,13 @@ def main():
                 if lcdIdx >= MAX_ANIM:
                     lcdIdx = 0
 
+            elif key == 'g':                # gripper
+                status = status + 1
+                if control_motor3_velocity == 0:
+                    control_motor3_velocity = 1
+                else:
+                    control_motor3_velocity = 0
+
             else:
                 #Ctrl-C, then stop working
                 if (key == '\x03'):
@@ -189,28 +197,32 @@ def main():
                 else:
                     continue
 
-            if status == 20:
-                print(msg)
-                status = 0
-
             motorMsg = Int32MultiArray()
-            motorMsg.data = [0, 0, 0, 0]
+            #M0, M3 torque off by default
+            motorMsg.data = [MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF]
 
-            control_motor0_velocity = int(clamp(control_motor0_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
+            #key pressed, torque
+            if status == 1:
+                if control_motor3_velocity == 0:
+                    motorMsg.data[3] = GRIPPER_OPEN
+                else:
+                    motorMsg.data[3] = GRIPPER_CLOSE
+                control_motor0_velocity = int(clamp(control_motor0_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
+                motorMsg.data[0] = control_motor0_velocity      #M0, degree
+
             control_motor1_velocity = int(clamp(control_motor1_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
             control_motor2_velocity = int(clamp(control_motor2_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
-
-            motorMsg.data[0] = control_motor0_velocity          #M0, degree
             motorMsg.data[1] = control_motor1_velocity          #M1, degree
             motorMsg.data[2] = control_motor2_velocity          #M2, degree
-            motorMsg.data[3] = 0                                #Gripper
+
             robotarm.run(motorMsg)
-            print('M0= %.2f, M1 %.2f, M2= %.2f'%(motorMsg.data[0], motorMsg.data[1],motorMsg.data[2]))
+            print('M0= %.2f, M1 %.2f, M2= %.2f, M3= %.2f'%(motorMsg.data[0], motorMsg.data[1],motorMsg.data[2], motorMsg.data[3]))
 
             timediff = time() - prev_time
             prev_time = time()
-            fhandle.write(str(motorMsg.data[0]) + ':' + str(motorMsg.data[1] ) + ':' + str(motorMsg.data[2] )
-                + ':' + str(motorMsg.data[3] ) + ':' + str(timediff) + '\n')
+            fhandle.write(str(motorMsg.data[0]) + ':' + str(motorMsg.data[1]) + ':' + str(motorMsg.data[2]) + ':' + str(motorMsg.data[3])+ ':' + str(timediff) + '\n')
+
+            status = 0
 
     except Exception as e:
         print(e)

@@ -21,7 +21,7 @@ def main():
     robotarm = Moniarm()
     robotarm.home()
 
-    print('moniarm Teleop Keyboard controller')
+    print('moniarm mimic human operation')
 
     try:
         print(msg)
@@ -50,9 +50,9 @@ def main():
                 break
 
             robotarm.run(motorMsg)
-            sys.stdout.write(str(motor0)+':'+str(motor1)+':'+str(motor2)+ ':' + str(time_diff))
+            sys.stdout.write(str(motor0) + ':' + str(motor1)+':' + str(motor2) + ':' + str(motor3) + ':' + str(time_diff))
             sys.stdout.flush()
-            
+
     except Exception as e:
         print(e)
 

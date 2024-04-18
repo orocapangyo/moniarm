@@ -316,3 +316,37 @@ void showAnimation(int idx) {
     }
   }
 }
+
+void led_callback(const void * req, void * res){
+  int index;
+
+  moniarm_interfaces__srv__SetLED_Request * req_in = (moniarm_interfaces__srv__SetLED_Request *) req;
+  moniarm_interfaces__srv__SetLED_Response * res_in = (moniarm_interfaces__srv__SetLED_Response *) res;
+  index = (int)(req_in->index);
+
+  RGB(index);
+  res_in->success  = true;
+}
+
+void song_callback(const void * req, void * res){
+  int index;
+
+  moniarm_interfaces__srv__PlaySong_Request * req_in = (moniarm_interfaces__srv__PlaySong_Request *) req;
+  moniarm_interfaces__srv__PlaySong_Response * res_in = (moniarm_interfaces__srv__PlaySong_Response *) res;
+  index = (int)(req_in->index);
+
+  playsong(index);
+  res_in->success  = true;
+}
+
+void ani_callback(const void * req, void * res){
+  int index;
+
+  moniarm_interfaces__srv__PlayAni_Request * req_in = (moniarm_interfaces__srv__PlayAni_Request *) req;
+  moniarm_interfaces__srv__PlayAni_Response * res_in = (moniarm_interfaces__srv__PlayAni_Response *) res;
+  index = (int)(req_in->index);
+
+  showAnimation(index);
+
+  res_in->success  = true;
+}

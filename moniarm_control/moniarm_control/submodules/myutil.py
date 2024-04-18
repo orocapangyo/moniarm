@@ -33,7 +33,7 @@ class Moniarm(Node):
     """
     def __init__(self):
         super().__init__('arm_basic_node')
-        self.motorPub = self.create_publisher(Int32MultiArray, 'motorSub',10)
+        self.motorPub = self.create_publisher(Int32MultiArray, 'cmd_motor',10)
         self.motorMsg = Int32MultiArray()
         self.motorMsg.data = [0, 0, 0, 0]
         self.armStatus = "Homing"
@@ -46,51 +46,71 @@ class Moniarm(Node):
         self.motorPub.publish(self.motorMsg)
 
     def park(self):
+        print("Parking...")
+        self.motorMsg.data[3] = GRIPPER_OPEN
+        self.motorMsg.data[0] = MOTOR_NOMOVE
+        self.motorMsg.data[1] = MOTOR_NOMOVE
+        self.motorMsg.data[2] = MOTOR_NOMOVE
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.0)
+        self.motorMsg.data[3] = MOTOR_TOQOFF
         self.motorMsg.data[0] = MOTOR0_OFF
         self.motorMsg.data[1] = MOTOR_NOMOVE
         self.motorMsg.data[2] = MOTOR_NOMOVE
         self.motorPub.publish(self.motorMsg)
-        sleep(0.5)
-        self.motorMsg.data[1] = MOTOR1_OFF
-        self.motorMsg.data[0] = MOTOR_NOMOVE
-        self.motorMsg.data[2] = MOTOR_NOMOVE
-        self.motorPub.publish(self.motorMsg)
-        sleep(0.5)
+        sleep(1.5)
+        self.motorMsg.data[3] = MOTOR_TOQOFF
         self.motorMsg.data[2] = MOTOR2_OFF
         self.motorMsg.data[0] = MOTOR_NOMOVE
         self.motorMsg.data[1] = MOTOR_NOMOVE
         self.motorPub.publish(self.motorMsg)
-        sleep(0.5)
-        self.motorMsg.data[3] = GRIPPER_OFF
+        sleep(1.5)
+        self.motorMsg.data[3] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR1_OFF
+        self.motorMsg.data[0] = MOTOR_NOMOVE
+        self.motorMsg.data[2] = MOTOR_NOMOVE
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.0)
+        self.motorMsg.data[3] = MOTOR_TOQOFF
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR_TOQOFF
+        self.motorMsg.data[2] = MOTOR_TOQOFF
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.0)
+        print("Parking Done")
+    def home(self):
+        print("Homing...")
+        self.motorMsg.data[3] = GRIPPER_OPEN
         self.motorMsg.data[0] = MOTOR_NOMOVE
         self.motorMsg.data[1] = MOTOR_NOMOVE
         self.motorMsg.data[2] = MOTOR_NOMOVE
         self.motorPub.publish(self.motorMsg)
-        sleep(0.5)
-
-    def home(self):
+        sleep(1.0)
+        self.motorMsg.data[3] = MOTOR_TOQOFF
         self.motorMsg.data[0] = MOTOR0_HOME
         self.motorMsg.data[1] = MOTOR_NOMOVE
         self.motorMsg.data[2] = MOTOR_NOMOVE
         self.motorPub.publish(self.motorMsg)
-        sleep(0.5)
-        self.motorMsg.data[1] = MOTOR1_HOME
-        self.motorMsg.data[0] = MOTOR_NOMOVE
-        self.motorMsg.data[2] = MOTOR_NOMOVE
-        self.motorPub.publish(self.motorMsg)
-        sleep(0.5)
+        sleep(1.5)
+        self.motorMsg.data[3] = MOTOR_TOQOFF
         self.motorMsg.data[2] = MOTOR2_HOME
         self.motorMsg.data[0] = MOTOR_NOMOVE
         self.motorMsg.data[1] = MOTOR_NOMOVE
         self.motorPub.publish(self.motorMsg)
-        sleep(0.5)
-        self.motorMsg.data[3] = GRIPPER_HOME
-        self.motorMsg.data[0] = MOTOR_NOMOVE
+        sleep(1.0)
+        self.motorMsg.data[3] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR1_HOME
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[2] = MOTOR_NOMOVE
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.0)
+        self.motorMsg.data[3] = MOTOR_TOQON
+        self.motorMsg.data[0] = MOTOR_TOQON
         self.motorMsg.data[1] = MOTOR_NOMOVE
         self.motorMsg.data[2] = MOTOR_NOMOVE
         self.motorPub.publish(self.motorMsg)
-        sleep(0.5)
-
+        sleep(1.0)
+        print("Homing Done")
     def picknplace(self, object):
         #pose for pikcing up
         self.motorMsg.data[1] = MOTOR1_PICKUP

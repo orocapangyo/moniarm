@@ -1,3 +1,7 @@
+/*
+ * DRS-0101 smart motor tester
+ * ZETA7, zeta0707@gmail.com
+*/
 #include <Herkulex.h>
 
 // LED control pins
@@ -9,7 +13,7 @@
 #define M0_ID 6
 #define M1_ID 7
 #define M2_ID 8
-#define M3_ID 13
+#define M3_ID 15
 
 #define RXD1 15
 #define TXD1 23
@@ -69,10 +73,10 @@ void loop() {
     previousMillis = currentMillis;
 
     if (blinkStatus == false) {
-      Herkulex.setLed(M0_ID, LED_RED);
-      Herkulex.setLed(M1_ID, LED_GREEN);
-      Herkulex.setLed(M2_ID, LED_BLUE);
-      Herkulex.setLed(M3_ID, LED_RED);
+      Herkulex.setLed(M0_ID, LED_GREEN);
+      Herkulex.setLed(M1_ID, LED_BLUE);
+      Herkulex.setLed(M2_ID, LED_GREEN);
+      Herkulex.setLed(M3_ID, LED_BLUE);
       blinkStatus = true;
     } else {
       Herkulex.setLed(M0_ID, 0);
