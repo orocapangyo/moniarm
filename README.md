@@ -22,6 +22,7 @@ ROS code: ZETA7, JH Moon, MS Song
 ├── moniarm_interfaces    => Custom message and serivce
 ├── moniarm_moveit2       => Moveit2
 ├── arduino               => micro ros on ESP32, udev rules, motor tester
+├── processing            => serial capture sketch for humanGuide
 (...)
 ├── Images
 ├── Doc

@@ -37,12 +37,11 @@ import os
 import select
 import sys
 import rclpy
-from rclpy.logging import get_logger
 from rclpy.node import Node
-from std_msgs.msg import Int32
 from std_msgs.msg import Int32MultiArray
-from .submodules.myutil import Moniarm, radiansToDegrees, trimLimits, clamp
+from .submodules.myutil import Moniarm, clamp
 from .submodules.myconfig import *
+from moniarm_interfaces.srv import SetLED, PlayAni, PlaySong
 
 if os.name == 'nt':
     import msvcrt
@@ -58,8 +57,6 @@ a/d : base(M0), left/light
 w/x : shoulder(M1) move
 q/z : Elbow(M2) move
 
-space key, s : force stop
-
 c: Change led
 u: play buzzer song
 o: OLED animation
@@ -70,6 +67,48 @@ CTRL-C to quit
 e = """
 Communications Failed
 """
+
+class ClientAsyncLed(Node):
+    def __init__(self):
+        super().__init__('LEDClientAsync')
+        self.cli = self.create_client(SetLED, 'SetLED')
+        while not self.cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('LED service not available, waiting again...')
+        self.req = SetLED.Request()
+
+    def send_request(self, a):
+        self.req.index = a
+        self.future = self.cli.call_async(self.req)
+        rclpy.spin_until_future_complete(self, self.future)
+        return self.future.result()
+
+class ClientAsyncAni(Node):
+    def __init__(self):
+        super().__init__('ClientAsyncAni')
+        self.cli = self.create_client(PlayAni, 'PlayAni')
+        while not self.cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('OLED service not available, waiting again...')
+        self.req = PlayAni.Request()
+
+    def send_request(self, a):
+        self.req.index = a
+        self.future = self.cli.call_async(self.req)
+        rclpy.spin_until_future_complete(self, self.future)
+        return self.future.result()
+
+class ClientAsyncSong(Node):
+    def __init__(self):
+        super().__init__('ClientAsyncSong')
+        self.cli = self.create_client(PlaySong, 'PlaySong')
+        while not self.cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('Song service not available, waiting again...')
+        self.req = PlaySong.Request()
+
+    def send_request(self, a):
+        self.req.index = a
+        self.future = self.cli.call_async(self.req)
+        rclpy.spin_until_future_complete(self, self.future)
+        return self.future.result()
 
 def get_key(settings):
     if os.name == 'nt':
@@ -113,10 +152,6 @@ def main():
 
     robotarm = Moniarm()
     robotarm.home()
-
-    ledpub = node.create_publisher(Int32, 'ledSub',10)      # generate publisher for 'ledSub'
-    songpub = node.create_publisher(Int32, 'songSub',10)    # generate publisher for 'songpub'
-    lcdpub = node.create_publisher(Int32, 'lcdSub',10)      # generate publisher for 'lcdpub'
     print('moniarm Teleop Keyboard controller')
 
     status = 0
@@ -125,10 +160,13 @@ def main():
     control_motor2_velocity = MOTOR2_HOME
     control_motor3_velocity = GRIPPER_OPEN
 
-    colorIdx = 0                                        # variable for saving data in ledSub's msg data field
-    songIdx = 0                                         # variable for saving data in songSub's msg data field
-    lcdIdx = 0
-    gMsg = Int32()
+    colorIdx = 0                                        # index for led on/off
+    songIdx = 0                                         # index for buzzer song
+    lcdIdx = 0                                          # index for oled animation
+
+    led_client = ClientAsyncLed()
+    ani_client = ClientAsyncAni()
+    song_client = ClientAsyncSong()
 
     rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_control/moniarm_control/')
     fhandle = open(rosPath + 'automove.txt', 'w')
@@ -160,24 +198,21 @@ def main():
                 status = status + 1
             elif key == 'c':            # led control
                 print('colorIdx: %d'%(colorIdx))
-                gMsg.data = colorIdx
-                ledpub.publish(gMsg)
+                led_client.send_request(colorIdx)
                 colorIdx += 1
                 if colorIdx >= MAX_COLOR:
                     colorIdx = 0
 
             elif key == 'u':                # play buzzer song
                 print('songIdx: %d'%(songIdx))
-                gMsg.data = songIdx
-                songpub.publish(gMsg)
+                song_client.send_request(songIdx)
                 songIdx += 1
                 if songIdx >= MAX_SONG:
                     songIdx = 0
 
             elif key == 'o':                # play oled animation
                 print('lcdIdx: %d'%(lcdIdx))
-                gMsg.data = lcdIdx
-                lcdpub.publish(gMsg)
+                ani_client.send_request(lcdIdx)
                 lcdIdx += 1
                 if lcdIdx >= MAX_ANIM:
                     lcdIdx = 0

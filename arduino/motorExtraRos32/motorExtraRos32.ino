@@ -154,7 +154,8 @@ void motorMoving(int mid, int tarAngle) {
     Herkulex.moveOneAngle(mid, tarAngle, moveTime, LED_RED);
   }
 }
-// Take the velocity command as input and calculate the PWM values.
+
+// Take the angle array, then move each motor
 void motor_callback(const void *msgin) {
   const std_msgs__msg__Int32MultiArray *msg = (const std_msgs__msg__Int32MultiArray *)msgin;
   int angle0, angle1, angle2, angle3;

@@ -1,9 +1,7 @@
 #____________________________________________________________________________________________
-# Init()  
+# Init()
 #____________________________________________________________________________________________
-# This service returns the current moniarm status
+# This service initialize motors
 int8    init_mode
 ---
-
-bool    success 
-
+bool    success

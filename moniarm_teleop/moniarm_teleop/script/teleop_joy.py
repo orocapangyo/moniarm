@@ -37,13 +37,12 @@ import os
 import rclpy
 from rclpy.node import Node
 from rclpy.parameter import Parameter
-from rclpy.logging import get_logger
-from std_msgs.msg import Int32
 from sensor_msgs.msg import Joy
 from rclpy.qos import QoSProfile
-from .submodules.myutil import Moniarm, radiansToDegrees, trimLimits, clamp
+from .submodules.myutil import Moniarm, clamp
 from .submodules.myconfig import *
 from std_msgs.msg import Int32MultiArray
+from moniarm_interfaces.srv import SetLED, PlayAni, PlaySong
 
 msg = """
 Control Your Robot!
@@ -56,8 +55,50 @@ Right Stick up/down:   Elbow(M2) move
 'X' : gripper open/close
 'A' : Change led
 'B' : Play buzzer song
-'Y': Play OLED animation
+'Y' : Play OLED animation
 """
+
+class ClientAsyncLed(Node):
+    def __init__(self):
+        super().__init__('LEDClientAsync')
+        self.cli = self.create_client(SetLED, 'SetLED')
+        while not self.cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('LED service not available, waiting again...')
+        self.req = SetLED.Request()
+
+    def send_request(self, a):
+        self.req.index = a
+        self.future = self.cli.call_async(self.req)
+        rclpy.spin_until_future_complete(self, self.future)
+        return self.future.result()
+
+class ClientAsyncAni(Node):
+    def __init__(self):
+        super().__init__('ClientAsyncAni')
+        self.cli = self.create_client(PlayAni, 'PlayAni')
+        while not self.cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('OLED service not available, waiting again...')
+        self.req = PlayAni.Request()
+
+    def send_request(self, a):
+        self.req.index = a
+        self.future = self.cli.call_async(self.req)
+        rclpy.spin_until_future_complete(self, self.future)
+        return self.future.result()
+
+class ClientAsyncSong(Node):
+    def __init__(self):
+        super().__init__('ClientAsyncSong')
+        self.cli = self.create_client(PlaySong, 'PlaySong')
+        while not self.cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('Song service not available, waiting again...')
+        self.req = PlaySong.Request()
+
+    def send_request(self, a):
+        self.req.index = a
+        self.future = self.cli.call_async(self.req)
+        rclpy.spin_until_future_complete(self, self.future)
+        return self.future.result()
 
 class TeleopJoyNode(Node):
 
@@ -73,19 +114,19 @@ class TeleopJoyNode(Node):
         self.auto_mode = False
         self.chatCount= 0
         self.mode_button_last = 0
-        self.colorIdx = 0           # variable for saving data in ledSub's msg data field
-        self.songIdx = 0            # variable for saving data in songSub's msg data field
-        self.lcdIdx = 0             # variable for saving data in lcdSub's msg data field
+
+        self.colorIdx = 0                                        # index for led on/off
+        self.songIdx = 0                                         # index for buzzer song
+        self.lcdIdx = 0                                          # index for oled animation
 
         self.control_motor0_velocity = MOTOR0_HOME
         self.control_motor1_velocity = MOTOR1_HOME
         self.control_motor2_velocity = MOTOR2_HOME
         self.control_motor3_velocity = GRIPPER_OPEN
 
-        self.gMsg  =  Int32()
-        self.pub_led = self.create_publisher(Int32, 'ledSub',10)
-        self.pub_song = self.create_publisher(Int32, 'songSub',10)
-        self.pub_lcd = self.create_publisher(Int32, 'lcdSub',10)
+        self.led_client = ClientAsyncLed()
+        self.ani_client = ClientAsyncAni()
+        self.song_client = ClientAsyncSong()
 
         print(' moniarm Teleop Joystick controller')
         print(msg)
@@ -120,8 +161,7 @@ class TeleopJoyNode(Node):
 
         if joymsg.buttons[0] == 1 and self.mode_button_last == 0:
             print('colorIdx: %d'%(self.colorIdx))
-            self.gMsg.data = self.colorIdx
-            self.pub_led.publish(self.gMsg)           #publishing 'ledSub'
+            self.led_client.send_request(self.colorIdx)
             self.colorIdx+=1
             if self.colorIdx >= MAX_COLOR:
                 self.colorIdx=0
@@ -129,8 +169,7 @@ class TeleopJoyNode(Node):
 
         elif joymsg.buttons[1] == 1 and self.mode_button_last == 0:
             print('songIdx: %d'%(self.songIdx))
-            self.gMsg.data = self.songIdx
-            self.pub_song.publish(self.gMsg)         #publishing 'songSub'
+            self.song_client.send_request(self.songIdx)
             self.songIdx+=1
             if self.songIdx >= MAX_SONG:
                 self.songIdx=0
@@ -138,8 +177,7 @@ class TeleopJoyNode(Node):
 
         elif joymsg.buttons[4] == 1 and self.mode_button_last == 0:
             print('lcdIdx: %d'%(self.lcdIdx))
-            self.gMsg.data = self.lcdIdx
-            self.pub_lcd.publish(self.gMsg)           #publishing 'songSub'
+            self.ani_client.send_request(self.lcdIdx)
             self.lcdIdx+=1
             if self.lcdIdx >= MAX_ANIM:
                 self.lcdIdx=0
