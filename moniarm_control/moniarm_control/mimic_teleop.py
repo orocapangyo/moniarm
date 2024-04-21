@@ -7,6 +7,7 @@ from .submodules.myutil import clamp, Moniarm, radiansToDegrees, trimLimits
 from std_msgs.msg import Int32, Int32MultiArray
 from rclpy.node import Node
 import os
+from .submodules.myconfig import *
 
 msg = """
 Mimic Human's operation!
@@ -29,7 +30,7 @@ def main():
         moveHistory = open(rosPath + 'automove.txt', 'r')
 
         motorMsg = Int32MultiArray()
-        motorMsg.data = [0, 0, 0, 0]
+        motorMsg.data = [MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF]
 
         while(1):
             # Get next line from file

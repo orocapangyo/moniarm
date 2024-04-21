@@ -49,7 +49,7 @@ class LowLevelCtrl(Node):
         self.timer = self.create_timer(timer_period, self.node_callback)
 
         self.motorMsg = Int32MultiArray()
-        self.motorMsg.data = [0, 0, 0, 0]
+        self.motorMsg.data = [MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF]
         self.get_logger().info("Setting Up low level arm control node...")
 
         self.actuators = {}
@@ -126,6 +126,7 @@ class LowLevelCtrl(Node):
         self.motorMsg.data[0] = angleX
         self.motorMsg.data[1] = MOTOR_NOMOVE
         self.motorMsg.data[2] = MOTOR_NOMOVE
+        self.motorMsg.data[3] = MOTOR_NOMOVE
         self.robotarm.run(self.motorMsg)
 
     def set_actuators_idle(self):
@@ -139,6 +140,7 @@ class LowLevelCtrl(Node):
         self.motorMsg.data[0] = MOTOR0_HOME
         self.motorMsg.data[1] = MOTOR_NOMOVE
         self.motorMsg.data[2] = MOTOR_NOMOVE
+        self.motorMsg.data[3] = MOTOR_NOMOVE
         self.robotarm.run(self.motorMsg)
         #self.get_logger().info("reset avoid")
     @property

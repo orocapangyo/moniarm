@@ -199,10 +199,10 @@ class TeleopJoyNode(Node):
             self.mode_button_last = joymsg.buttons[4]
 
         # initialize motors when motor error happens
-        elif joymsg.buttons[2] == 1 and self.mode_button_last == 0:
+        elif joymsg.buttons[7] == 1 and self.mode_button_last == 0:
             print('Initialize motors')
             self.int_client.send_request(0)
-            self.mode_button_last = joymsg.buttons[2]
+            self.mode_button_last = joymsg.buttons[7]
 
         elif joymsg.buttons[3] == 1 and self.mode_button_last == 0:
             status = status + 1
