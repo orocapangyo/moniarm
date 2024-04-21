@@ -41,7 +41,7 @@ from rclpy.node import Node
 from std_msgs.msg import Int32MultiArray
 from .submodules.myutil import Moniarm, clamp
 from .submodules.myconfig import *
-from moniarm_interfaces.srv import SetLED, PlayAni, PlaySong
+from moniarm_interfaces.srv import SetLED, PlayAni, PlaySong, Init
 
 if os.name == 'nt':
     import msvcrt
@@ -60,6 +60,7 @@ q/z : Elbow(M2) move
 c: Change led
 u: play buzzer song
 o: OLED animation
+i: Motor intialize
 
 CTRL-C to quit
 """
@@ -106,6 +107,20 @@ class ClientAsyncSong(Node):
 
     def send_request(self, a):
         self.req.index = a
+        self.future = self.cli.call_async(self.req)
+        rclpy.spin_until_future_complete(self, self.future)
+        return self.future.result()
+
+class ClientAsyncInit(Node):
+    def __init__(self):
+        super().__init__('ClientAsyncInit')
+        self.cli = self.create_client(Init, 'Init')
+        while not self.cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('Init service not available, waiting again...')
+        self.req = Init.Request()
+
+    def send_request(self, a):
+        self.req.init_mode = a
         self.future = self.cli.call_async(self.req)
         rclpy.spin_until_future_complete(self, self.future)
         return self.future.result()
@@ -158,7 +173,7 @@ def main():
     control_motor0_velocity = MOTOR0_HOME
     control_motor1_velocity = MOTOR1_HOME
     control_motor2_velocity = MOTOR2_HOME
-    control_motor3_velocity = GRIPPER_OPEN
+    control_motor3_velocity = 0
 
     colorIdx = 0                                        # index for led on/off
     songIdx = 0                                         # index for buzzer song
@@ -167,6 +182,7 @@ def main():
     led_client = ClientAsyncLed()
     ani_client = ClientAsyncAni()
     song_client = ClientAsyncSong()
+    int_client = ClientAsyncInit()
 
     rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_control/moniarm_control/')
     fhandle = open(rosPath + 'automove.txt', 'w')
@@ -196,26 +212,28 @@ def main():
             elif key == 'd':            # motor0
                 control_motor0_velocity = check_linear_limit_velocity(control_motor0_velocity - LIN_VEL_STEP_SIZE)
                 status = status + 1
+
             elif key == 'c':            # led control
                 print('colorIdx: %d'%(colorIdx))
                 led_client.send_request(colorIdx)
                 colorIdx += 1
                 if colorIdx >= MAX_COLOR:
                     colorIdx = 0
-
             elif key == 'u':                # play buzzer song
                 print('songIdx: %d'%(songIdx))
                 song_client.send_request(songIdx)
                 songIdx += 1
                 if songIdx >= MAX_SONG:
                     songIdx = 0
-
             elif key == 'o':                # play oled animation
                 print('lcdIdx: %d'%(lcdIdx))
                 ani_client.send_request(lcdIdx)
                 lcdIdx += 1
                 if lcdIdx >= MAX_ANIM:
                     lcdIdx = 0
+            elif key == 'i':                # initialize motors when motor error happens
+                print('Initialize motors')
+                int_client.send_request(0)
 
             elif key == 'g':                # gripper
                 status = status + 1

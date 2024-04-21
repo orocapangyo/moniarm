@@ -42,7 +42,7 @@ from rclpy.qos import QoSProfile
 from .submodules.myutil import Moniarm, clamp
 from .submodules.myconfig import *
 from std_msgs.msg import Int32MultiArray
-from moniarm_interfaces.srv import SetLED, PlayAni, PlaySong
+from moniarm_interfaces.srv import SetLED, PlayAni, PlaySong, Init
 
 msg = """
 Control Your Robot!
@@ -100,6 +100,20 @@ class ClientAsyncSong(Node):
         rclpy.spin_until_future_complete(self, self.future)
         return self.future.result()
 
+class ClientAsyncInit(Node):
+    def __init__(self):
+        super().__init__('ClientAsyncInit')
+        self.cli = self.create_client(Init, 'Init')
+        while not self.cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('Init service not available, waiting again...')
+        self.req = Init.Request()
+
+    def send_request(self, a):
+        self.req.init_mode = a
+        self.future = self.cli.call_async(self.req)
+        rclpy.spin_until_future_complete(self, self.future)
+        return self.future.result()
+
 class TeleopJoyNode(Node):
 
     def __init__(self):
@@ -122,11 +136,12 @@ class TeleopJoyNode(Node):
         self.control_motor0_velocity = MOTOR0_HOME
         self.control_motor1_velocity = MOTOR1_HOME
         self.control_motor2_velocity = MOTOR2_HOME
-        self.control_motor3_velocity = GRIPPER_OPEN
+        self.control_motor3_velocity = 0
 
         self.led_client = ClientAsyncLed()
         self.ani_client = ClientAsyncAni()
         self.song_client = ClientAsyncSong()
+        self.int_client = ClientAsyncInit()
 
         print(' moniarm Teleop Joystick controller')
         print(msg)
@@ -182,6 +197,12 @@ class TeleopJoyNode(Node):
             if self.lcdIdx >= MAX_ANIM:
                 self.lcdIdx=0
             self.mode_button_last = joymsg.buttons[4]
+
+        # initialize motors when motor error happens
+        elif joymsg.buttons[2] == 1 and self.mode_button_last == 0:
+            print('Initialize motors')
+            self.int_client.send_request(0)
+            self.mode_button_last = joymsg.buttons[2]
 
         elif joymsg.buttons[3] == 1 and self.mode_button_last == 0:
             status = status + 1

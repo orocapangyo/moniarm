@@ -81,33 +81,33 @@ class Moniarm(Node):
     def home(self):
         print("Homing...")
         self.motorMsg.data[3] = GRIPPER_OPEN
-        self.motorMsg.data[0] = MOTOR_NOMOVE
-        self.motorMsg.data[1] = MOTOR_NOMOVE
-        self.motorMsg.data[2] = MOTOR_NOMOVE
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR_TOQON
+        self.motorMsg.data[2] = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
         self.motorMsg.data[3] = MOTOR_TOQOFF
-        self.motorMsg.data[0] = MOTOR0_HOME
-        self.motorMsg.data[1] = MOTOR_NOMOVE
-        self.motorMsg.data[2] = MOTOR_NOMOVE
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR1_HOME
+        self.motorMsg.data[2] = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.5)
         self.motorMsg.data[3] = MOTOR_TOQOFF
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR_TOQON
         self.motorMsg.data[2] = MOTOR2_HOME
-        self.motorMsg.data[0] = MOTOR_NOMOVE
-        self.motorMsg.data[1] = MOTOR_NOMOVE
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.5)
+        self.motorMsg.data[3] = MOTOR_TOQOFF
+        self.motorMsg.data[0] = MOTOR0_HOME
+        self.motorMsg.data[1] = MOTOR_TOQON
+        self.motorMsg.data[2] = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
         self.motorMsg.data[3] = MOTOR_TOQOFF
-        self.motorMsg.data[1] = MOTOR1_HOME
         self.motorMsg.data[0] = MOTOR_TOQOFF
-        self.motorMsg.data[2] = MOTOR_NOMOVE
-        self.motorPub.publish(self.motorMsg)
-        sleep(1.0)
-        self.motorMsg.data[3] = MOTOR_TOQON
-        self.motorMsg.data[0] = MOTOR_TOQON
-        self.motorMsg.data[1] = MOTOR_NOMOVE
-        self.motorMsg.data[2] = MOTOR_NOMOVE
+        self.motorMsg.data[1] = MOTOR_TOQON
+        self.motorMsg.data[2] = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
         print("Homing Done")
