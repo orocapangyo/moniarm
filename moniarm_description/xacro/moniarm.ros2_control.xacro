@@ -25,6 +25,13 @@
         </command_interface>
         <state_interface name="position"/>
       </joint>
+      <joint name="${prefix}joint3">
+        <command_interface name="position">
+          <param name="min">-1</param>
+          <param name="max">1</param>
+        </command_interface>
+        <state_interface name="position"/>
+      </joint>
     </ros2_control>
 
   </xacro:macro>

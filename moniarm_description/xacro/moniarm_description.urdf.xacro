@@ -6,9 +6,9 @@
   <!-- Constants for robot dimensions -->
   <xacro:property name="mass" value="1" /> <!-- arbitrary value for mass -->
   <xacro:property name="width" value="0.1" /> <!-- Square dimensions (widthxwidth) of beams -->
-  <xacro:property name="height1" value="2" /> <!-- Link 1 -->
-  <xacro:property name="height2" value="1" /> <!-- Link 2 -->
-  <xacro:property name="height3" value="1" /> <!-- Link 3 -->
+  <xacro:property name="height1" value="0.3" /> <!-- Link 1 -->
+  <xacro:property name="height2" value="0.45" /> <!-- Link 2 -->
+  <xacro:property name="height3" value="0.01" /> <!-- Link 3 -->
   <xacro:property name="camera_link" value="0.05" /> <!-- Size of square 'camera' box -->
   <xacro:property name="axel_offset" value="0.05" /> <!-- Space btw top of beam and the each joint -->
 
@@ -21,18 +21,18 @@
   <!-- Base Link -->
   <link name="${prefix}base_link">
     <collision>
-      <origin xyz="0 0 ${height1/2}" rpy="0 0 0"/>
-      <geometry>
+				<origin rpy="0 0 0" xyz="0 0 0" />
+				<geometry>
         <box size="${width} ${width} ${height1}"/>
       </geometry>
-    </collision>
+			</collision>
 
     <visual>
-      <origin xyz="0 0 ${height1/2}" rpy="0 0 0"/>
+      <origin xyz="-0.1 -0.15 0" rpy="89.5 0 1.5708"/>
       <geometry>
-        <box size="${width} ${width} ${height1}"/>
+					<mesh filename="package://moniarm_description/meshes/link1.stl" scale="0.005 0.005 0.005" />
       </geometry>
-      <material name="orange"/>
+      <material name="white"/>
     </visual>
 
     <inertial>
@@ -48,7 +48,7 @@
     <joint name="${prefix}joint1" type="continuous">
       <parent link="${prefix}base_link"/>
       <child link="${prefix}link1"/>
-      <origin xyz="0 ${width} ${height1 - axel_offset}" rpy="0 0 0"/>
+      <origin xyz="0 0 ${height1}" rpy="0 0 0"/>
       <axis xyz="0 1 0"/>
       <dynamics damping="0.7"/>
     </joint>
@@ -63,11 +63,12 @@
       </collision>
 
       <visual>
-        <origin xyz="0 0 ${height2/2 - axel_offset}" rpy="0 0 0"/>
+        <!-- <origin xyz="0.04 -0.45 0" rpy="0.01 -0.06 -0.01"/> -->
+        <origin xyz="-0.02 -0.1 -0.3" rpy="1.2 0 1.5708"/>
         <geometry>
-          <box size="${width} ${width} ${height2}"/>
+					<mesh filename="package://moniarm_description/meshes/link2.stl" scale="0.005 0.005 0.005" />
         </geometry>
-        <material name="yellow"/>
+        <material name="white"/>
       </visual>
 
       <inertial>
@@ -83,7 +84,7 @@
       <joint name="${prefix}joint2" type="continuous">
         <parent link="${prefix}link1"/>
         <child link="${prefix}link2"/>
-        <origin xyz="0 ${width} ${height2 - axel_offset*2}" rpy="0 0 0"/>
+        <origin xyz="0 0.01 ${height2}" rpy="0 0 0"/>
         <axis xyz="0 1 0"/>
         <dynamics damping="0.7"/>
       </joint>
@@ -93,16 +94,17 @@
         <collision>
           <origin xyz="0 0 ${height3/2 - axel_offset}" rpy="0 0 0"/>
           <geometry>
-            <box size="${width} ${width} ${height3}"/>
+            <box size="${width} ${width} ${height2}"/>
           </geometry>
         </collision>
 
         <visual>
-          <origin xyz="0 0 ${height3/2 - axel_offset}" rpy="0 0 0"/>
+          <!-- <origin xyz="-0.5 0 -0.45" rpy="1.2 0 1.5708"/> -->
+          <origin xyz="-0.64 -0.2 -0.4" rpy="2.1 0.1 1.5708"/>
           <geometry>
-            <box size="${width} ${width} ${height3}"/>
+            <mesh filename="package://moniarm_description/meshes/link3.stl" scale="0.005 0.005 0.005" />
           </geometry>
-          <material name="orange"/>
+          <material name="white"/>
         </visual>
 
         <inertial>
@@ -115,88 +117,38 @@
           </inertial>
         </link>
 
-        <joint name="${prefix}tool_joint" type="fixed">
-          <origin xyz="0 0 1" rpy="0 0 0" />
+        <joint name="${prefix}joint3" type="fixed">
+          <origin xyz="0 0 0.5" rpy="0 0 0" />
           <parent link="${prefix}link2"/>
           <child link="${prefix}tool_link" />
         </joint>
 
         <!-- Tool Link -->
         <link name="${prefix}tool_link">
-        </link>
+        <collision>
+          <origin xyz="0 0 ${height3/2 - axel_offset}" rpy="0 0 0"/>
+          <geometry>
+            <box size="${width} ${width} ${height2}"/>
+          </geometry>
+        </collision>
 
-        <joint name="${prefix}hokuyo_joint" type="fixed">
-          <axis xyz="0 1 0" />
-          <origin xyz="0 0 ${height3 - axel_offset/2}" rpy="0 0 0"/>
-          <parent link="${prefix}link2"/>
-          <child link="${prefix}hokuyo_link"/>
-        </joint>
+        <visual>
+          <!-- <origin xyz="-0.55 -0.15 -1.13" rpy="1.57 0 1.5708"/> -->
+          <origin xyz="-0.435 -0.33 -1.13" rpy="1.57 0 1.5708"/>
+          <geometry>
+            <mesh filename="package://moniarm_description/meshes/link4.stl" scale="0.005 0.005 0.005" />
+          </geometry>
+          <material name="black"/>
+        </visual>
 
-        <!-- Hokuyo Laser -->
-        <link name="${prefix}hokuyo_link">
-          <collision>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
-            <geometry>
-              <box size="0.1 0.1 0.1"/>
-            </geometry>
-          </collision>
-
-          <visual>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
-            <geometry>
-              <mesh filename="package://moniarm_description/meshes/hokuyo.dae"/>
-            </geometry>
-          </visual>
-
-          <inertial>
-            <mass value="1e-5" />
-            <origin xyz="0 0 0" rpy="0 0 0"/>
-            <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+        <inertial>
+          <origin xyz="0 0 ${height3/2 - axel_offset}" rpy="0 0 0"/>
+          <mass value="${mass}"/>
+          <inertia
+            ixx="${mass / 12.0 * (width*width + height3*height3)}" ixy="0.0" ixz="0.0"
+            iyy="${mass / 12.0 * (height3*height3 + width*width)}" iyz="0.0"
+            izz="${mass / 12.0 * (width*width + width*width)}"/>
           </inertial>
-        </link>
-
-        <joint name="${prefix}camera_joint" type="fixed">
-          <axis xyz="0 1 0" />
-          <origin xyz="${camera_link} 0 ${height3 - axel_offset*2}" rpy="0 0 0"/>
-          <parent link="${prefix}link2"/>
-          <child link="${prefix}camera_link"/>
-        </joint>
-
-        <!-- Camera -->
-        <link name="${prefix}camera_link">
-          <collision>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
-            <geometry>
-              <box size="${camera_link} ${camera_link} ${camera_link}"/>
-            </geometry>
-          </collision>
-
-          <visual>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
-            <geometry>
-              <box size="${camera_link} ${camera_link} ${camera_link}"/>
-            </geometry>
-            <material name="red"/>
-          </visual>
-
-          <inertial>
-            <mass value="1e-5" />
-            <origin xyz="0 0 0" rpy="0 0 0"/>
-            <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
-          </inertial>
-        </link>
-
-        <!-- generate an optical frame http://www.ros.org/reps/rep-0103.html#suffix-frames
-        so that ros and opencv can operate on the camera frame correctly -->
-        <joint name="${prefix}camera_optical_joint" type="fixed">
-          <!-- these values have to be these values otherwise the gazebo camera image
-          won't be aligned properly with the frame it is supposedly originating from -->
-          <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
-          <parent link="${prefix}camera_link"/>
-          <child link="${prefix}camera_link_optical"/>
-        </joint>
-
-        <link name="${prefix}camera_link_optical">
         </link>
 
   </xacro:macro>
