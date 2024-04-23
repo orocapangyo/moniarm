@@ -132,10 +132,11 @@ void motorMoving(int mid, int tarAngle) {
   //calculate moving time at first, should be enough for smooth operation
   else {
     Herkulex.torqueON(mid);
+    //roundup current angle
     curAngle = int(Herkulex.getAngle(mid) + 0.5);
     moveAngle = abs(tarAngle - curAngle);
-    //0, 1 degree, don't moave
-    if (moveAngle < 2)
+    //dont' need to move
+    if (moveAngle == 0)
       return;
 
     moveTime = moveAngle * 30;
