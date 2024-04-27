@@ -96,10 +96,10 @@ void loop() {
   if (currentMillis - previousMillis > INTERVAL) {
     //blink motor LED
     if (blinkStatus == false) {
-      Herkulex.setLed(M0_ID, LED_RED);
-      Herkulex.setLed(M1_ID, LED_GREEN);
-      Herkulex.setLed(M2_ID, LED_BLUE);
-      Herkulex.setLed(M3_ID, LED_RED);
+      Herkulex.setLed(M0_ID, LED_GREEN);
+      Herkulex.setLed(M1_ID, LED_BLUE);
+      Herkulex.setLed(M2_ID, LED_GREEN);
+      Herkulex.setLed(M3_ID, LED_BLUE);
       blinkStatus = true;
     } else {
       Herkulex.setLed(M0_ID, 0);

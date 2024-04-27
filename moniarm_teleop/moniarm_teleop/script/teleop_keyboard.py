@@ -56,8 +56,9 @@ Moving around:
 a/d : base(M0), left/light
 w/x : shoulder(M1) move
 q/z : Elbow(M2) move
+e/c : Wrist(M3) move
 
-c: Change led
+l: Change led
 u: play buzzer song
 o: OLED animation
 i: Motor intialize
@@ -149,7 +150,7 @@ def constrain(input_vel, low_bound, high_bound):
     return input_vel
 
 def check_linear_limit_velocity(velocity):
-    return constrain(velocity, -MAX_LIN_VEL, MAX_LIN_VEL)
+    return constrain(velocity, -MAX_ANG, MAX_ANG)
 
 def main():
     settings = None
@@ -159,8 +160,8 @@ def main():
     rclpy.init()
 
     print('Param max lin: %s deg, lin step: %s deg'%
-        (MAX_LIN_VEL,
-        LIN_VEL_STEP_SIZE)
+        (MAX_ANG,
+        ANG_STEP)
     )
 
     node = rclpy.create_node('teleop_keyboard_node')        # generate node
@@ -173,7 +174,7 @@ def main():
     control_motor0_velocity = MOTOR0_HOME
     control_motor1_velocity = MOTOR1_HOME
     control_motor2_velocity = MOTOR2_HOME
-    control_motor3_velocity = 0
+    control_motor3_velocity = MOTOR3_HOME
 
     colorIdx = 0                                        # index for led on/off
     songIdx = 0                                         # index for buzzer song
@@ -195,25 +196,31 @@ def main():
         while(1):
             key = get_key(settings)
             if key == 'x':              # motor1
-                control_motor1_velocity = check_linear_limit_velocity(control_motor1_velocity + LIN_VEL_STEP_SIZE)
+                control_motor1_velocity = check_linear_limit_velocity(control_motor1_velocity + ANG_STEP)
                 status = status + 1
             elif key == 'w':            # motor1
-                control_motor1_velocity = check_linear_limit_velocity(control_motor1_velocity - LIN_VEL_STEP_SIZE)
+                control_motor1_velocity = check_linear_limit_velocity(control_motor1_velocity - ANG_STEP)
                 status = status + 1
             elif key == 'z':            # motor2
-                control_motor2_velocity = check_linear_limit_velocity(control_motor2_velocity + LIN_VEL_STEP_SIZE)
+                control_motor2_velocity = check_linear_limit_velocity(control_motor2_velocity + ANG_STEP)
                 status = status + 1
             elif key == 'q':            # motor2
-                control_motor2_velocity = check_linear_limit_velocity(control_motor2_velocity - LIN_VEL_STEP_SIZE)
+                control_motor2_velocity = check_linear_limit_velocity(control_motor2_velocity - ANG_STEP)
+                status = status + 1
+            elif key == 'c':            # motor3
+                control_motor3_velocity = check_linear_limit_velocity(control_motor3_velocity + ANG_STEP)
+                status = status + 1
+            elif key == 'e':            # motor3
+                control_motor3_velocity = check_linear_limit_velocity(control_motor3_velocity - ANG_STEP)
                 status = status + 1
             elif key == 'a':            # motor0
-                control_motor0_velocity = check_linear_limit_velocity(control_motor0_velocity + LIN_VEL_STEP_SIZE)
+                control_motor0_velocity = check_linear_limit_velocity(control_motor0_velocity + ANG_STEP)
                 status = status + 1
             elif key == 'd':            # motor0
-                control_motor0_velocity = check_linear_limit_velocity(control_motor0_velocity - LIN_VEL_STEP_SIZE)
+                control_motor0_velocity = check_linear_limit_velocity(control_motor0_velocity - ANG_STEP)
                 status = status + 1
 
-            elif key == 'c':            # led control
+            elif key == 'l':            # led control
                 print('colorIdx: %d'%(colorIdx))
                 led_client.send_request(colorIdx)
                 colorIdx += 1
@@ -235,12 +242,12 @@ def main():
                 print('Initialize motors')
                 int_client.send_request(0)
 
-            elif key == 'g':                # gripper
-                status = status + 1
-                if control_motor3_velocity == 0:
-                    control_motor3_velocity = 1
-                else:
-                    control_motor3_velocity = 0
+            #elif key == 'g':                # gripper
+            #    status = status + 1
+            #    if control_motor3_velocity == 0:
+            #        control_motor3_velocity = 1
+            #    else:
+            #        control_motor3_velocity = 0
 
             else:
                 #Ctrl-C, then stop working
@@ -252,21 +259,23 @@ def main():
 
             motorMsg = Int32MultiArray()
             #M0, M3 torque off by default
-            motorMsg.data = [MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF]
+            motorMsg.data = [MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME]
 
             #key pressed, torque
             if status == 1:
-                if control_motor3_velocity == 0:
-                    motorMsg.data[3] = GRIPPER_OPEN
-                else:
-                    motorMsg.data[3] = GRIPPER_CLOSE
-                control_motor0_velocity = int(clamp(control_motor0_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
+            #    if control_motor3_velocity == 0:
+            #        motorMsg.data[3] = GRIPPER_OPEN
+            #    else:
+            #        motorMsg.data[3] = GRIPPER_CLOSE
+                control_motor0_velocity = int(clamp(control_motor0_velocity, MOTOR0_MIN, MOTOR0_MAX))
                 motorMsg.data[0] = control_motor0_velocity      #M0, degree
 
-            control_motor1_velocity = int(clamp(control_motor1_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
-            control_motor2_velocity = int(clamp(control_motor2_velocity, -MAX_LIN_VEL, MAX_LIN_VEL))
-            motorMsg.data[1] = control_motor1_velocity          #M1, degree
-            motorMsg.data[2] = control_motor2_velocity          #M2, degree
+            control_motor1_velocity = int(clamp(control_motor1_velocity, MOTOR1_MIN, MOTOR1_MAX))
+            control_motor2_velocity = int(clamp(control_motor2_velocity, MOTOR2_MIN, MOTOR2_MAX))
+            control_motor2_velocity = int(clamp(control_motor2_velocity, MOTOR3_MIN, MOTOR3_MAX))
+            motorMsg.data[1] = control_motor1_velocity
+            motorMsg.data[2] = control_motor2_velocity
+            motorMsg.data[3] = control_motor3_velocity
 
             robotarm.run(motorMsg)
             print('M0= %.2f, M1 %.2f, M2= %.2f, M3= %.2f'%(motorMsg.data[0], motorMsg.data[1],motorMsg.data[2], motorMsg.data[3]))

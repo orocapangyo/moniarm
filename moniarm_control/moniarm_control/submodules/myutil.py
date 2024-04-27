@@ -35,7 +35,7 @@ class Moniarm(Node):
         super().__init__('arm_basic_node')
         self.motorPub = self.create_publisher(Int32MultiArray, 'cmd_motor',10)
         self.motorMsg = Int32MultiArray()
-        self.motorMsg.data = [0, 0, 0, 0]
+        self.motorMsg.data = [MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME]
         self.armStatus = "Homing"
 
     def run(self, mMSG):
@@ -47,114 +47,171 @@ class Moniarm(Node):
 
     def park(self):
         print("Parking...")
-        self.motorMsg.data[3] = GRIPPER_OPEN
-        self.motorMsg.data[0] = MOTOR_NOMOVE
-        self.motorMsg.data[1] = MOTOR_NOMOVE
-        self.motorMsg.data[2] = MOTOR_NOMOVE
-        self.motorPub.publish(self.motorMsg)
-        sleep(1.0)
-        self.motorMsg.data[3] = MOTOR_TOQOFF
         self.motorMsg.data[0] = MOTOR0_OFF
-        self.motorMsg.data[1] = MOTOR_NOMOVE
-        self.motorMsg.data[2] = MOTOR_NOMOVE
-        self.motorPub.publish(self.motorMsg)
-        sleep(1.5)
-        self.motorMsg.data[3] = MOTOR_TOQOFF
-        self.motorMsg.data[2] = MOTOR2_OFF
-        self.motorMsg.data[0] = MOTOR_NOMOVE
-        self.motorMsg.data[1] = MOTOR_NOMOVE
-        self.motorPub.publish(self.motorMsg)
-        sleep(1.5)
-        self.motorMsg.data[3] = MOTOR_TOQOFF
-        self.motorMsg.data[1] = MOTOR1_OFF
-        self.motorMsg.data[0] = MOTOR_NOMOVE
-        self.motorMsg.data[2] = MOTOR_NOMOVE
+        self.motorMsg.data[1] = MOTOR_TOQON
+        self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
-        self.motorMsg.data[3] = MOTOR_TOQOFF
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = (MOTOR1_OFF + 20)
+        self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR_TOQON
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.5)
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR_TOQON
+        self.motorMsg.data[2] = MOTOR2_OFF
+        self.motorMsg.data[3] = MOTOR_TOQON
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.5)
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR_TOQON
+        self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR3_OFF
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.0)
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR1_OFF
+        self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR_TOQON
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.5)
         self.motorMsg.data[0] = MOTOR_TOQOFF
         self.motorMsg.data[1] = MOTOR_TOQOFF
         self.motorMsg.data[2] = MOTOR_TOQOFF
+        self.motorMsg.data[3] = MOTOR_TOQOFF
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
         print("Parking Done")
     def home(self):
         print("Homing...")
-        self.motorMsg.data[3] = GRIPPER_OPEN
         self.motorMsg.data[0] = MOTOR_TOQOFF
         self.motorMsg.data[1] = MOTOR_TOQON
         self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR3_HOME
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
-        self.motorMsg.data[3] = MOTOR_TOQOFF
         self.motorMsg.data[0] = MOTOR_TOQOFF
-        self.motorMsg.data[1] = MOTOR1_HOME
+        self.motorMsg.data[1] = (MOTOR1_HOME - 20)
         self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.5)
-        self.motorMsg.data[3] = MOTOR_TOQOFF
         self.motorMsg.data[0] = MOTOR_TOQOFF
         self.motorMsg.data[1] = MOTOR_TOQON
         self.motorMsg.data[2] = MOTOR2_HOME
+        self.motorMsg.data[3] = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.5)
-        self.motorMsg.data[3] = MOTOR_TOQOFF
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR1_HOME
+        self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR_TOQON
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.5)
         self.motorMsg.data[0] = MOTOR0_HOME
         self.motorMsg.data[1] = MOTOR_TOQON
         self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR_TOQOFF
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
-        self.motorMsg.data[3] = MOTOR_TOQOFF
         self.motorMsg.data[0] = MOTOR_TOQOFF
         self.motorMsg.data[1] = MOTOR_TOQON
         self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
         print("Homing Done")
     def picknplace(self, object):
-        #pose for pikcing up
+        #move to pick up postion
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR_TOQON
+        self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR3_PICKUP
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.0)
+        self.motorMsg.data[0] = MOTOR_TOQOFF
         self.motorMsg.data[1] = MOTOR1_PICKUP
+        self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
-        sleep(0.5)
-
-        #grab object
-        self.motorMsg.data[3] = GRIPPER_CLOSE
-        self.motorPub.publish(self.motorMsg)
-        sleep(0.5)
-
-        #lift up a little
+        sleep(1.0)
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR_TOQON
         self.motorMsg.data[2] = MOTOR2_PICKUP
+        self.motorMsg.data[3] = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
+        sleep(1.0)
+        #grap action
+
+        #lift up
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR_TOQON
+        self.motorMsg.data[2] = MOTOR2_HOME
+        self.motorMsg.data[3] = MOTOR_TOQON
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.0)
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR1_HOME
+        self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR_TOQON
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.0)
 
         #move to place position
         if object == 1:
             self.motorMsg.data[0] = MOTOR0_PLACE1
         else:
             self.motorMsg.data[0] = MOTOR0_PLACE2
+        self.motorMsg.data[1] = MOTOR_TOQON
+        self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR_TOQON 
         self.motorPub.publish(self.motorMsg)
-        sleep(0.5)
+        sleep(1.0)
 
-        #move down for placing
-        self.motorMsg.data[2] = MOTOR2_HOME
+        #move to pick up postion
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR_TOQON
+        self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR3_PICKUP
         self.motorPub.publish(self.motorMsg)
-        sleep(0.5)
-
-        #place object
-        self.motorMsg.data[3] = GRIPPER_OPEN
+        sleep(1.0)
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR1_PICKUP
+        self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
-        sleep(0.5)
+        sleep(1.0)
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR_TOQON
+        self.motorMsg.data[2] = MOTOR2_PICKUP
+        self.motorMsg.data[3] = MOTOR_TOQON
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.0)
+        #place action
 
         #lift up
-        self.motorMsg.data[1] = MOTOR1_PICKUP
-        self.motorPub.publish(self.motorMsg)
-        sleep(0.5)
-
-        #move to home postion
-        self.motorMsg.data[0] = MOTOR0_HOME
-        self.motorMsg.data[1] = MOTOR1_HOME
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR_TOQON
         self.motorMsg.data[2] = MOTOR2_HOME
-        self.motorMsg.data[3] = GRIPPER_OPEN
-        sleep(0.5)
+        self.motorMsg.data[3] = MOTOR_TOQON
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.0)
+        self.motorMsg.data[0] = MOTOR_TOQOFF
+        self.motorMsg.data[1] = MOTOR1_HOME
+        self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR_TOQON
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.0)
+
+        #Home
+        self.motorMsg.data[0] = MOTOR0_HOME
+        self.motorMsg.data[1] = MOTOR_TOQON
+        self.motorMsg.data[2] = MOTOR_TOQON
+        self.motorMsg.data[3] = MOTOR_TOQON
+        self.motorPub.publish(self.motorMsg)
+        sleep(2.0)
 
 def main(args=None):
     rclpy.init(args=args)

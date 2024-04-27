@@ -217,8 +217,6 @@ def blur_outside(image, blur=5, window_adim=[0.0, 0.0, 1.0, 1.0]):
     #--- Copy the pixels from the original image corresponding to the window
     mask[y_min_px:y_max_px,x_min_px:x_max_px] = image[y_min_px:y_max_px,x_min_px:x_max_px]   
     
-    
-    
     #--- return the mask
     return(mask)
     
@@ -234,9 +232,7 @@ def get_blob_relative_position(image, keyPoint):
     x = (keyPoint.pt[0] - center_x)/(center_x)
     y = (keyPoint.pt[1] - center_y)/(center_y)
     return(x,y)
-        
- 
-        
+    
 #----------- TEST
 if __name__=="__main__":
 

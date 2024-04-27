@@ -11,7 +11,7 @@ Publishes commands to
     /dkcar/control/cmd_vel
 
 """
-import math, time
+from time import sleep, time
 import rclpy
 from rclpy.node import Node
 from rclpy.parameter import Parameter
@@ -50,53 +50,50 @@ class ChaseBall(Node):
         self._message = CmdChase()
 
         # Create a timer that will gate the node actions twice a second
-        timer_period = 0.1  # seconds
+        timer_period = 0.3               #300ms timer
         self.timer = self.create_timer(timer_period, self.node_callback)
 
     @property
     def is_detected(self):
-        return time.time() - self._time_detected < 1.0
+        return time() - self._time_detected < 1.0
 
     def update_ball(self, message):
         self.blob_x = message.x
         self.blob_y = message.y
-        self._time_detected = time.time()
-        self.get_logger().info("Ball detected x, y: %.2f  %.2f "%(self.blob_x, self.blob_y))
+        self._time_detected = time()
+        #self.get_logger().info("Ball detected x, y: %.2f  %.2f "%(self.blob_x, self.blob_y))
 
     def get_control_action(self):
         """
         Based on the current ranges, calculate the command
         """
         command_x = 0.0
+        inrange = 0
         detect_object = 0
 
         if self.is_detected:
             # --- Apply steering, proportional to how close is the object
-            blobx_diff = self.blob_x
-            if ((blobx_diff > IN_RANGE_MIN) and (blobx_diff < IN_RANGE_MAX)) :
-                final_steer_action = 0.0
-                self._message.inrange = 1
-            else:
-                command_x = DIR_TO_X * blobx_diff
-                command_x = command_x*self.K_x
-                command_x = clamp(command_x, -1.0, 1.0)
-                self._message.inrange = 0
+            command_x = self.K_x * self.blob_x
+            command_x = clamp(command_x, -1.0, 1.0)
+            if ((command_x > IN_RANGE_MIN) and (command_x < IN_RANGE_MAX)) :
+                inrange = 1
 
             detect_object = 1
             #if object is detected, go forward with defined power
             #self.get_logger().info("CommandX= %.2f" % (command_x))
 
-        return (detect_object, command_x)
+        return (detect_object, command_x, inrange)
 
     def node_callback(self):
          # -- update the message
-        self._message.object, self._message.cmd_x = self.get_control_action()
+        self._message.object, self._message.cmd_x, self._message.inrange = self.get_control_action()
 
         # -- publish it, only blob detected
         if self.is_detected:
-            self.get_logger().info("CommandX= %.2f" % (self._message.cmd_x))
+            self.get_logger().info("CommandX= %.2f In= %d " %(self._message.cmd_x, self._message.inrange) )
             self.pub_chase.publish(self._message)
-
+        #else:
+        #    self.get_logger().info("Missing object")
 
 def main(args=None):
     rclpy.init(args=args)
