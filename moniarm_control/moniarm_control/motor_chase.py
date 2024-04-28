@@ -49,7 +49,7 @@ class LowLevelCtrl(Node):
            ])
 
         # Create a timer that will gate the node actions twice a second
-        timer_period = 0.3
+        timer_period = Ktimer
         self.timer = self.create_timer(timer_period, self.node_callback)
 
         self.motorMsg = Int32MultiArray()
@@ -65,7 +65,7 @@ class LowLevelCtrl(Node):
         self.get_logger().info("> Subscriber corrrectly initialized")
 
         self.command_x = 0.0
-        self.command_x_prev = 0.0
+        self.command_x_prev = [0.0, 0.0, 0.0]
         self.detect_object = 0
         self.inrange = 0
         self.command_count = 0
@@ -74,14 +74,14 @@ class LowLevelCtrl(Node):
         self._last_time_cmd_rcv = time()
         self._last_time_chase_rcv = time()
         self._timeout_ctrl = 100
-        self._timeout_command = 3
+        self._timeout_command = 2           #2 seconds
 
         self.armStatus = "Homing"
         self.get_logger().info("Homing")
         self.robotarm = Moniarm()
         self.robotarm.home()
         self.get_logger().info("Homing Done")
-        self.armStatus = "Scanning"
+        self.armStatus = "Searching"
 
     #don't use this function
     def update_message_from_command(self, message):
@@ -90,18 +90,22 @@ class LowLevelCtrl(Node):
         #self.get_logger().info("command: " +str(self.command_x))
 
     def update_message_from_chase(self, message):
-        self._last_time_chase_rcv = time()
-        self.detect_object = message.object
-        self.command_x = message.cmd_x
-        self.inrange = message.inrange
-        #self.get_logger().info("chase: " + str(self.command_x))
+        if self.armStatus == "Searching":
+            self._last_time_chase_rcv = time()
+            self.detect_object = message.object
+            self.command_x = message.cmd_x
+            self.inrange = message.inrange
+        else:
+            self.detect_object = 0
+            self.command_x = 0.0
+            self.inrange = 0
 
     def compose_command_velocity(self):
         #if object is detected
         if (self.detect_object > 0):
             self.set_actuators_from_cmdvel(self.inrange, self.detect_object, self.command_x)
         else:
-            self.command_x_prev = 0.0
+            self.command_x_prev = [0.0, 0.0, 0.0]
 
     def set_actuators_from_cmdvel(self, inrange, det_object, command):
         """
@@ -115,33 +119,32 @@ class LowLevelCtrl(Node):
         else:
             self.armStatus = "Searching"
 
-        self.command_count += 1
-        #take time to move, 300ms
+        # steering is chase cmmand
+        if inrange == 1:
+            self.armStatus = "PickingUp"
+            self.get_logger().info("Object is inrange, then pick up. Object: %d" %(det_object))
+            self.robotarm.picknplace(det_object)
+            self.get_logger().info("Now Home")
+            self.armStatus = "Searching"
+            self.reset_avoid()
+
         if self.command_count < 3:
+            self.command_x_prev[self.command_count] = command
+            self.get_logger().info( "command: %.3f, %.3f, %.3f" %(self.command_x_prev[0], self.command_x_prev[1],self.command_x_prev[2]) )
+            self.command_count += 1
             return
         else:
             self.command_count = 0
 
         #simple PI control, Kp=1, Ki=0.3
-        command_x = self.command_x_prev*Kint + command*Kpro
+        command_x = self.command_x_prev[0]*0.1 + self.command_x_prev[1]*0.2 + self.command_x_prev[2]*0.3+ command
         command_x = clamp(command_x, -1.00, 1.00)
-        self.command_x_prev = command_x
-
-        # steering is chase cmmand
-        if inrange == 1:
-            self.armStatus = "PickingUp"
-            self.get_logger().info("Object is inrange, then pick up. Object: %d" %(det_object))
-            self.detect_object = 0
-            self.inrange = 0
-            self.robotarm.picknplace(det_object)
-            #self.robotarm.home()
-            self.get_logger().info("Now Home")
-            self.armStatus = "Scanning"
+        self.command_x_prev = [0.0, 0.0, 0.0]
 
         # -- Convert vel into servo values
         angle_x=self.actuators["axis_x"].get_value_out(command_x)
         self.set_angles(angle_x)
-        self.get_logger().info("Move Angle:%d, command: %2.2f"%(angle_x, command))
+        self.get_logger().info("Move Angle:%d, command: %.3f"%(angle_x, command_x))
 
     def set_angles(self, angleX):
         self.motorMsg.data[0] = angleX
@@ -157,15 +160,18 @@ class LowLevelCtrl(Node):
         #self.get_logger().info("go to idle")
 
     def reset_avoid(self):
-        self.detect_object = 0
-        self.inrange = 0
         self.motorMsg.data[0] = MOTOR0_HOME
         self.motorMsg.data[1] = MOTOR1_HOME
         self.motorMsg.data[2] = MOTOR2_HOME
         self.motorMsg.data[3] = MOTOR3_HOME
         self.robotarm.run(self.motorMsg)
         self.get_logger().info("reset avoid")
-        
+
+        self.detect_object = 0
+        self.inrange = 0
+        self.command_count = 0
+        self.command_x_prev = [0.0, 0.0, 0.0]
+
     @property
     def is_controller_connected(self):
         # print time() - self._last_time_cmd_rcv

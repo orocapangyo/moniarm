@@ -58,7 +58,7 @@ class ChaseObject(Node):
         self._message = CmdChase()
 
         # Create a timer that will gate the node actions twice a second
-        timer_period = 0.3               #300ms timer
+        timer_period = Ktimer
         self.timer = self.create_timer(timer_period, self.node_callback)
 
     @property
@@ -107,7 +107,7 @@ class ChaseObject(Node):
 
         # -- publish it, only blob detected
         if self.is_detected:
-            self.get_logger().info("CommandX= %.2f In= %d " %(self._message.cmd_x, self._message.inrange) )
+            self.get_logger().info("CommandX= %.3f In= %d " %(self._message.cmd_x, self._message.inrange) )
             self.pub_chase.publish(self._message)
         #else:
         #    self.get_logger().info("Missing object")

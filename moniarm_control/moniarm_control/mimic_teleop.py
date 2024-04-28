@@ -30,7 +30,7 @@ def main():
         moveHistory = open(rosPath + 'automove.txt', 'r')
 
         motorMsg = Int32MultiArray()
-        motorMsg.data = [MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF]
+        motorMsg.data = [MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME]
 
         while(1):
             # Get next line from file
