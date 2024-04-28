@@ -64,25 +64,25 @@ class Moniarm(Node):
         self.motorMsg.data[2] = MOTOR2_OFF
         self.motorMsg.data[3] = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
-        sleep(1.5)
+        sleep(0.9)
         self.motorMsg.data[0] = MOTOR_TOQOFF
         self.motorMsg.data[1] = MOTOR_TOQON
         self.motorMsg.data[2] = MOTOR_TOQON
         self.motorMsg.data[3] = MOTOR3_OFF
         self.motorPub.publish(self.motorMsg)
-        sleep(1.0)
+        sleep(0.4)
         self.motorMsg.data[0] = MOTOR_TOQOFF
         self.motorMsg.data[1] = MOTOR1_OFF
         self.motorMsg.data[2] = MOTOR_TOQON
         self.motorMsg.data[3] = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
-        sleep(1.5)
+        sleep(0.7)
         self.motorMsg.data[0] = MOTOR_TOQOFF
         self.motorMsg.data[1] = MOTOR_TOQOFF
         self.motorMsg.data[2] = MOTOR_TOQOFF
         self.motorMsg.data[3] = MOTOR_TOQOFF
         self.motorPub.publish(self.motorMsg)
-        sleep(1.0)
+        sleep(0.2)
         print("Parking Done")
     def home(self):
         print("Homing...")
@@ -91,7 +91,7 @@ class Moniarm(Node):
         self.motorMsg.data[2] = MOTOR_TOQON
         self.motorMsg.data[3] = MOTOR3_HOME
         self.motorPub.publish(self.motorMsg)
-        sleep(1.0)
+        sleep(0.5)
         self.motorMsg.data[0] = MOTOR_TOQOFF
         self.motorMsg.data[1] = (MOTOR1_HOME - 20)
         self.motorMsg.data[2] = MOTOR_TOQON
@@ -103,25 +103,25 @@ class Moniarm(Node):
         self.motorMsg.data[2] = MOTOR2_HOME
         self.motorMsg.data[3] = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
-        sleep(1.5)
+        sleep(1.0)
         self.motorMsg.data[0] = MOTOR_TOQOFF
         self.motorMsg.data[1] = MOTOR1_HOME
         self.motorMsg.data[2] = MOTOR_TOQON
         self.motorMsg.data[3] = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
-        sleep(1.5)
+        sleep(0.6)
         self.motorMsg.data[0] = MOTOR0_HOME
         self.motorMsg.data[1] = MOTOR_TOQON
         self.motorMsg.data[2] = MOTOR_TOQON
         self.motorMsg.data[3] = MOTOR_TOQOFF
         self.motorPub.publish(self.motorMsg)
-        sleep(1.0)
+        sleep(0.2)
         self.motorMsg.data[0] = MOTOR_TOQOFF
         self.motorMsg.data[1] = MOTOR_TOQON
         self.motorMsg.data[2] = MOTOR_TOQON
         self.motorMsg.data[3] = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
-        sleep(1.0)
+        sleep(0.2)
         print("Homing Done")
     def picknplace(self, object):
         #move to pick up postion

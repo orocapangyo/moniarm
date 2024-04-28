@@ -43,6 +43,7 @@ from .submodules.myutil import Moniarm, clamp
 from .submodules.myconfig import *
 from std_msgs.msg import Int32MultiArray
 from moniarm_interfaces.srv import SetLED, PlayAni, PlaySong, Init
+import atexit
 
 msg = """
 Control Your Robot!
@@ -143,6 +144,8 @@ class TeleopJoyNode(Node):
         self.song_client = ClientAsyncSong()
         self.int_client = ClientAsyncInit()
 
+        atexit.register(self.set_park)
+        
         print(' moniarm Teleop Joystick controller')
         print(msg)
         self.max_deg = self.get_parameter_or('max_deg', Parameter('max_deg', Parameter.Type.INTEGER, 120)).get_parameter_value().integer_value
@@ -264,8 +267,8 @@ class TeleopJoyNode(Node):
             self.mode_button_last = 0
             self.chatCount = 0
 
-    def __del__(self):
-        print('Arm parking, be careful')
+    def set_park(self):
+        self.get_logger().info('Arm parking, be careful')
         self.robotarm.park()
 
 def main(args=None):

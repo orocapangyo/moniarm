@@ -13,6 +13,7 @@ from sensor_msgs.msg import JointState
 from .submodules.myutil import Moniarm, radiansToDegrees, trimLimits
 from .submodules.myconfig import *
 from std_msgs.msg import Int32, Int32MultiArray
+import atexit
 
 class ChaseMoveit(Node):
     def __init__(self):
@@ -26,6 +27,7 @@ class ChaseMoveit(Node):
         self.robotarm = Moniarm()
         self.robotarm.home()
 
+        atexit.register(self.set_park)
         self._joint_sub = self.create_subscription(JointState, '/joint_states', self.moveit_callback, 10)
         self.get_logger().info("Moveit Subscriber Awaked!! Waiting for Moveit Planning...")
 
@@ -46,8 +48,8 @@ class ChaseMoveit(Node):
         print( str(motorMsg.data[0]) + ':' + str(motorMsg.data[1]) + ':' + str(motorMsg.data[2])
         + ':' + str(motorMsg.data[3]) + ':' + str(self.timediff))
 
-    def __del__(self):
-        print("Arm class release")
+    def set_park(self):
+        self.get_logger().info('Arm parking, be careful')
         self.robotarm.park()
 
 def main(args=None):

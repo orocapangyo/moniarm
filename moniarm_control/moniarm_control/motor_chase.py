@@ -16,6 +16,7 @@ from std_msgs.msg import Int32, Int32MultiArray
 from .submodules.myutil import clamp, Moniarm, radiansToDegrees, trimLimits
 from .submodules.myconfig import *
 from moniarm_interfaces.msg import CmdChase
+import atexit
 
 class ServoConvert:
     def __init__(self, id=1, center_value=0, range=MAX_ANG, direction=1):
@@ -82,6 +83,7 @@ class LowLevelCtrl(Node):
         self.robotarm.home()
         self.get_logger().info("Homing Done")
         self.armStatus = "Searching"
+        atexit.register(self.set_park)
 
     #don't use this function
     def update_message_from_command(self, message):
@@ -172,14 +174,9 @@ class LowLevelCtrl(Node):
         self.command_count = 0
         self.command_x_prev = [0.0, 0.0, 0.0]
 
-    @property
-    def is_controller_connected(self):
-        # print time() - self._last_time_cmd_rcv
-        return time() - self._last_time_cmd_rcv < self._timeout_ctrl
-
-    @property
-    def is_chase_connected(self):
-        return time() - self._last_time_chase_rcv < self._timeout_command
+    def set_park(self):
+        self.get_logger().info('Arm parking, be careful')
+        self.robotarm.park()
 
     def node_callback(self):
         self.compose_command_velocity()
@@ -189,9 +186,14 @@ class LowLevelCtrl(Node):
         if not self.is_chase_connected:
             self.reset_avoid()
 
-    def __del__(self):
-        self.get_logger().info('Arm parking, be careful')
-        self.robotarm.park()
+    @property
+    def is_controller_connected(self):
+        # print time() - self._last_time_cmd_rcv
+        return time() - self._last_time_cmd_rcv < self._timeout_ctrl
+
+    @property
+    def is_chase_connected(self):
+        return time() - self._last_time_chase_rcv < self._timeout_command
 
 def main(args=None):
     rclpy.init(args=args)
