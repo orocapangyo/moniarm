@@ -87,6 +87,7 @@ class ChaseBall(Node):
     def node_callback(self):
          # -- update the message
         self._message.object, self._message.cmd_x, self._message.inrange = self.get_control_action()
+        self._message.stamp = self.get_clock().now().to_msg()
 
         # -- publish it, only blob detected
         if self.is_detected:

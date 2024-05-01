@@ -33,7 +33,7 @@ class ChaseMoveit(Node):
 
     def moveit_callback(self, cmd_msg):
         motorMsg = Int32MultiArray()
-        motorMsg.data = [MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME]
+        motorMsg.data = [MOTOR0_ZERO, MOTOR1_ZERO, MOTOR2_ZERO, MOTOR3_ZERO]
 
         #print( str(cmd_msg.position[0]) + ':' + str(cmd_msg.position[1]) + ':' + str(cmd_msg.position[2]) + ':' + str(cmd_msg.position[3]) )
 

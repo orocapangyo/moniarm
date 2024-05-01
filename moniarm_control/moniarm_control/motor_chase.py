@@ -92,15 +92,17 @@ class LowLevelCtrl(Node):
         #self.get_logger().info("command: " +str(self.command_x))
 
     def update_message_from_chase(self, message):
-        if self.armStatus == "Searching":
-            self._last_time_chase_rcv = time()
-            self.detect_object = message.object
-            self.command_x = message.cmd_x
-            self.inrange = message.inrange
-        else:
-            self.detect_object = 0
-            self.command_x = 0.0
-            self.inrange = 0
+        #ignore 1 second previous message
+        msg_secs = message.stamp.sec
+        now = self.get_clock().now().to_msg().sec
+        if (msg_secs + 1 < now):
+            #self.get_logger().info("Stamp %d, %d" %(now, msg_secs ) )
+            return
+
+        self._last_time_chase_rcv = time()
+        self.detect_object = message.object
+        self.command_x = message.cmd_x
+        self.inrange = message.inrange
 
     def compose_command_velocity(self):
         #if object is detected
@@ -115,11 +117,13 @@ class LowLevelCtrl(Node):
         """
         command_x = 0.0
 
-        if self.armStatus == "PickingUp":
-            self.get_logger().info("why here, PikingUp")
+        if self.command_count < 3:
+            self.command_x_prev[self.command_count] = command
+            self.get_logger().info( "command: %.3f, %.3f, %.3f" %(self.command_x_prev[0], self.command_x_prev[1],self.command_x_prev[2]) )
+            self.command_count += 1
             return
         else:
-            self.armStatus = "Searching"
+            self.command_count = 0
 
         # steering is chase cmmand
         if inrange == 1:
@@ -129,14 +133,7 @@ class LowLevelCtrl(Node):
             self.get_logger().info("Now Home")
             self.armStatus = "Searching"
             self.reset_avoid()
-
-        if self.command_count < 3:
-            self.command_x_prev[self.command_count] = command
-            self.get_logger().info( "command: %.3f, %.3f, %.3f" %(self.command_x_prev[0], self.command_x_prev[1],self.command_x_prev[2]) )
-            self.command_count += 1
             return
-        else:
-            self.command_count = 0
 
         #simple PI control, Kp=1, Ki=0.3
         command_x = self.command_x_prev[0]*0.1 + self.command_x_prev[1]*0.2 + self.command_x_prev[2]*0.3+ command

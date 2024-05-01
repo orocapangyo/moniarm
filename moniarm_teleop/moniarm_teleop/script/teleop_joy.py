@@ -145,7 +145,7 @@ class TeleopJoyNode(Node):
         self.int_client = ClientAsyncInit()
 
         atexit.register(self.set_park)
-        
+
         print(' moniarm Teleop Joystick controller')
         print(msg)
         self.max_deg = self.get_parameter_or('max_deg', Parameter('max_deg', Parameter.Type.INTEGER, 120)).get_parameter_value().integer_value
