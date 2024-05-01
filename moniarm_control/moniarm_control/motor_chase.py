@@ -1,10 +1,47 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+#
+# Copyright (c) 2024, ChangWhan Lee
+# All rights reserved.
+#
+# Software License Agreement (BSD License 2.0)
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of {copyright_holder} nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
 
 """
 referenced from those projects
 
 DkLowLevelCtrl, ServoConvert part from tizianofiorenzani/ros_tutorials
 url: https://github.com/tizianofiorenzani/ros_tutorials
+
+Subscribes to
+    /control/cmd_chase
+Publishes commands to
+    /cmd_motor
 
 """
 from time import sleep, time
@@ -37,8 +74,12 @@ class ServoConvert:
         self.value_out = int(self._dir * value_in * self._half_range + self._center + 0.5)
         if self.value_out > 0:
             self.value_out = self.value_out + 180
+            if (self.value_out == 180) or (self.value_out == 181):
+                self.value_out = 182
         else:
             self.value_out = self.value_out - 180
+            if (self.value_out == -180) or (self.value_out == -181):
+                self.value_out = -182
         return self.value_out
 
 class LowLevelCtrl(Node):
@@ -69,7 +110,8 @@ class LowLevelCtrl(Node):
         self.command_x_prev = [0.0, 0.0, 0.0]
         self.detect_object = 0
         self.inrange = 0
-        self.command_count = 0
+        #1'st move, don't use command_x_prev
+        self.command_count = 3
 
         # --- Get the last time e got a commands
         self._last_time_cmd_rcv = time()
@@ -136,7 +178,7 @@ class LowLevelCtrl(Node):
             return
 
         #simple PI control, Kp=1, Ki=0.3
-        command_x = self.command_x_prev[0]*0.1 + self.command_x_prev[1]*0.2 + self.command_x_prev[2]*0.3+ command
+        command_x = self.command_x_prev[0]*0.1 + self.command_x_prev[1]*0.2 + self.command_x_prev[2]*0.3 + command*0.8
         command_x = clamp(command_x, -1.00, 1.00)
         self.command_x_prev = [0.0, 0.0, 0.0]
 
@@ -151,6 +193,8 @@ class LowLevelCtrl(Node):
         self.motorMsg.data[2] = MOTOR2_HOME
         self.motorMsg.data[3] = MOTOR3_HOME
         self.robotarm.run(self.motorMsg)
+        #motor move too slow
+        #sleep(0.3)
 
     def set_actuators_idle(self):
         # -- Convert vel into servo values
@@ -168,7 +212,8 @@ class LowLevelCtrl(Node):
 
         self.detect_object = 0
         self.inrange = 0
-        self.command_count = 0
+        #1'st move, don't use command_x_prev
+        self.command_count = 3
         self.command_x_prev = [0.0, 0.0, 0.0]
 
     def set_park(self):

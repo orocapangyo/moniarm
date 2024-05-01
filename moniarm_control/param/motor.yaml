@@ -1,5 +1,5 @@
 /**:
   ros__parameters:
-    K_x: -0.2
+    K_x: -0.3
     DETECT_CLASS1 : "RedStar"
     DETECT_CLASS2 : "BlueCylinder"

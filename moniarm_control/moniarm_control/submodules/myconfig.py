@@ -57,11 +57,11 @@ CALIBPICTURE = 0.00
 PICTURE_YOLO = 416.0
 
 #object detected range, control power view
-IN_RANGE_MIN = -0.03
-IN_RANGE_MAX = 0.03
+IN_RANGE_MIN = -0.05
+IN_RANGE_MAX = 0.05
 
 #object tracking PI controller
-Ktimer = 0.2
+Ktimer = 0.1
 
 #teleop parameter
 MAX_SONG = 5
