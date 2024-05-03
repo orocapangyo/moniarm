@@ -49,11 +49,12 @@ import rclpy
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.logging import get_logger
-from std_msgs.msg import Int32, Int32MultiArray
-from .submodules.myutil import clamp, Moniarm, radiansToDegrees, trimLimits
-from .submodules.myconfig import *
+from std_msgs.msg import Int32MultiArray
 from moniarm_interfaces.msg import CmdChase
 import atexit
+
+from .submodules.myutil import clamp, Moniarm, radiansToDegrees, trimLimits
+from .submodules.myconfig import *
 
 class ServoConvert:
     def __init__(self, id=1, center_value=0, range=MAX_ANG, direction=1):
@@ -74,10 +75,12 @@ class ServoConvert:
         self.value_out = int(self._dir * value_in * self._half_range + self._center + 0.5)
         if self.value_out > 0:
             self.value_out = self.value_out + 180
+            #0,1 degree, DRS0101 don't move
             if (self.value_out == 180) or (self.value_out == 181):
                 self.value_out = 182
         else:
             self.value_out = self.value_out - 180
+            #0,1 degree, DRS0101 don't move
             if (self.value_out == -180) or (self.value_out == -181):
                 self.value_out = -182
         return self.value_out
@@ -230,7 +233,6 @@ class LowLevelCtrl(Node):
 
     @property
     def is_controller_connected(self):
-        # print time() - self._last_time_cmd_rcv
         return time() - self._last_time_cmd_rcv < self._timeout_ctrl
 
     @property

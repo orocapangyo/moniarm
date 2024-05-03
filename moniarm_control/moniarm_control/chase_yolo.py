@@ -50,9 +50,9 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.logging import get_logger
 from darknet_ros_msgs.msg import BoundingBoxes
+from moniarm_interfaces.msg import CmdChase
 from .submodules.myutil import clamp, Moniarm, radiansToDegrees, trimLimits
 from .submodules.myconfig import *
-from moniarm_interfaces.msg import CmdChase
 
 class ChaseObject(Node):
     def __init__(self):

@@ -42,16 +42,16 @@ Publishes commands to
 
 """
 
-import time
+from time import sleep, time
 import rclpy
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.logging import get_logger
 from sensor_msgs.msg import JointState
+from std_msgs.msg import Int32MultiArray
+import atexit
 from .submodules.myutil import Moniarm, radiansToDegrees, trimLimits
 from .submodules.myconfig import *
-from std_msgs.msg import Int32, Int32MultiArray
-import atexit
 
 class ChaseMoveit(Node):
     def __init__(self):

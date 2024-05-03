@@ -50,9 +50,9 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.logging import get_logger
 from geometry_msgs.msg import Point
+from moniarm_interfaces.msg import CmdChase
 from .submodules.myutil import clamp, Moniarm, radiansToDegrees, trimLimits
 from .submodules.myconfig import *
-from moniarm_interfaces.msg import CmdChase
 
 class ChaseBall(Node):
     def __init__(self):

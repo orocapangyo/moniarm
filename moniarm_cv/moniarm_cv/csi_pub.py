@@ -5,6 +5,7 @@ import cv2
 
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
+from rclpy.logging import get_logger
 
 def gstreamer_pipeline(
     capture_width=640,
@@ -43,7 +44,7 @@ class CameraeNode(Node):
         self.image_pub = self.create_publisher(Image, 'image_raw', 10)
         self.bridge = CvBridge()
 
-        print("Camera Node created")
+        self.get_logger().info("Camera Node created")
         # Create a timer that will gate the node actions twice a second
         timer_period = 0.05  # seconds
         self.timer = self.create_timer(timer_period, self.node_callback)
@@ -54,7 +55,7 @@ class CameraeNode(Node):
         if ret == True:
             self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
         else:
-            print("image read fail")
+            self.get_logger().info("image read fail")
             self.cap.release()
             cv2.destroyAllWindows()
 

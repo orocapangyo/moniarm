@@ -32,13 +32,12 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import os, sys
 from time import sleep, time
-import sys
 import rclpy
 from .submodules.myutil import clamp, Moniarm, radiansToDegrees, trimLimits
-from std_msgs.msg import Int32, Int32MultiArray
+from std_msgs.msg import Int32MultiArray
 from rclpy.node import Node
-import os
 from .submodules.myconfig import *
 
 msg = """
