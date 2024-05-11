@@ -35,9 +35,10 @@
 import os, sys
 from time import sleep, time
 import rclpy
-from .submodules.myutil import clamp, Moniarm, radiansToDegrees, trimLimits
-from std_msgs.msg import Int32MultiArray
 from rclpy.node import Node
+
+from moniarm_interfaces.msg import CmdMotor
+from .submodules.myutil import Moniarm, clamp, setArmAgles
 from .submodules.myconfig import *
 
 msg = """
@@ -58,10 +59,11 @@ def main():
     try:
         print(msg)
         rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_control/moniarm_control/')
-        moveHistory = open(rosPath + 'automove.txt', 'r')
+        moveHistory = open(rosPath + 'automove.csv', 'r')
 
-        motorMsg = Int32MultiArray()
-        motorMsg.data = [MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME]
+        motorMsg = CmdMotor()
+        #M0, M3 torque off by default
+        setArmAgles(motorMsg, MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, 0.0)
 
         while(1):
             # Get next line from file
@@ -70,11 +72,8 @@ def main():
             if not line:
                 break
 
-            motor0, motor1, motor2, motor3, time_diff = line.split(':')
-            motorMsg.data[0] = int(motor0)
-            motorMsg.data[1] = int(motor1)
-            motorMsg.data[2] = int(motor2)
-            motorMsg.data[3] = int(motor3)
+            motor0, motor1, motor2, motor3, time_diff = line.split(',')
+            setArmAgles(motorMsg, motor0, motor2, motor2, motor3, time_diff)
 
             try:
                 sleep(float(time_diff))

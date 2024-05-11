@@ -12,7 +12,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
     "msg/Arm3dof.msg"
     "msg/Joint.msg"
-    "msg/Arm.msg"
+    "msg/CmdMotor.msg"
     "msg/CmdChase.msg"
     "srv/GetStatus.srv"
     "srv/Init.srv"

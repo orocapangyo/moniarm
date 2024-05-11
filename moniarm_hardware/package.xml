@@ -2,11 +2,9 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>moniarm_hardware</name>
-  <version>0.0.0</version>
+  <version>0.9.9</version>
   <description>moniarm hardware package.</description>
-
   <maintainer email="sms0432@gmail.com">Minsoo Song</maintainer>
-
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

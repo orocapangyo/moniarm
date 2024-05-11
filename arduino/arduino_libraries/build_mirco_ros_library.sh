@@ -13,11 +13,12 @@ cp -r $MONIARM_SRC/moniarm_interfaces  ./micro_ros_arduino/extras/library_genera
 
 # 3. build micro_ros_arduino with docker
 cd micro_ros_arduino
+sed -i "s/-DRMW_UXRCE_MAX_SERVICES=1/-DRMW_UXRCE_MAX_SERVICES=5/g" extras/colcon.meta
 docker run -it --rm -v $(pwd):/project --env MICROROS_LIBRARY_FOLDER=extras microros/micro_ros_static_library_builder:$ROS_PKG -p esp32
 
 # 4.1 zip micro_ros_arduino for Arduino IDE libray
 cd ..
-zip micro_ros_arduino.zip micro_ros_arduino/*
+zip -r micro_ros_arduino.zip micro_ros_arduino/*
 
 # 4.2 copy micro_ros_arduino to Arduino libary
 # cp -r micro_ros_arduino  $ARDUINO_ROOT/libraries/

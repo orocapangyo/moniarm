@@ -49,11 +49,10 @@ import rclpy
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.logging import get_logger
-from std_msgs.msg import Int32MultiArray
-from moniarm_interfaces.msg import CmdChase
 import atexit
 
-from .submodules.myutil import clamp, Moniarm, radiansToDegrees, trimLimits
+from moniarm_interfaces.msg import CmdChase, CmdMotor
+from .submodules.myutil import clamp, Moniarm, setArmAgles
 from .submodules.myconfig import *
 
 class ServoConvert:
@@ -97,8 +96,9 @@ class LowLevelCtrl(Node):
         timer_period = Ktimer
         self.timer = self.create_timer(timer_period, self.node_callback)
 
-        self.motorMsg = Int32MultiArray()
-        self.motorMsg.data = [MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF]
+        self.motorMsg = CmdMotor()
+        #M0, M3 torque off by default
+        setArmAgles(self.motorMsg, MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF, 0.0)
         self.get_logger().info("Setting Up low level arm control node...")
 
         self.actuators = {}
@@ -191,10 +191,10 @@ class LowLevelCtrl(Node):
         self.get_logger().info("Move Angle:%d, command: %.3f"%(angle_x, command_x))
 
     def set_angles(self, angleX):
-        self.motorMsg.data[0] = angleX
-        self.motorMsg.data[1] = MOTOR1_HOME
-        self.motorMsg.data[2] = MOTOR2_HOME
-        self.motorMsg.data[3] = MOTOR3_HOME
+        self.motorMsg.angle0 = angleX
+        self.motorMsg.angle1 = MOTOR1_HOME
+        self.motorMsg.angle2 = MOTOR2_HOME
+        self.motorMsg.angle3 = MOTOR3_HOME
         self.robotarm.run(self.motorMsg)
         #motor move too slow
         #sleep(0.3)
@@ -206,10 +206,10 @@ class LowLevelCtrl(Node):
         #self.get_logger().info("go to idle")
 
     def reset_avoid(self):
-        self.motorMsg.data[0] = MOTOR0_HOME
-        self.motorMsg.data[1] = MOTOR1_HOME
-        self.motorMsg.data[2] = MOTOR2_HOME
-        self.motorMsg.data[3] = MOTOR3_HOME
+        self.motorMsg.angle0 = MOTOR0_HOME
+        self.motorMsg.angle1 = MOTOR1_HOME
+        self.motorMsg.angle2 = MOTOR2_HOME
+        self.motorMsg.angle3 = MOTOR3_HOME
         self.robotarm.run(self.motorMsg)
         self.get_logger().info("reset avoid")
 

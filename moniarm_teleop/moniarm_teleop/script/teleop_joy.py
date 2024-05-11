@@ -39,11 +39,12 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from sensor_msgs.msg import Joy
 from rclpy.qos import QoSProfile
-from .submodules.myutil import Moniarm, clamp
-from .submodules.myconfig import *
-from std_msgs.msg import Int32MultiArray
-from moniarm_interfaces.srv import SetLED, PlayAni, PlaySong, Init
 import atexit
+
+from moniarm_interfaces.srv import SetLED, PlayAni, PlaySong, Init
+from moniarm_interfaces.msg import CmdMotor
+from .submodules.myutil import Moniarm, clamp, setArmAgles
+from .submodules.myconfig import *
 
 msg = """
 Control Your Robot!
@@ -110,7 +111,7 @@ class ClientAsyncInit(Node):
         self.req = Init.Request()
 
     def send_request(self, a):
-        self.req.init_mode = a
+        self.req.motor_mode = a
         self.future = self.cli.call_async(self.req)
         rclpy.spin_until_future_complete(self, self.future)
         return self.future.result()
@@ -166,16 +167,13 @@ class TeleopJoyNode(Node):
         self.timer = self.create_timer(TIMER_JOY, self.cb_timer)
 
         rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_control/moniarm_control/')
-        self.fhandle = open(rosPath + 'automove.txt', 'w')
+        self.fhandle = open(rosPath + 'automove.csv', 'w')
 
         self.prev_time = time()
         self.timediff = 0.0
 
     def cb_joy(self, joymsg):
         status = 0
-        motorMsg = Int32MultiArray()
-        #M0, M3 torque off by default
-        motorMsg.data = [MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME]
 
         if joymsg.buttons[0] == 1 and self.mode_button_last == 0:
             print('colorIdx: %d'%(self.colorIdx))
@@ -207,13 +205,13 @@ class TeleopJoyNode(Node):
             self.int_client.send_request(0)
             self.mode_button_last = joymsg.buttons[7]
 
-        #elif joymsg.buttons[3] == 1 and self.mode_button_last == 0:
-        #    status = status + 1
-        #    if self.control_motor3_velocity == 0:
-        #        self.control_motor3_velocity = 1
-        #    else:
-        #        self.control_motor3_velocity = 0
-        #    self.mode_button_last = joymsg.buttons[3]
+        elif joymsg.buttons[3] == 1 and self.mode_button_last == 0:
+            status = status + 1
+            if self.control_motor3_velocity == 0:
+                self.control_motor3_velocity = 1
+            else:
+                self.control_motor3_velocity = 0
+            self.mode_button_last = joymsg.buttons[3]
 
         # Make jostick -> /cmd_motor
         elif joymsg.axes[0] != 0:
@@ -232,33 +230,29 @@ class TeleopJoyNode(Node):
             #nothing to do, then return
             return True
 
-        motorMsg = Int32MultiArray()
-        #M0 torque off by default
-        motorMsg.data = [MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME]
+        motorMsg = CmdMotor()
+        #M0, M3 torque off by default
+        setArmAgles(motorMsg, MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, 0.0)
 
         #key pressed, torque
         if status == 1:
-        #    if self.control_motor3_velocity == 0:
-        #        motorMsg.data[3] = GRIPPER_OPEN
-        #    else:
-        #        motorMsg.data[3] = GRIPPER_CLOSE
+            if self.control_motor3_velocity == 0:
+                motorMsg.angle3 = GRIPPER_OPEN
+            else:
+                motorMsg.angle3 = GRIPPER_CLOSE
             self.control_motor0_velocity = int(clamp(self.control_motor0_velocity, MOTOR0_MIN, MOTOR0_MAX))
-            motorMsg.data[0] = self.control_motor0_velocity      #M0, degree
+            motorMsg.angle0 = self.control_motor0_velocity      #M0, degree
 
         self.control_motor1_velocity = int(clamp(self.control_motor1_velocity, MOTOR1_MIN, MOTOR1_MAX))
         self.control_motor2_velocity = int(clamp(self.control_motor2_velocity, MOTOR2_MIN, MOTOR2_MAX))
         self.control_motor3_velocity = int(clamp(self.control_motor3_velocity, MOTOR3_MIN, MOTOR3_MAX))
-        motorMsg.data[1] = self.control_motor1_velocity
-        motorMsg.data[2] = self.control_motor2_velocity
-        motorMsg.data[3] = self.control_motor3_velocity
-
-        self.robotarm.run(motorMsg)
-        print('M0= %.2f, M1 %.2f, M2= %.2f, M3= %.2f'%(motorMsg.data[0], motorMsg.data[1],motorMsg.data[2], motorMsg.data[3]))
 
         timediff = time() - self.prev_time
         self.prev_time = time()
-        self.fhandle.write(str(motorMsg.data[0]) + ':' + str(motorMsg.data[1]) + ':' + str(motorMsg.data[2]) + ':' + str(motorMsg.data[3])+ ':' + str(timediff) + '\n')
-
+        setArmAgles(motorMsg, self.control_motor0_velocity, self.control_motor1_velocity, self.control_motor2_velocity, self.control_motor3_velocity, timediff)
+        self.robotarm.run(motorMsg)
+        print('M0= %.2f, M1 %.2f, M2= %.2f, M3= %.2f'%(motorMsg.angle0, motorMsg.angle1,motorMsg.angle2, motorMsg.angle3))
+        self.fhandle.write(str(motorMsg.angle0) + ',' + str(motorMsg.angle1) + ',' + str(motorMsg.angle2) + ',' + str(motorMsg.angle3)+ ',' + str(timediff) + '\n')
         status = 0
 
     def cb_timer(self):

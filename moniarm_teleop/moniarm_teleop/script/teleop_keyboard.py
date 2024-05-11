@@ -38,10 +38,11 @@ import select
 import sys
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Int32MultiArray
-from .submodules.myutil import Moniarm, clamp
-from .submodules.myconfig import *
+
 from moniarm_interfaces.srv import SetLED, PlayAni, PlaySong, Init
+from moniarm_interfaces.msg import CmdMotor
+from .submodules.myutil import Moniarm, clamp, setArmAgles
+from .submodules.myconfig import *
 
 if os.name == 'nt':
     import msvcrt
@@ -121,7 +122,7 @@ class ClientAsyncInit(Node):
         self.req = Init.Request()
 
     def send_request(self, a):
-        self.req.init_mode = a
+        self.req.motor_mode = a
         self.future = self.cli.call_async(self.req)
         rclpy.spin_until_future_complete(self, self.future)
         return self.future.result()
@@ -186,7 +187,7 @@ def main():
     int_client = ClientAsyncInit()
 
     rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_control/moniarm_control/')
-    fhandle = open(rosPath + 'automove.txt', 'w')
+    fhandle = open(rosPath + 'automove.csv', 'w')
 
     prev_time = time()
     timediff = 0.0
@@ -257,32 +258,29 @@ def main():
                 else:
                     continue
 
-            motorMsg = Int32MultiArray()
+            motorMsg = CmdMotor()
             #M0, M3 torque off by default
-            motorMsg.data = [MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME]
+            setArmAgles(motorMsg, MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, 0.0)
 
             #key pressed, torque
             if status == 1:
-            #    if control_motor3_velocity == 0:
-            #        motorMsg.data[3] = GRIPPER_OPEN
-            #    else:
-            #        motorMsg.data[3] = GRIPPER_CLOSE
+                if control_motor3_velocity == 0:
+                    motorMsg.angle3 = GRIPPER_OPEN
+                else:
+                    motorMsg.angle3 = GRIPPER_CLOSE
                 control_motor0_velocity = int(clamp(control_motor0_velocity, MOTOR0_MIN, MOTOR0_MAX))
-                motorMsg.data[0] = control_motor0_velocity      #M0, degree
+                motorMsg.angle0 = control_motor0_velocity      #M0, degree
 
             control_motor1_velocity = int(clamp(control_motor1_velocity, MOTOR1_MIN, MOTOR1_MAX))
             control_motor2_velocity = int(clamp(control_motor2_velocity, MOTOR2_MIN, MOTOR2_MAX))
             control_motor2_velocity = int(clamp(control_motor2_velocity, MOTOR3_MIN, MOTOR3_MAX))
-            motorMsg.data[1] = control_motor1_velocity
-            motorMsg.data[2] = control_motor2_velocity
-            motorMsg.data[3] = control_motor3_velocity
-
-            robotarm.run(motorMsg)
-            print('M0= %.2f, M1 %.2f, M2= %.2f, M3= %.2f'%(motorMsg.data[0], motorMsg.data[1],motorMsg.data[2], motorMsg.data[3]))
-
             timediff = time() - prev_time
             prev_time = time()
-            fhandle.write(str(motorMsg.data[0]) + ':' + str(motorMsg.data[1]) + ':' + str(motorMsg.data[2]) + ':' + str(motorMsg.data[3])+ ':' + str(timediff) + '\n')
+
+            setArmAgles(motorMsg, control_motor0_velocity, control_motor1_velocity, control_motor2_velocity, control_motor3_velocity, timediff)
+            robotarm.run(motorMsg)
+            print('M0= %.2f, M1 %.2f, M2= %.2f, M3= %.2f'%(motorMsg.angle0, motorMsg.angle1,motorMsg.angle2, motorMsg.angle3))
+            fhandle.write(str(motorMsg.angle0) + ',' + str(motorMsg.angle1) + ',' + str(motorMsg.angle2) + ',' + str(motorMsg.angle3)+ ',' + str(timediff) + '\n')
 
             status = 0
 

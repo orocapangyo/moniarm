@@ -13,8 +13,13 @@
 
 #include <std_msgs/msg/int32.h>
 #include <std_msgs/msg/float32.h>
-#include <std_msgs/msg/int32_multi_array.h>
 #include <geometry_msgs/msg/twist.h>
+
+#include <moniarm_interfaces/msg/cmd_motor.h>
+#include <moniarm_interfaces/srv/init.h>
+#include <moniarm_interfaces/srv/play_ani.h>
+#include <moniarm_interfaces/srv/play_song.h>
+#include <moniarm_interfaces/srv/set_led.h>
 
 #include <Herkulex.h>
 
@@ -23,8 +28,8 @@
 #define DOMAINID 108
 
 rcl_subscription_t motorSub;
-std_msgs__msg__Int32MultiArray motorMsg;
 
+moniarm_interfaces__msg__CmdMotor motorMsg;
 moniarm_interfaces__srv__SetLED_Request req_led;
 moniarm_interfaces__srv__SetLED_Response res_led;
 moniarm_interfaces__srv__PlaySong_Request req_song;
@@ -176,13 +181,13 @@ void motorMoving(int mid, int tarAngle) {
 
 // Take the angle array, then move each motor
 void motor_callback(const void *msgin) {
-  const std_msgs__msg__Int32MultiArray *msg = (const std_msgs__msg__Int32MultiArray *)msgin;
+  const moniarm_interfaces__msg__CmdMotor *msg = (const moniarm_interfaces__msg__CmdMotor *)msgin;
   int angle0, angle1, angle2, angle3;
 
-  angle0 = msg->data.data[0];
-  angle1 = msg->data.data[1];
-  angle2 = msg->data.data[2];
-  angle3 = msg->data.data[3];
+  angle0 = msg->angle0;
+  angle1 = msg->angle1;
+  angle2 = msg->angle2;
+  angle3 = msg->angle3;
 
   motorMoving(M0_ID, angle0);
   motorMoving(M1_ID, angle1);
@@ -190,9 +195,7 @@ void motor_callback(const void *msgin) {
   motorMoving(M3_ID, angle3);
 }
 
-void init_callback(const void *req, void *res) {
-  moniarm_interfaces__srv__Init_Response *res_in = (moniarm_interfaces__srv__Init_Response *)res;
-
+void initMotors(void) {
   Herkulex.reboot(M0_ID);
   delay(200);
   Herkulex.reboot(M1_ID);
@@ -203,6 +206,24 @@ void init_callback(const void *req, void *res) {
   delay(200);
   Herkulex.initialize();  //initialize motors
   delay(200);
+}
+
+void init_callback(const void *req, void *res) {
+  int index;
+  moniarm_interfaces__srv__PlaySong_Request * req_in = (moniarm_interfaces__srv__PlaySong_Request *) req;
+  moniarm_interfaces__srv__PlaySong_Response * res_in = (moniarm_interfaces__srv__PlaySong_Response *) res;
+
+  index = (int)(req_in->index);
+  //initialize
+  if (index == 1) {
+    Herkulex.torqueOFF(BROADCAST_ID);
+  }
+  else if(index == 2) {
+    Herkulex.torqueON(BROADCAST_ID);
+  }
+  else {
+    initMotors();
+  }
 
   res_in->success = true;
 }
@@ -235,18 +256,8 @@ void setup() {
   // ROS Setup
   DEBUG_PRINTLN("ROS Starts");
   set_microros_transports();
-
-  Herkulex.reboot(M0_ID);
-  delay(200);
-  Herkulex.reboot(M1_ID);
-  delay(200);
-  Herkulex.reboot(M2_ID);
-  delay(200);
-  Herkulex.reboot(M3_ID);
-  delay(200);
-  Herkulex.initialize();  //initialize motors
-  delay(1000);
-
+  
+  initMotors();
   Herkulex.torqueOFF(BROADCAST_ID);
 
   //wait agent comes up
@@ -262,21 +273,6 @@ void setup() {
   } while (1);
 
   Herkulex.torqueON(BROADCAST_ID);
-  // Init the memory of your array in order to provide it to the executor.
-  // If a message from ROS comes and it is bigger than this, it will be ignored, so ensure that capacities here are big enought.
-  motorMsg.data.capacity = 4;
-  motorMsg.data.size = 0;
-  motorMsg.data.data = (int32_t *)malloc(motorMsg.data.capacity * sizeof(int32_t));
-
-  motorMsg.layout.dim.capacity = 4;
-  motorMsg.layout.dim.size = 0;
-  motorMsg.layout.dim.data = (std_msgs__msg__MultiArrayDimension *)malloc(motorMsg.layout.dim.capacity * sizeof(std_msgs__msg__MultiArrayDimension));
-
-  for (size_t i = 0; i < motorMsg.layout.dim.capacity; i++) {
-    motorMsg.layout.dim.data[i].label.capacity = 4;
-    motorMsg.layout.dim.data[i].label.size = 0;
-    motorMsg.layout.dim.data[i].label.data = (char *)malloc(motorMsg.layout.dim.data[i].label.capacity * sizeof(char));
-  }
 
   allocator = rcl_get_default_allocator();
 
@@ -301,10 +297,7 @@ void setup() {
 
   // create motor control subscriber
   RCCHECK(rclc_subscription_init_default(
-    &motorSub,
-    &node,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32MultiArray),
-    "cmd_motor"));
+    &motorSub,  &node, ROSIDL_GET_MSG_TYPE_SUPPORT(moniarm_interfaces, msg, CmdMotor),  "cmd_motor"));
 
   // create executor
   RCCHECK(rclc_executor_init(&executor, &support.context, 5, &allocator));

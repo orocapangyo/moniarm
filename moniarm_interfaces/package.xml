@@ -2,9 +2,9 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>moniarm_interfaces</name>
-  <version>0.9.1</version>
-  <description>TODO: Package description</description>
-  <maintainer email="zeta0707@gmail.com">zeta</maintainer>
+  <version>0.9.9</version>
+  <description>Interfaces for moniarm</description>
+  <maintainer email="zeta0707@gmail.com">ChangWhan Lee</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

@@ -48,9 +48,9 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.logging import get_logger
 from sensor_msgs.msg import JointState
-from std_msgs.msg import Int32MultiArray
 import atexit
-from .submodules.myutil import Moniarm, radiansToDegrees, trimLimits
+from moniarm_interfaces.msg import CmdMotor
+from .submodules.myutil import Moniarm, trimLimits, radiansToDegrees, setArmAgles
 from .submodules.myconfig import *
 
 class ChaseMoveit(Node):
@@ -70,21 +70,21 @@ class ChaseMoveit(Node):
         self.get_logger().info("Moveit Subscriber Awaked!! Waiting for Moveit Planning...")
 
     def moveit_callback(self, cmd_msg):
-        motorMsg = Int32MultiArray()
-        motorMsg.data = [MOTOR0_ZERO, MOTOR1_ZERO, MOTOR2_ZERO, MOTOR3_ZERO]
-
+        motorMsg = CmdMotor()
+        #M0, M3 torque off by default
+        setArmAgles(motorMsg, MOTOR0_ZERO, MOTOR1_ZERO, MOTOR2_ZERO, MOTOR3_ZERO, 0.0)
         #print( str(cmd_msg.position[0]) + ':' + str(cmd_msg.position[1]) + ':' + str(cmd_msg.position[2]) + ':' + str(cmd_msg.position[3]) )
 
-        motorMsg.data[0] = trimLimits(radiansToDegrees(cmd_msg.position[0]))
-        motorMsg.data[1] = trimLimits(radiansToDegrees(cmd_msg.position[1]))
-        motorMsg.data[2] = trimLimits(radiansToDegrees(cmd_msg.position[2]))
-        motorMsg.data[3] = trimLimits(radiansToDegrees(cmd_msg.position[3]))
+        motorMsg.angle0 = trimLimits(radiansToDegrees(cmd_msg.position[0]))
+        motorMsg.angle1 = trimLimits(radiansToDegrees(cmd_msg.position[1]))
+        motorMsg.angle2 = trimLimits(radiansToDegrees(cmd_msg.position[2]))
+        motorMsg.angle3 = trimLimits(radiansToDegrees(cmd_msg.position[3]))
         self.robotarm.run(motorMsg)
 
         self.timediff = time() - self.prev_time
         self.prev_time = time()
-        print( str(motorMsg.data[0]) + ':' + str(motorMsg.data[1]) + ':' + str(motorMsg.data[2])
-        + ':' + str(motorMsg.data[3]) + ':' + str(self.timediff))
+        print( str(motorMsg.angle0) + ':' + str(motorMsg.angle1) + ':' + str(motorMsg.angle2)
+        + ':' + str(motorMsg.angle3) + ':' + str(self.timediff))
 
     def set_park(self):
         self.get_logger().info('Arm parking, be careful')

@@ -1,7 +1,7 @@
 #____________________________________________________________________________________________
 # Init()
 #____________________________________________________________________________________________
-# This service initialize motors
-int8    init_mode
+# This service sets motor operation mode
+int8    motor_mode
 ---
 bool    success

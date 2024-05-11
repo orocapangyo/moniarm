@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>moniarm_description</name>
-  <version>0.0.0</version>
+  <version>0.9.9</version>
   <description>Moniarm description package.</description>
 
   <maintainer email="sms0432@gmail.com">Minsoo Song</maintainer>
