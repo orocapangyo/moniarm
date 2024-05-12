@@ -54,8 +54,7 @@ enum states {
 
 #define MOTOR_NOMOVE 360
 #define MOTOR_TOQOFF 720
-#define MOTOR_TOQON  540
-
+#define MOTOR_TOQON 540
 #define MAX_MOVE_TIME 1500
 
 #define M0_ID 6
@@ -68,6 +67,12 @@ enum states {
 
 #define RXD2 16
 #define TXD2 17
+
+#define AIRPUMP 0
+#define GRIPPER 1
+#define END_EFFCTOR AIRPUMP
+
+#define PUMP 0
 
 #define DEBUG 1
 #if (DEBUG == 1)
@@ -129,8 +134,7 @@ void motorMoving(int mid, int tarAngle) {
   else if (tarAngle == MOTOR_TOQOFF) {
     Herkulex.torqueOFF(mid);
     return;
-  }
-  else if (tarAngle == MOTOR_TOQON) {
+  } else if (tarAngle == MOTOR_TOQON) {
     Herkulex.torqueON(mid);
     return;
   }
@@ -150,11 +154,10 @@ void motorMoving(int mid, int tarAngle) {
       tarAngle += 180;
       moveAngle = tarAngle;
       tarAngle = curAngle + moveAngle;
-    }
-    else {
+    } else {
       moveAngle = tarAngle - curAngle;
     }
-    
+
     //dont' need to move
     if (moveAngle == 0)
       return;
@@ -182,17 +185,22 @@ void motorMoving(int mid, int tarAngle) {
 // Take the angle array, then move each motor
 void motor_callback(const void *msgin) {
   const moniarm_interfaces__msg__CmdMotor *msg = (const moniarm_interfaces__msg__CmdMotor *)msgin;
-  int angle0, angle1, angle2, angle3;
+  int angle0, angle1, angle2, angle3, gangle;
 
   angle0 = msg->angle0;
   angle1 = msg->angle1;
   angle2 = msg->angle2;
   angle3 = msg->angle3;
+  gangle = msg->grip;
 
   motorMoving(M0_ID, angle0);
   motorMoving(M1_ID, angle1);
   motorMoving(M2_ID, angle2);
   motorMoving(M3_ID, angle3);
+
+#if END_EFFCTOR == AIRPUMP
+  digitalWrite(PUMP, gangle);
+#endif
 }
 
 void initMotors(void) {
@@ -210,18 +218,16 @@ void initMotors(void) {
 
 void init_callback(const void *req, void *res) {
   int index;
-  moniarm_interfaces__srv__PlaySong_Request * req_in = (moniarm_interfaces__srv__PlaySong_Request *) req;
-  moniarm_interfaces__srv__PlaySong_Response * res_in = (moniarm_interfaces__srv__PlaySong_Response *) res;
+  moniarm_interfaces__srv__PlaySong_Request *req_in = (moniarm_interfaces__srv__PlaySong_Request *)req;
+  moniarm_interfaces__srv__PlaySong_Response *res_in = (moniarm_interfaces__srv__PlaySong_Response *)res;
 
   index = (int)(req_in->index);
   //initialize
   if (index == 1) {
     Herkulex.torqueOFF(BROADCAST_ID);
-  }
-  else if(index == 2) {
+  } else if (index == 2) {
     Herkulex.torqueON(BROADCAST_ID);
-  }
-  else {
+  } else {
     initMotors();
   }
 
@@ -230,6 +236,12 @@ void init_callback(const void *req, void *res) {
 
 void setup() {
   int i;
+
+#if END_EFFCTOR == AIRPUMP
+  // configure PUMP
+  pinMode(PUMP, OUTPUT);
+  digitalWrite(PUMP, 0);
+#endif
 
 #if (DEBUG == 1)
   Serial2.begin(115200);
@@ -256,7 +268,7 @@ void setup() {
   // ROS Setup
   DEBUG_PRINTLN("ROS Starts");
   set_microros_transports();
-  
+
   initMotors();
   Herkulex.torqueOFF(BROADCAST_ID);
 
@@ -297,7 +309,7 @@ void setup() {
 
   // create motor control subscriber
   RCCHECK(rclc_subscription_init_default(
-    &motorSub,  &node, ROSIDL_GET_MSG_TYPE_SUPPORT(moniarm_interfaces, msg, CmdMotor),  "cmd_motor"));
+    &motorSub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(moniarm_interfaces, msg, CmdMotor), "cmd_motor"));
 
   // create executor
   RCCHECK(rclc_executor_init(&executor, &support.context, 5, &allocator));

@@ -9,11 +9,11 @@ ARDUINO_ROOT=~/Arduino
 git clone -b $ROS_PKG https://github.com/micro-ROS/micro_ros_arduino
 
 # 2. copy moniarm custom message, service interface package(moniarm_interfaces) from the Moniarm main interface directory to mirco_ros extra_packages directory.
-cp -r $MONIARM_SRC/moniarm_interfaces  ./micro_ros_arduino/extras/library_generation/extra_packages/
+cp -rf $MONIARM_SRC/moniarm_interfaces  ./micro_ros_arduino/extras/library_generation/extra_packages/
 
 # 3. build micro_ros_arduino with docker
 cd micro_ros_arduino
-sed -i "s/-DRMW_UXRCE_MAX_SERVICES=1/-DRMW_UXRCE_MAX_SERVICES=5/g" extras/colcon.meta
+sed -i "s/-DRMW_UXRCE_MAX_SERVICES=1/-DRMW_UXRCE_MAX_SERVICES=5/g" extras/library_generation/colcon.meta
 docker run -it --rm -v $(pwd):/project --env MICROROS_LIBRARY_FOLDER=extras microros/micro_ros_static_library_builder:$ROS_PKG -p esp32
 
 # 4.1 zip micro_ros_arduino for Arduino IDE libray

@@ -127,26 +127,6 @@ class TeleopJoyNode(Node):
                 ('step_deg', 20),
             ])
 
-        self.auto_mode = False
-        self.chatCount= 0
-        self.mode_button_last = 0
-
-        self.colorIdx = 0                                        # index for led on/off
-        self.songIdx = 0                                         # index for buzzer song
-        self.lcdIdx = 0                                          # index for oled animation
-
-        self.control_motor0_velocity = MOTOR0_HOME
-        self.control_motor1_velocity = MOTOR1_HOME
-        self.control_motor2_velocity = MOTOR2_HOME
-        self.control_motor3_velocity = MOTOR3_HOME
-
-        self.led_client = ClientAsyncLed()
-        self.ani_client = ClientAsyncAni()
-        self.song_client = ClientAsyncSong()
-        self.int_client = ClientAsyncInit()
-
-        atexit.register(self.set_park)
-
         print(' moniarm Teleop Joystick controller')
         print(msg)
         self.max_deg = self.get_parameter_or('max_deg', Parameter('max_deg', Parameter.Type.INTEGER, 120)).get_parameter_value().integer_value
@@ -157,8 +137,33 @@ class TeleopJoyNode(Node):
         )
         print('CTRL-C to quit')
 
+        self.auto_mode = False
+        self.chatCount= 0
+        self.mode_button_last = 0
+
+        self.colorIdx = 0                                        # index for led on/off
+        self.songIdx = 0                                         # index for buzzer song
+        self.lcdIdx = 0                                          # index for oled animation
+
+        self.control_motor0 = MOTOR0_HOME
+        self.control_motor1 = MOTOR1_HOME
+        self.control_motor2 = MOTOR2_HOME
+        self.control_motor3 = MOTOR3_HOME
+        self.control_gripper = GRIPPER_OPEN
+
+        self.led_client = ClientAsyncLed()
+        self.ani_client = ClientAsyncAni()
+        self.song_client = ClientAsyncSong()
+        self.int_client = ClientAsyncInit()
+
+        atexit.register(self.set_park)
+
         self.robotarm = Moniarm()
         self.robotarm.home()
+
+        self.motorMsg = CmdMotor()
+        #M0, M3 torque off by default
+        setArmAgles(self.motorMsg, MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
 
         self.qos = QoSProfile(depth=10)
         # generate publisher for 'cmd_vel'
@@ -207,53 +212,45 @@ class TeleopJoyNode(Node):
 
         elif joymsg.buttons[3] == 1 and self.mode_button_last == 0:
             status = status + 1
-            if self.control_motor3_velocity == 0:
-                self.control_motor3_velocity = 1
+            if self.control_gripper == GRIPPER_OPEN:
+                self.control_gripper = GRIPPER_CLOSE
             else:
-                self.control_motor3_velocity = 0
+                self.control_gripper = GRIPPER_OPEN
             self.mode_button_last = joymsg.buttons[3]
 
         # Make jostick -> /cmd_motor
         elif joymsg.axes[0] != 0:
             status = status + 1
-            self.control_motor0_velocity -= joymsg.axes[0] * self.max_deg / self.step_deg
+            self.control_motor0 -= joymsg.axes[0] * self.max_deg / self.step_deg
         elif joymsg.axes[1] != 0:
             status = status + 1
-            self.control_motor1_velocity -= joymsg.axes[1] * self.max_deg / self.step_deg
+            self.control_motor1 -= joymsg.axes[1] * self.max_deg / self.step_deg
         elif joymsg.axes[3] != 0:
             status = status + 1
-            self.control_motor2_velocity -= joymsg.axes[3] * self.max_deg / self.step_deg
+            self.control_motor2 -= joymsg.axes[3] * self.max_deg / self.step_deg
         elif joymsg.axes[2] != 0:
             status = status + 1
-            self.control_motor3_velocity -= joymsg.axes[2] * self.max_deg / self.step_deg
+            self.control_motor3 -= joymsg.axes[2] * self.max_deg / self.step_deg
         else:
             #nothing to do, then return
             return True
 
-        motorMsg = CmdMotor()
-        #M0, M3 torque off by default
-        setArmAgles(motorMsg, MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, 0.0)
-
         #key pressed, torque
         if status == 1:
-            if self.control_motor3_velocity == 0:
-                motorMsg.angle3 = GRIPPER_OPEN
-            else:
-                motorMsg.angle3 = GRIPPER_CLOSE
-            self.control_motor0_velocity = int(clamp(self.control_motor0_velocity, MOTOR0_MIN, MOTOR0_MAX))
-            motorMsg.angle0 = self.control_motor0_velocity      #M0, degree
+            self.control_motor0 = int(clamp(self.control_motor0, MOTOR0_MIN, MOTOR0_MAX))
+            self.control_motor1 = int(clamp(self.control_motor1, MOTOR1_MIN, MOTOR1_MAX))
+            self.control_motor2 = int(clamp(self.control_motor2, MOTOR2_MIN, MOTOR2_MAX))
+            self.control_motor3 = int(clamp(self.control_motor3, MOTOR3_MIN, MOTOR3_MAX))
 
-        self.control_motor1_velocity = int(clamp(self.control_motor1_velocity, MOTOR1_MIN, MOTOR1_MAX))
-        self.control_motor2_velocity = int(clamp(self.control_motor2_velocity, MOTOR2_MIN, MOTOR2_MAX))
-        self.control_motor3_velocity = int(clamp(self.control_motor3_velocity, MOTOR3_MIN, MOTOR3_MAX))
+            timediff = time() - self.prev_time
+            self.prev_time = time()
 
-        timediff = time() - self.prev_time
-        self.prev_time = time()
-        setArmAgles(motorMsg, self.control_motor0_velocity, self.control_motor1_velocity, self.control_motor2_velocity, self.control_motor3_velocity, timediff)
-        self.robotarm.run(motorMsg)
-        print('M0= %.2f, M1 %.2f, M2= %.2f, M3= %.2f'%(motorMsg.angle0, motorMsg.angle1,motorMsg.angle2, motorMsg.angle3))
-        self.fhandle.write(str(motorMsg.angle0) + ',' + str(motorMsg.angle1) + ',' + str(motorMsg.angle2) + ',' + str(motorMsg.angle3)+ ',' + str(timediff) + '\n')
-        status = 0
+            setArmAgles(self.motorMsg, self.control_motor0, self.control_motor1, self.control_motor2, self.control_motor3, self.control_gripper, timediff)
+            self.robotarm.run(self.motorMsg)
+            print('M0= %d, M1 %d, M2= %d, M3= %d, G=%d'%(self.control_motor0, self.control_motor1, self.control_motor2, self.control_motor3, self.control_gripper))
+            self.fhandle.write(str(self.motorMsg.angle0) + ',' + str(self.motorMsg.angle1) + ',' + str(self.motorMsg.angle2) + ',' + str(self.motorMsg.angle3)
+                               + ',' + str(self.motorMsg.grip)+ ',' + str(timediff) + '\n')
+            status = 0
 
     def cb_timer(self):
         self.chatCount += 1                     # protect chattering

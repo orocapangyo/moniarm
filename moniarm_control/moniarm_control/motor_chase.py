@@ -98,7 +98,7 @@ class LowLevelCtrl(Node):
 
         self.motorMsg = CmdMotor()
         #M0, M3 torque off by default
-        setArmAgles(self.motorMsg, MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF, 0.0)
+        setArmAgles(self.motorMsg, MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF, GRIPPER_OPEN, 0.0)
         self.get_logger().info("Setting Up low level arm control node...")
 
         self.actuators = {}
@@ -181,7 +181,7 @@ class LowLevelCtrl(Node):
             return
 
         #simple PI control, Kp=1, Ki=0.3
-        command_x = self.command_x_prev[0]*0.1 + self.command_x_prev[1]*0.2 + self.command_x_prev[2]*0.3 + command*0.8
+        command_x = self.command_x_prev[0]*0.1 + self.command_x_prev[1]*0.2 + self.command_x_prev[2]*0.3 + command*0.5
         command_x = clamp(command_x, -1.00, 1.00)
         self.command_x_prev = [0.0, 0.0, 0.0]
 

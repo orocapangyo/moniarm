@@ -172,10 +172,11 @@ def main():
     print('moniarm Teleop Keyboard controller')
 
     status = 0
-    control_motor0_velocity = MOTOR0_HOME
-    control_motor1_velocity = MOTOR1_HOME
-    control_motor2_velocity = MOTOR2_HOME
-    control_motor3_velocity = MOTOR3_HOME
+    control_motor0 = MOTOR0_HOME
+    control_motor1 = MOTOR1_HOME
+    control_motor2 = MOTOR2_HOME
+    control_motor3 = MOTOR3_HOME
+    control_gripper = GRIPPER_OPEN
 
     colorIdx = 0                                        # index for led on/off
     songIdx = 0                                         # index for buzzer song
@@ -192,33 +193,37 @@ def main():
     prev_time = time()
     timediff = 0.0
 
+    motorMsg = CmdMotor()
+    #M0, M3 torque off by default
+    setArmAgles(motorMsg, MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
+
     try:
         print(msg)
         while(1):
             key = get_key(settings)
             if key == 'x':              # motor1
-                control_motor1_velocity = check_linear_limit_velocity(control_motor1_velocity + ANG_STEP)
+                control_motor1 = check_linear_limit_velocity(control_motor1 + ANG_STEP)
                 status = status + 1
             elif key == 'w':            # motor1
-                control_motor1_velocity = check_linear_limit_velocity(control_motor1_velocity - ANG_STEP)
+                control_motor1 = check_linear_limit_velocity(control_motor1 - ANG_STEP)
                 status = status + 1
             elif key == 'z':            # motor2
-                control_motor2_velocity = check_linear_limit_velocity(control_motor2_velocity + ANG_STEP)
+                control_motor2 = check_linear_limit_velocity(control_motor2 + ANG_STEP)
                 status = status + 1
             elif key == 'q':            # motor2
-                control_motor2_velocity = check_linear_limit_velocity(control_motor2_velocity - ANG_STEP)
+                control_motor2 = check_linear_limit_velocity(control_motor2 - ANG_STEP)
                 status = status + 1
             elif key == 'c':            # motor3
-                control_motor3_velocity = check_linear_limit_velocity(control_motor3_velocity + ANG_STEP)
+                control_motor3 = check_linear_limit_velocity(control_motor3 + ANG_STEP)
                 status = status + 1
             elif key == 'e':            # motor3
-                control_motor3_velocity = check_linear_limit_velocity(control_motor3_velocity - ANG_STEP)
+                control_motor3 = check_linear_limit_velocity(control_motor3 - ANG_STEP)
                 status = status + 1
             elif key == 'a':            # motor0
-                control_motor0_velocity = check_linear_limit_velocity(control_motor0_velocity + ANG_STEP)
+                control_motor0 = check_linear_limit_velocity(control_motor0 + ANG_STEP)
                 status = status + 1
             elif key == 'd':            # motor0
-                control_motor0_velocity = check_linear_limit_velocity(control_motor0_velocity - ANG_STEP)
+                control_motor0 = check_linear_limit_velocity(control_motor0 - ANG_STEP)
                 status = status + 1
 
             elif key == 'l':            # led control
@@ -243,12 +248,12 @@ def main():
                 print('Initialize motors')
                 int_client.send_request(0)
 
-            #elif key == 'g':                # gripper
-            #    status = status + 1
-            #    if control_motor3_velocity == 0:
-            #        control_motor3_velocity = 1
-            #    else:
-            #        control_motor3_velocity = 0
+            elif key == 'g':                # gripper toggle
+                status = status + 1
+                if control_gripper == GRIPPER_OPEN:
+                    control_gripper = GRIPPER_CLOSE
+                else:
+                    control_gripper = GRIPPER_OPEN
 
             else:
                 #Ctrl-C, then stop working
@@ -258,31 +263,23 @@ def main():
                 else:
                     continue
 
-            motorMsg = CmdMotor()
-            #M0, M3 torque off by default
-            setArmAgles(motorMsg, MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, 0.0)
-
             #key pressed, torque
             if status == 1:
-                if control_motor3_velocity == 0:
-                    motorMsg.angle3 = GRIPPER_OPEN
-                else:
-                    motorMsg.angle3 = GRIPPER_CLOSE
-                control_motor0_velocity = int(clamp(control_motor0_velocity, MOTOR0_MIN, MOTOR0_MAX))
-                motorMsg.angle0 = control_motor0_velocity      #M0, degree
+                control_motor0 = int(clamp(control_motor0, MOTOR0_MIN, MOTOR0_MAX))
+                control_motor1 = int(clamp(control_motor1, MOTOR1_MIN, MOTOR1_MAX))
+                control_motor2 = int(clamp(control_motor2, MOTOR2_MIN, MOTOR2_MAX))
+                control_motor3 = int(clamp(control_motor3, MOTOR3_MIN, MOTOR3_MAX))
 
-            control_motor1_velocity = int(clamp(control_motor1_velocity, MOTOR1_MIN, MOTOR1_MAX))
-            control_motor2_velocity = int(clamp(control_motor2_velocity, MOTOR2_MIN, MOTOR2_MAX))
-            control_motor2_velocity = int(clamp(control_motor2_velocity, MOTOR3_MIN, MOTOR3_MAX))
-            timediff = time() - prev_time
-            prev_time = time()
+                timediff = time() - prev_time
+                prev_time = time()
 
-            setArmAgles(motorMsg, control_motor0_velocity, control_motor1_velocity, control_motor2_velocity, control_motor3_velocity, timediff)
-            robotarm.run(motorMsg)
-            print('M0= %.2f, M1 %.2f, M2= %.2f, M3= %.2f'%(motorMsg.angle0, motorMsg.angle1,motorMsg.angle2, motorMsg.angle3))
-            fhandle.write(str(motorMsg.angle0) + ',' + str(motorMsg.angle1) + ',' + str(motorMsg.angle2) + ',' + str(motorMsg.angle3)+ ',' + str(timediff) + '\n')
+                setArmAgles(motorMsg, control_motor0, control_motor1, control_motor2, control_motor3, control_gripper, timediff)
+                robotarm.run(motorMsg)
+                print('M0= %d, M1=%d, M2= %d, M3=%d, G=%d'%(control_motor0, control_motor1, control_motor2, control_motor3, control_gripper))
+                fhandle.write(str(motorMsg.angle0) + ',' + str(motorMsg.angle1) + ',' + str(motorMsg.angle2) + ',' + str(motorMsg.angle3)
+                            + ',' + str(motorMsg.grip) + ',' + str(timediff) + '\n')
 
-            status = 0
+                status = 0
 
     except Exception as e:
         print(e)

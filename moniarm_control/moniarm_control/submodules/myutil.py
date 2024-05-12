@@ -27,11 +27,12 @@ def trimLimits(mtr_pos):
 
     return mtr_pos
 
-def setArmAgles(arm, ang0, ang1, ang2, ang3, timediff):
+def setArmAgles(arm, ang0, ang1, ang2, ang3, grip, timediff):
     arm.angle0 = ang0
     arm.angle1 = ang1
     arm.angle2= ang2
     arm.angle3 = ang3
+    arm.grip = grip
     arm.run_time = timediff
 
 class Moniarm(Node):
@@ -42,7 +43,7 @@ class Moniarm(Node):
         super().__init__('arm_basic_node')
         self.motorPub = self.create_publisher(CmdMotor, 'cmd_motor',10)
         self.motorMsg = CmdMotor()
-        setArmAgles(self.motorMsg,MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, 0.0)
+        setArmAgles(self.motorMsg,MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
         self.armStatus = "Homing"
 
     def run(self, mMSG):
@@ -50,11 +51,13 @@ class Moniarm(Node):
         self.motorMsg.angle1 = mMSG.angle1
         self.motorMsg.angle2 = mMSG.angle2
         self.motorMsg.angle3 = mMSG.angle3
+        self.motorMsg.grip =  mMSG.grip
         self.motorMsg.run_time = mMSG.run_time
         self.motorPub.publish(self.motorMsg)
 
     def park(self):
         print("Parking...")
+        self.motorMsg.grip = GRIPPER_OPEN
         self.motorMsg.run_time = 0.0
         self.motorMsg.angle0 = MOTOR0_OFF
         self.motorMsg.angle1 = MOTOR_TOQON
@@ -95,6 +98,7 @@ class Moniarm(Node):
         print("Parking Done")
     def home(self):
         print("Homing...")
+        self.motorMsg.grip = GRIPPER_OPEN
         self.motorMsg.run_time = 0.0
         self.motorMsg.angle0 = MOTOR_TOQOFF
         self.motorMsg.angle1 = MOTOR_TOQON
@@ -102,19 +106,15 @@ class Moniarm(Node):
         self.motorMsg.angle3 = MOTOR3_HOME
         self.motorPub.publish(self.motorMsg)
         sleep(0.5)
-        self.motorMsg.angle0 = MOTOR_TOQOFF
         self.motorMsg.angle1 = (MOTOR1_HOME - 20)
-        self.motorMsg.angle2 = MOTOR_TOQON
         self.motorMsg.angle3 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.5)
-        self.motorMsg.angle0 = MOTOR_TOQOFF
         self.motorMsg.angle1 = MOTOR_TOQON
         self.motorMsg.angle2 = MOTOR2_HOME
         self.motorMsg.angle3 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
-        self.motorMsg.angle0 = MOTOR_TOQOFF
         self.motorMsg.angle1 = MOTOR1_HOME
         self.motorMsg.angle2 = MOTOR_TOQON
         self.motorMsg.angle3 = MOTOR_TOQON
@@ -123,7 +123,7 @@ class Moniarm(Node):
         self.motorMsg.angle0 = MOTOR0_HOME
         self.motorMsg.angle1 = MOTOR_TOQON
         self.motorMsg.angle2 = MOTOR_TOQON
-        self.motorMsg.angle3 = MOTOR_TOQOFF
+        self.motorMsg.angle3 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(0.2)
         self.motorMsg.angle0 = MOTOR_TOQOFF
@@ -142,19 +142,17 @@ class Moniarm(Node):
         self.motorMsg.angle3 = MOTOR3_PICKUP
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
-        self.motorMsg.angle0 = MOTOR_TOQOFF
         self.motorMsg.angle1 = MOTOR1_PICKUP
-        self.motorMsg.angle2 = MOTOR_TOQON
-        self.motorMsg.angle3 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
-        self.motorMsg.angle0 = MOTOR_TOQOFF
-        self.motorMsg.angle1 = MOTOR_TOQON
         self.motorMsg.angle2 = MOTOR2_PICKUP
         self.motorMsg.angle3 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
         #grap action
+        self.motorMsg.grip = GRIPPER_CLOSE
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.0)
 
         #lift up
         self.motorMsg.angle0 = MOTOR_TOQOFF
@@ -181,23 +179,14 @@ class Moniarm(Node):
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
 
-        #move to pick up postion
+        #move down postion
         self.motorMsg.angle0 = MOTOR_TOQOFF
         self.motorMsg.angle1 = MOTOR_TOQON
         self.motorMsg.angle2 = MOTOR_TOQON
         self.motorMsg.angle3 = MOTOR3_PICKUP
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
-        self.motorMsg.angle0 = MOTOR_TOQOFF
-        self.motorMsg.angle1 = MOTOR1_PICKUP
-        self.motorMsg.angle2 = MOTOR_TOQON
-        self.motorMsg.angle3 = MOTOR_TOQON
-        self.motorPub.publish(self.motorMsg)
-        sleep(1.0)
-        self.motorMsg.angle0 = MOTOR_TOQOFF
-        self.motorMsg.angle1 = MOTOR_TOQON
-        self.motorMsg.angle2 = MOTOR2_PICKUP
-        self.motorMsg.angle3 = MOTOR_TOQON
+        self.motorMsg.grip = GRIPPER_OPEN
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
         #place action

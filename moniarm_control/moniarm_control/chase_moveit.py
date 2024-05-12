@@ -72,7 +72,7 @@ class ChaseMoveit(Node):
     def moveit_callback(self, cmd_msg):
         motorMsg = CmdMotor()
         #M0, M3 torque off by default
-        setArmAgles(motorMsg, MOTOR0_ZERO, MOTOR1_ZERO, MOTOR2_ZERO, MOTOR3_ZERO, 0.0)
+        setArmAgles(motorMsg, MOTOR0_ZERO, MOTOR1_ZERO, MOTOR2_ZERO, MOTOR3_ZERO, GRIPPER_OPEN, 0.0)
         #print( str(cmd_msg.position[0]) + ':' + str(cmd_msg.position[1]) + ':' + str(cmd_msg.position[2]) + ':' + str(cmd_msg.position[3]) )
 
         motorMsg.angle0 = trimLimits(radiansToDegrees(cmd_msg.position[0]))

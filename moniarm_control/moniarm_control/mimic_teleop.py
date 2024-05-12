@@ -63,7 +63,7 @@ def main():
 
         motorMsg = CmdMotor()
         #M0, M3 torque off by default
-        setArmAgles(motorMsg, MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, 0.0)
+        setArmAgles(motorMsg, MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
 
         while(1):
             # Get next line from file
@@ -72,17 +72,17 @@ def main():
             if not line:
                 break
 
-            motor0, motor1, motor2, motor3, time_diff = line.split(',')
-            setArmAgles(motorMsg, motor0, motor2, motor2, motor3, time_diff)
+            motor0, motor1, motor2, motor3, grip, time_diff = line.split(',')
+            sys.stdout.write(str(motor0) + ',' + str(motor1) + ',' + str(motor2) + ',' + str(motor3) + ',' + str(grip) + ',' + str(time_diff))
+            sys.stdout.flush()
+
+            setArmAgles(motorMsg, int(motor0), int(motor1), int(motor2), int(motor3), int(grip), float(time_diff))
+            robotarm.run(motorMsg)
 
             try:
                 sleep(float(time_diff))
             except KeyboardInterrupt:
                 break
-
-            robotarm.run(motorMsg)
-            sys.stdout.write(str(motor0) + ':' + str(motor1)+':' + str(motor2) + ':' + str(motor3) + ':' + str(time_diff))
-            sys.stdout.flush()
 
     except Exception as e:
         print(e)
