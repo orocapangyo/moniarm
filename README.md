@@ -1,4 +1,4 @@
-# Moniarm: 3DoF + 1 Gripper DIY Arm
+# Moniarm: 4DoF + 1 AirPump/Gripper DIY Arm
 **This project is about ROS2 Package for Robot Arm with DIY robot**    
 Robot 3D model, BOM: Byungki  
 Circuit: Byungki, ZETA7  
@@ -8,7 +8,7 @@ ROS code: ZETA7, JH Moon, MS Song
 
 ## Test System information
 
-**Jetson Nano 4GB/2GB + ESP32 + Herkulex Smart Motor**    
+**Jetson Nano 4GB/2GB + ESP32 + Herkulex DRS-0101 Motor**    
 * Ubuntu 20.04
 * ROS Galactic
 
@@ -106,7 +106,7 @@ cd {$workspace_path}/src/moniarm/arduino
 cd ~/ros2_ws/src/moniarm/script
 ./selDomain.sh ROS_DOMAIN_ID
 ./camSelect.sh CAMTYPE
-./setMotorid.sh M0ID M1ID M2ID M3ID
+./setMotorid.sh M0_ID M1_ID M2_ID M3_ID
 ```
 - To build
 ```bash
@@ -133,17 +133,18 @@ jetson@nano:~$ ros2 launch monicar2_bringup mcu.launch.py
 #jetson or pc, terminal #2
 jetson@nano:~$ ros2 launch monicar2_teleop teleop_joy.launch.py
 
-Left Stick left/right: Base(M0), left/light
-Left Stick up/down:    shoulder(M1) move
-Right Stick up/down:   Elbow(M2) move
+Left Stick left/right:  Base(M0), left/light
+Left Stick up/down:     shoulder(M1) move
+Right Stick up/down:    Elbow(M2) move
+Right Stick left/right: Wrist(M3) move
 
 'X' : gripper open/close
 'A' : Change led
 'B' : Play buzzer song
-'Y': Play OLED animation
+'Y' : Play OLED animation
 ```
 
-### ** Play with keyboard**  
+### **Play with keyboard**  
 Control Robo tArm with keyboard  
 <p align="center">
     <img src="Images/arm_joystick.gif" width="500" />
@@ -159,10 +160,12 @@ jetson@nano:~$ ros2 run moniarm_teleop teleop_keyboard
 a/d : base(M0), left/light
 w/x : shoulder(M1) move
 q/z : Elbow(M2) move
-space key, s : force stop
-c: Change led
+e/c : Wrist(M3) move
+
+l: Change led
 u: play buzzer song
 o: OLED animation
+i: Motor mode set/init
 ```
 
 ### **Blob pick and plance**  

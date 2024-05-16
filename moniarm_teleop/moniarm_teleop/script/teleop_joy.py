@@ -50,9 +50,10 @@ msg = """
 Control Your Robot!
 ---------------------------
 Moving around:
-Left Stick left/right: Base(M0), left/light
-Left Stick up/down:    shoulder(M1) move
-Right Stick up/down:   Elbow(M2) move
+Left Stick left/right:  Base(M0), left/light
+Left Stick up/down:     shoulder(M1) move
+Right Stick up/down:    Elbow(M2) move
+Right Stick left/right: Wrist(M3) move
 
 'X' : gripper open/close
 'A' : Change led
@@ -221,7 +222,7 @@ class TeleopJoyNode(Node):
         # Make jostick -> /cmd_motor
         elif joymsg.axes[0] != 0:
             status = status + 1
-            self.control_motor0 -= joymsg.axes[0] * self.max_deg / self.step_deg
+            self.control_motor0 += joymsg.axes[0] * self.max_deg / self.step_deg
         elif joymsg.axes[1] != 0:
             status = status + 1
             self.control_motor1 -= joymsg.axes[1] * self.max_deg / self.step_deg

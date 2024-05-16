@@ -9,7 +9,7 @@
 #define LED_R 18
 #define LED_F 5
 #define BUZZER 13
-#define PUMP 0
+#define PUMP_PIN 4
 
 #define M0_ID 6
 #define M1_ID 7
@@ -38,19 +38,19 @@ void setup() {
   pinMode(LED_R, OUTPUT);
   pinMode(LED_F, OUTPUT);
   pinMode(BUZZER, OUTPUT);
-  pinMode(PUMP, OUTPUT);
+  pinMode(PUMP_PIN, OUTPUT);
 
   digitalWrite(LED_L, LOW);
   digitalWrite(LED_R, LOW);
   digitalWrite(LED_F, LOW);
   digitalWrite(BUZZER, LOW);
-  digitalWrite(PUMP, LOW);
+  digitalWrite(PUMP_PIN, LOW);
 
   delay(2000);           //a delay to have time for serial monitor opening
   Serial.begin(115200);  // Open serial communications for debug
   Serial.println("Begin Herkulex Tester");
   Serial.println("Type motorID anggle, then enter");
-  Serial.println("Air Pump, ID is 256, angle is 0/1");
+  Serial.println("Air Pump, ID is 0, angle is 0/1");
   Serial.println("Exampe: 12 48");
 
   Herkulex.beginSerial1(115200, RXD1, TXD1);  //open serial1 for motor communication
@@ -105,9 +105,9 @@ void loop() {
       Serial.println(targetAngle);
 
 
-      if (motorID == 256) {
+      if (motorID == 0) {
         Serial.println("Air Pump on/off");
-        digitalWrite(PUMP, targetAngle);
+        digitalWrite(PUMP_PIN, targetAngle);
       } else {
         Serial.println("Moving motor...");
         Herkulex.moveOneAngle(motorID, targetAngle, 500, LED_RED);  //move motor with 500 speed

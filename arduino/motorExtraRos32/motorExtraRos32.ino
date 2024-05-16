@@ -13,7 +13,6 @@
 
 #include <std_msgs/msg/int32.h>
 #include <std_msgs/msg/float32.h>
-#include <geometry_msgs/msg/twist.h>
 
 #include <moniarm_interfaces/msg/cmd_motor.h>
 #include <moniarm_interfaces/srv/init.h>
@@ -72,7 +71,7 @@ enum states {
 #define GRIPPER 1
 #define END_EFFCTOR AIRPUMP
 
-#define PUMP 0
+#define PUMP_PIN 4
 
 #define DEBUG 1
 #if (DEBUG == 1)
@@ -185,13 +184,13 @@ void motorMoving(int mid, int tarAngle) {
 // Take the angle array, then move each motor
 void motor_callback(const void *msgin) {
   const moniarm_interfaces__msg__CmdMotor *msg = (const moniarm_interfaces__msg__CmdMotor *)msgin;
-  int angle0, angle1, angle2, angle3, gangle;
+  int angle0, angle1, angle2, angle3, grip;
 
   angle0 = msg->angle0;
   angle1 = msg->angle1;
   angle2 = msg->angle2;
   angle3 = msg->angle3;
-  gangle = msg->grip;
+  grip = msg->grip;
 
   motorMoving(M0_ID, angle0);
   motorMoving(M1_ID, angle1);
@@ -199,7 +198,7 @@ void motor_callback(const void *msgin) {
   motorMoving(M3_ID, angle3);
 
 #if END_EFFCTOR == AIRPUMP
-  digitalWrite(PUMP, gangle);
+  digitalWrite(PUMP_PIN, grip);
 #endif
 }
 
@@ -237,12 +236,6 @@ void init_callback(const void *req, void *res) {
 void setup() {
   int i;
 
-#if END_EFFCTOR == AIRPUMP
-  // configure PUMP
-  pinMode(PUMP, OUTPUT);
-  digitalWrite(PUMP, 0);
-#endif
-
 #if (DEBUG == 1)
   Serial2.begin(115200);
   Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2);
@@ -271,6 +264,12 @@ void setup() {
 
   initMotors();
   Herkulex.torqueOFF(BROADCAST_ID);
+
+#if END_EFFCTOR == AIRPUMP
+  // configure AIRPUMP
+  pinMode(PUMP_PIN, OUTPUT);
+  digitalWrite(PUMP_PIN, 0);
+#endif
 
   //wait agent comes up
   do {
