@@ -83,6 +83,9 @@ enum states {
 #define DEBUG_PRINTLN(x)
 #endif
 
+#define MOTOR0_MIN -60
+#define MOTOR0_MAX 60
+
 #define PRINT_ANGLE 1
 #define INTERVAL 100
 
@@ -160,6 +163,13 @@ void motorMoving(int mid, int tarAngle) {
     //dont' need to move
     if (moveAngle == 0)
       return;
+    //limit to MOTOR0_MIN/MOTOR0_MAX, since it can move relative angle
+    else if (mid == M0_ID) {
+      if (tarAngle > MOTOR0_MAX)
+        tarAngle = MOTOR0_MAX;
+      else if (tarAngle < MOTOR0_MIN)
+        tarAngle = MOTOR0_MIN;
+    }
 
     moveTime = abs(moveAngle) * 30;
 
