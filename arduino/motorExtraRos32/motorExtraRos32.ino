@@ -26,9 +26,7 @@
 
 #define DOMAINID 108
 
-rcl_subscription_t motorSub;
-
-moniarm_interfaces__msg__CmdMotor motorMsg;
+moniarm_interfaces__msg__CmdMotor motorMsg, angleMsg;
 moniarm_interfaces__srv__SetLED_Request req_led;
 moniarm_interfaces__srv__SetLED_Response res_led;
 moniarm_interfaces__srv__PlaySong_Request req_song;
@@ -43,6 +41,9 @@ rclc_support_t support;
 rcl_allocator_t allocator;
 rcl_node_t node;
 rcl_service_t service_led, service_song, service_ani, service_init;
+rcl_subscription_t uros_subscriber;
+rcl_publisher_t uros_publisher;
+rcl_timer_t timer;
 
 enum states {
   WAITING_AGENT,
@@ -243,6 +244,17 @@ void init_callback(const void *req, void *res) {
   res_in->success = true;
 }
 
+void timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
+
+  angleMsg.angle0 = int(Herkulex.getAngle(M0_ID));
+  angleMsg.angle1 = int(Herkulex.getAngle(M1_ID));
+  angleMsg.angle2 = int(Herkulex.getAngle(M2_ID));
+  angleMsg.angle3 = int(Herkulex.getAngle(M3_ID));
+
+  RCLC_UNUSED(last_call_time);
+  RCSOFTCHECK(rcl_publish(&uros_publisher, &angleMsg, NULL));
+}
+
 void setup() {
   int i;
 
@@ -316,14 +328,24 @@ void setup() {
   // create service
   RCCHECK(rclc_service_init_default(&service_init, &node, ROSIDL_GET_SRV_TYPE_SUPPORT(moniarm_interfaces, srv, Init), "/Init"));
 
+  // create timer service
+  const unsigned int timer_timeout = 500;
+  RCCHECK(rclc_timer_init_default(&timer, &support, RCL_MS_TO_NS(timer_timeout), timer_callback));
+
   // create motor control subscriber
   RCCHECK(rclc_subscription_init_default(
-    &motorSub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(moniarm_interfaces, msg, CmdMotor), "cmd_motor"));
+    &uros_subscriber, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(moniarm_interfaces, msg, CmdMotor), "cmd_motor"));
+
+  // create motor angle publisher
+  RCCHECK(rclc_publisher_init_default(
+    &uros_publisher, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(moniarm_interfaces, msg, CmdMotor), "angle_motor"));
 
   // create executor
-  RCCHECK(rclc_executor_init(&executor, &support.context, 5, &allocator));
-  // topic subscriber
-  RCCHECK(rclc_executor_add_subscription(&executor, &motorSub, &motorMsg, &motor_callback, ON_NEW_DATA));
+  RCCHECK(rclc_executor_init(&executor, &support.context, 6, &allocator));
+  // add subscriber
+  RCCHECK(rclc_executor_add_subscription(&executor, &uros_subscriber, &motorMsg, &motor_callback, ON_NEW_DATA));
+  // add timer
+  RCCHECK(rclc_executor_add_timer(&executor, &timer));
   // add services
   RCCHECK(rclc_executor_add_service(&executor, &service_led, &req_led, &res_led, led_callback));
   RCCHECK(rclc_executor_add_service(&executor, &service_song, &req_song, &res_song, song_callback));
