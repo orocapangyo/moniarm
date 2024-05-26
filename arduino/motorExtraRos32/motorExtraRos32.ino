@@ -90,6 +90,8 @@ enum states {
 #define PRINT_ANGLE 1
 #define INTERVAL 100
 
+const unsigned int timer_timeout = 200;
+
 bool blinkStatus = false;
 long previousMillis = 0;
 long currentMillis = 0;
@@ -143,8 +145,7 @@ void motorMoving(int mid, int tarAngle) {
   }
   //calculate moving time at first, should be enough for smooth operation
   else {
-    //maybe here with torque off, so torque on at first
-    Herkulex.torqueON(mid);
+    //Herkulex.torqueON(mid);
     //roundup current angle
     curAngle = int(Herkulex.getAngle(mid));
 
@@ -250,6 +251,7 @@ void timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   angleMsg.angle1 = int(Herkulex.getAngle(M1_ID));
   angleMsg.angle2 = int(Herkulex.getAngle(M2_ID));
   angleMsg.angle3 = int(Herkulex.getAngle(M3_ID));
+  angleMsg.run_time = float(timer_timeout) / 1000.0;
 
   RCLC_UNUSED(last_call_time);
   RCSOFTCHECK(rcl_publish(&uros_publisher, &angleMsg, NULL));
@@ -329,7 +331,6 @@ void setup() {
   RCCHECK(rclc_service_init_default(&service_init, &node, ROSIDL_GET_SRV_TYPE_SUPPORT(moniarm_interfaces, srv, Init), "/Init"));
 
   // create timer service
-  const unsigned int timer_timeout = 500;
   RCCHECK(rclc_timer_init_default(&timer, &support, RCL_MS_TO_NS(timer_timeout), timer_callback));
 
   // create motor control subscriber

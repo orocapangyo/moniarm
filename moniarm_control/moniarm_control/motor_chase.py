@@ -98,7 +98,7 @@ class LowLevelCtrl(Node):
 
         self.motorMsg = CmdMotor()
         #M0, M3 torque off by default
-        setArmAgles(self.motorMsg, MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF, GRIPPER_OPEN, 0.0)
+        setArmAgles(self.motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF, GRIPPER_OPEN, 0.0)
         self.get_logger().info("Setting Up low level arm control node...")
 
         self.actuators = {}

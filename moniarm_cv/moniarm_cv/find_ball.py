@@ -141,8 +141,8 @@ def main(args=None):
 
     # Filter by Area.
     params.filterByArea = True
-    params.minArea = 2000
-    params.maxArea = 70000      # 640 * 480 = 307,200
+    params.minArea = 10000
+    params.maxArea = 100000      # 640 * 480 = 307,200
 
     # Filter by Circularity
     params.filterByCircularity = True

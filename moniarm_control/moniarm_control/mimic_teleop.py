@@ -63,7 +63,7 @@ def main():
 
         motorMsg = CmdMotor()
         #M0, M3 torque off by default
-        setArmAgles(motorMsg, MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
+        setArmAgles(motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
 
         while(1):
             # Get next line from file

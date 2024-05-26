@@ -62,9 +62,9 @@ class ChaseObject(Node):
         self.declare_parameters(
             namespace='',
             parameters=[
-                ('K_x', 2.5),
-                ('DETECT_CLASS1', "RedStar"),
-                ('DETECT_CLASS2', "BlueCylinder"),
+                ('K_x', -0.3),
+                ('DETECT_CLASS1', "pepsi"),
+                ('DETECT_CLASS2', "car"),
            ])
         self.get_logger().info("Setting Up the Node...")
         self.K_x = self.get_parameter_or('K_x').get_parameter_value().double_value
@@ -126,7 +126,7 @@ class ChaseObject(Node):
 
         if self.is_detected:
             # --- Apply steering, proportional to how close is the object
-            command_x = self.K_x * self.blob_x
+            command_x = self.K_x * self.blob_x * 2.0
             command_x = clamp(command_x, -1.0, 1.0)
             if ((self.blob_x > IN_RANGE_MIN) and (self.blob_x < IN_RANGE_MAX)) :
                 inrange = 1

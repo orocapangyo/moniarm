@@ -50,7 +50,7 @@ void setup() {
   Serial.begin(115200);  // Open serial communications for debug
   Serial.println("Begin Herkulex Tester");
   Serial.println("Type motorID anggle, then enter");
-  Serial.println("Air Pump, ID is 0, angle is 0/1");
+  Serial.println("Air Pump, ID is 256, angle is 0/1");
   Serial.println("Exampe: 12 48");
 
   Herkulex.beginSerial1(115200, RXD1, TXD1);  //open serial1 for motor communication
@@ -104,8 +104,7 @@ void loop() {
       Serial.print(", Angle:");
       Serial.println(targetAngle);
 
-
-      if (motorID == 0) {
+      if (motorID == 256) {
         Serial.println("Air Pump on/off");
         digitalWrite(PUMP_PIN, targetAngle);
       } else {

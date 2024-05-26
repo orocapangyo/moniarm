@@ -164,7 +164,7 @@ class TeleopJoyNode(Node):
 
         self.motorMsg = CmdMotor()
         #M0, M3 torque off by default
-        setArmAgles(self.motorMsg, MOTOR_TOQOFF, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
+        setArmAgles(self.motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
 
         self.qos = QoSProfile(depth=10)
         # generate publisher for 'cmd_vel'
@@ -222,7 +222,7 @@ class TeleopJoyNode(Node):
         # Make jostick -> /cmd_motor
         elif joymsg.axes[0] != 0:
             status = status + 1
-            self.control_motor0 += joymsg.axes[0] * self.max_deg / self.step_deg
+            self.control_motor0 -= joymsg.axes[0] * self.max_deg / self.step_deg
         elif joymsg.axes[1] != 0:
             status = status + 1
             self.control_motor1 -= joymsg.axes[1] * self.max_deg / self.step_deg
