@@ -6,7 +6,7 @@
 #define: &pink_max [189, 194, 255]
 #define: &light_green_min [39, 81, 71]
 #define: &light_green_max [75, 255, 255]
-#define: &ddark_green_min2 [38, 41, 22]
+#define: &dark_green_min2 [38, 41, 22]
 #define: &dark_green_max2 [88, 255, 165]
 #define: &orange_min [7, 109, 50]
 #define: &orange_max [76, 218, 234]

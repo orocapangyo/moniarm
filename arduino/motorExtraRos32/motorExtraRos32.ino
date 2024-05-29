@@ -132,6 +132,7 @@ float lastCmdVelReceived = 0.0;
 
 void motorMoving(int mid, int tarAngle) {
   int moveAngle = 0, moveTime = 0, curAngle = 0;
+  int timeFactor = 30;
 
   //don't move angle input
   if (tarAngle == MOTOR_NOMOVE)
@@ -146,7 +147,6 @@ void motorMoving(int mid, int tarAngle) {
   //calculate moving time at first, should be enough for smooth operation
   else {
     //Herkulex.torqueON(mid);
-    //roundup current angle
     curAngle = int(Herkulex.getAngle(mid));
 
     // 180<tarAngle or -180>tarAngle, relative move
@@ -154,10 +154,12 @@ void motorMoving(int mid, int tarAngle) {
       tarAngle -= 180;
       moveAngle = tarAngle;
       tarAngle = curAngle + moveAngle;
+      timeFactor = 20;
     } else if (tarAngle < -180) {
       tarAngle += 180;
       moveAngle = tarAngle;
       tarAngle = curAngle + moveAngle;
+      timeFactor = 20;
     } else {
       moveAngle = tarAngle - curAngle;
     }
@@ -173,7 +175,7 @@ void motorMoving(int mid, int tarAngle) {
         tarAngle = MOTOR0_MIN;
     }
 
-    moveTime = abs(moveAngle) * 30;
+    moveTime = abs(moveAngle) * timeFactor;
 
     if (moveTime > MAX_MOVE_TIME)
       moveTime = MAX_MOVE_TIME;

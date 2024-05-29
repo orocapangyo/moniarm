@@ -192,9 +192,9 @@ class LowLevelCtrl(Node):
 
     def set_angles(self, angleX):
         self.motorMsg.angle0 = angleX
-        self.motorMsg.angle1 = MOTOR1_HOME
-        self.motorMsg.angle2 = MOTOR2_HOME
-        self.motorMsg.angle3 = MOTOR3_HOME
+        self.motorMsg.angle1 = MOTOR_NOMOVE
+        self.motorMsg.angle2 = MOTOR_NOMOVE
+        self.motorMsg.angle3 = MOTOR_NOMOVE
         self.robotarm.run(self.motorMsg)
         #motor move too slow
         #sleep(0.3)

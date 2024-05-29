@@ -50,15 +50,6 @@ motorEncExtraRos/motorEncExtraRos.ino
   Please burn this sketch for Robot ARM
 ```
 
-<p align="center">
-    <img src="./Images/arm_joystick.gif" width="400" />
-    <img src="./Images/arm_blob.gif" width="400" />
-    <img src="./Images/arm_yolo.gif" width="400" />
-    <img src="./Images/arm_automove.gif" width="400" />
-    <img src="./Images/moveitplan.gif" width="400" />
-    <img src="./Images/moveitstate.gif" width="400" />
-</p>
-
 There's Notion page, please visit here to get latest information   
 But, It's written in Korean. Anyway, Here's the link   
 https://zeta7.notion.site/MoniArm-f29941635dfb4ff29d528842d2d5c38e?pvs=4  
