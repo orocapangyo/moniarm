@@ -185,8 +185,8 @@ void motorMoving(int mid, int tarAngle) {
     DEBUG_PRINT(mid);
     DEBUG_PRINT(", Cur:");
     DEBUG_PRINT(curAngle);
-    DEBUG_PRINT(" ,Tar:");
-    DEBUG_PRINT(tarAngle);
+    DEBUG_PRINT(" ,Move:");
+    DEBUG_PRINT(moveAngle);
     DEBUG_PRINT(" ,Time:");
     DEBUG_PRINTLN(moveTime);
 #endif

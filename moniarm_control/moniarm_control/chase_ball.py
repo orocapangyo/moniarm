@@ -111,7 +111,7 @@ class ChaseBall(Node):
             command_x = clamp(command_x, -1.0, 1.0)
             if ((self.blob_x > IN_RANGE_MIN) and (self.blob_x < IN_RANGE_MAX)) :
                 inrange = 1
-                self.get_logger().info("Range= %.3f, CommandX= %.3f" % (self.blob_x, command_x))
+                self.get_logger().info("Inrange= %.3f, CommandX= %.3f" % (self.blob_x, command_x))
 
             detect_object = 1
 

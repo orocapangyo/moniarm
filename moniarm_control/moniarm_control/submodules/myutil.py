@@ -59,12 +59,16 @@ class Moniarm(Node):
         print("Parking...")
         self.motorMsg.grip = GRIPPER_OPEN
         self.motorMsg.run_time = 0.0
-        self.motorMsg.angle0 = MOTOR0_OFF
+        self.motorMsg.angle0 = MOTOR_TOQON
         self.motorMsg.angle1 = MOTOR_TOQON
         self.motorMsg.angle2 = MOTOR_TOQON
         self.motorMsg.angle3 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
-        sleep(1.0)
+        sleep(0.2)
+        self.motorMsg.angle0 = MOTOR0_OFF
+        self.motorMsg.angle3 = MOTOR_TOQON
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.5)
         self.motorMsg.angle0 = MOTOR_TOQOFF
         self.motorMsg.angle1 = (MOTOR1_OFF + 20)
         self.motorPub.publish(self.motorMsg)
@@ -87,17 +91,21 @@ class Moniarm(Node):
         self.motorPub.publish(self.motorMsg)
         sleep(0.2)
         print("Parking Done")
+
     def home(self):
         print("Homing...")
         #torque on at first except MOTOR0
         self.motorMsg.grip = GRIPPER_OPEN
         self.motorMsg.run_time = 0.0
-        self.motorMsg.angle0 = MOTOR_TOQOFF
+        self.motorMsg.angle0 = MOTOR_TOQON
         self.motorMsg.angle1 = MOTOR_TOQON
         self.motorMsg.angle2 = MOTOR_TOQON
         self.motorMsg.angle3 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
-        sleep(0.3)
+        sleep(0.2)
+        self.motorMsg.angle0 = MOTOR_TOQOFF
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.5)
         self.motorMsg.angle2 = 90
         self.motorPub.publish(self.motorMsg)
         sleep(1.5)
@@ -123,6 +131,7 @@ class Moniarm(Node):
         self.motorPub.publish(self.motorMsg)
         sleep(0.1)
         print("Homing Done")
+        
     def picknplace(self, object):
         #move to pick up postion
         self.motorMsg.run_time = 0.0

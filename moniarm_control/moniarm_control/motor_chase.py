@@ -114,7 +114,7 @@ class LowLevelCtrl(Node):
         self.detect_object = 0
         self.inrange = 0
         #1'st move, don't use command_x_prev
-        self.command_count = 3
+        self.command_count = 10
 
         # --- Get the last time e got a commands
         self._last_time_cmd_rcv = time()
@@ -167,6 +167,12 @@ class LowLevelCtrl(Node):
             self.get_logger().info( "command: %.3f, %.3f, %.3f" %(self.command_x_prev[0], self.command_x_prev[1],self.command_x_prev[2]) )
             self.command_count += 1
             return
+        #1'st move, increase gain
+        elif self.command_count == 10:
+            self.command_x_prev[0] = command
+            self.command_x_prev[1] = command
+            self.command_x_prev[2] = command
+            self.command_count = 0
         else:
             self.command_count = 0
 
@@ -216,7 +222,7 @@ class LowLevelCtrl(Node):
         self.detect_object = 0
         self.inrange = 0
         #1'st move, don't use command_x_prev
-        self.command_count = 3
+        self.command_count = 10
         self.command_x_prev = [0.0, 0.0, 0.0]
 
     def set_park(self):
