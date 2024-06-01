@@ -1,0 +1,28 @@
+## Gamepad ##
+jetson@nano:~$ ros2 launch monicar2_bringup mcu.launch.py
+#jetson or pc, terminal #2
+jetson@nano:~$ ros2 launch monicar2_teleop teleop_joy.launch.py
+
+## Keyboard ##
+jetson@nano:~$ ros2 launch moniarm_bringup mcu.launch.py
+#jetson or pc, terminal #2
+jetson@nano:~$ ros2 run moniarm_teleop teleop_keyboard
+
+## Mimic ##
+jetson@nano:~$ ros2 launch moniarm_bringup mcu.launch.py
+#jetson or pc, terminal #2
+jetson@nano:~$ ros2 run moniarm_control mimic_teleop
+
+# Camera check ##
+$ ros2 launch moniarm_cv usbcam.launch.py
+$ ros2 run rqt_image_view rqt_image_view
+
+## Blob ##
+$ ros2 launch moniarm_control blob_all.launch.py
+$ ros2 run rqt_image_view rqt_image_view
+
+## Custom Yolo ##
+#terminal #1, #object detect using Yolo_v4
+jetson@nano:~/ros2_ws$ ros2 launch darknet_ros yolov4-moniarm.launch.py
+#terminal #2,camera publish, object -> start or stop
+jetson@nano:~/ros2_ws$ ros2 launch moniarm_control yolo_all.launch.py

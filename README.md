@@ -111,8 +111,24 @@ cd ~/ros2_ws/src/moniarm/script
   ./install/setup.bash
 ```
 
+### **Verify USB camera**  
+Control Robot Arm with gamepad/jostick  
+<p align="center">
+    <img src="/Images/verify_camera.gif" width="500" />
+</p>
+
+```bash
+cd {$workspace_path}
+# jetson , terminal #1
+jetson@nano:~$ ros2 launch moniarm_cv usbcam.launch.py
+
+$ ros2 run rqt_image_view rqt_image_view
+# or
+$ ros2 run image_view image_view --ros-args --remap /image:=/image_raw
+```
+
 ### **Play with joystick**  
-Control Robot Arm with game controller  
+Control Robot Arm with gamepad/jostick  
 <p align="center">
     <img src="/Images/arm_joystick.gif" width="500" />
 </p>
@@ -136,9 +152,9 @@ Right Stick left/right: Wrist(M3) move
 ```
 
 ### **Play with keyboard**  
-Control Robo tArm with keyboard  
+Control Robot Arm with keyboard  
 <p align="center">
-    <img src="Images/arm_joystick.gif" width="500" />
+    <img src="Images/arm_keyboard.gif" width="500" />
 </p>
 
 ```bash
@@ -157,6 +173,20 @@ l: Change led
 u: play buzzer song
 o: OLED animation
 i: Motor mode set/init
+```
+
+### **Mimic teleop**  
+Autonomous move for mimicing human operation
+<p align="center">
+    <img src="Images/arm_mimic.gif" width="500" />
+</p>
+
+```bash
+cd {$workspace_path}
+# jetson , terminal #1
+jetson@nano:~$ ros2 launch moniarm_bringup mcu.launch.py
+#jetson or pc, terminal #2
+jetson@nano:~$ ros2 run moniarm_control mimic_teleop
 ```
 
 ### **Blob pick and plance**  
@@ -184,9 +214,9 @@ jetson@nano:~/ros2_ws$ ros2 launch moniarm_control yolo_all.launch.py
 ```
 
 ### **Moveit2 state publisher**  
-joint_states publisher -> Move robot arm accordingly  
+joint_states publisher -> Move robot arm accordingly, TBD  
 <p align="center">
-    <img src='Images/moveitstate.gif' width=500 />
+    <img src='Images/blank.gif' width=500 />
 </p>
 
 ```bash
@@ -197,9 +227,9 @@ zeta@changwhan-ASUS:~/ros2_ws$ ros2 launch moniarm_description moniarm.launch
 ```
 
 ### **Moveit2 planner**
-moveit planner -> Move robot arm accordingly  
+moveit planner -> Move robot arm accordingly, TBD  
 <p align="center">
-    <img src='Images/moveitplan.gif' width=500 />
+    <img src='Images/blank.gif' width=500 />
 </p>
 
 ```bash

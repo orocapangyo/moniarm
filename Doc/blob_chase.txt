@@ -1,5 +1,20 @@
-roslaunch jessicar_control blob_control.launch
 
-rosrun jessicar_control blob_chase.py
+## for easy running ##
+$ ros2 launch moniarm_control blob_all.launch.py
 
-rosrun image_view image_view image:=/blob/image_blob
+$ ros2 run rqt_image_view rqt_image_view
+
+## for Debugging ##
+$ ros2 launch moniarm_bringup mcu.launch.py
+
+# camera image publisher
+$ ros2 launch moniarm_cv usbcam.launch.py
+
+# CV Magic, Bind Ball with Pixel Value
+$ ros2 launch moniarm_cv blob_detect.launch.py
+
+# Blob Point to Twist
+$ ros2 launch moniarm_control chase_ball.launch.py
+
+# motor control node
+$ ros2 launch moniarm_control motor_chase.launch.py
