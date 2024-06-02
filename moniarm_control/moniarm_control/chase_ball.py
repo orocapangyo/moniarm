@@ -51,7 +51,9 @@ from rclpy.parameter import Parameter
 from rclpy.logging import get_logger
 from geometry_msgs.msg import Point
 from moniarm_interfaces.msg import CmdChase
-from .submodules.myutil import clamp, Moniarm, radiansToDegrees, trimLimits
+from rclpy.qos import qos_profile_sensor_data
+
+from .submodules.myutil import clamp, radiansToDegrees, trimLimits
 from .submodules.myconfig import *
 
 class ChaseBall(Node):
@@ -75,7 +77,7 @@ class ChaseBall(Node):
         self._time_detected = 0.0
         self.detect_object = 0
 
-        self.sub_center = self.create_subscription(Point, "/blob/point_blob", self.update_ball, 10)
+        self.sub_center = self.create_subscription(Point, "/blob/point_blob", self.update_ball, qos_profile_sensor_data)
         self.get_logger().info("Subscriber set")
 
         self.pub_chase = self.create_publisher(CmdChase, "/control/cmd_chase", 10)
@@ -111,8 +113,7 @@ class ChaseBall(Node):
             command_x = clamp(command_x, -1.0, 1.0)
             if ((self.blob_x > IN_RANGE_MIN) and (self.blob_x < IN_RANGE_MAX)) :
                 inrange = 1
-                self.get_logger().info("Inrange= %.3f, CommandX= %.3f" % (self.blob_x, command_x))
-
+                #self.get_logger().info("Inrange= %.3f, CommandX= %.3f" % (self.blob_x, command_x))
             detect_object = 1
 
         return (detect_object, command_x, inrange)

@@ -65,6 +65,26 @@ void setup() {
   delay(200);
   Herkulex.initialize();  //initialize motors
   delay(500);
+
+#if 0
+  Serial.print("AccelRatio:");
+  Serial.println(Herkulex.readRegistryRAM(M0_ID, 8));
+  Serial.print("MaxAccel:");
+  Serial.println(Herkulex.readRegistryRAM(M0_ID, 9));
+  Serial.print("DeadZone:");
+  Serial.println(Herkulex.readRegistryRAM(M0_ID, 10));
+
+  Herkulex.writeRegistryRAM(M0_ID, 8, 5);
+  Herkulex.writeRegistryRAM(M0_ID, 9, 45);
+  Herkulex.writeRegistryRAM(M0_ID, 10, 0);
+
+  Serial.print("AccelRatio:");
+  Serial.println(Herkulex.readRegistryRAM(M0_ID, 8));
+  Serial.print("MaxAccel:");
+  Serial.println(Herkulex.readRegistryRAM(M0_ID, 9));
+  Serial.print("DeadZone:");
+  Serial.println(Herkulex.readRegistryRAM(M0_ID, 10));
+#endif
 }
 
 void loop() {

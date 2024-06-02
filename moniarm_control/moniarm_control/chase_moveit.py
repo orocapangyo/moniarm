@@ -49,6 +49,8 @@ from rclpy.parameter import Parameter
 from rclpy.logging import get_logger
 from sensor_msgs.msg import JointState
 import atexit
+from rclpy.qos import qos_profile_sensor_data
+
 from moniarm_interfaces.msg import CmdMotor
 from .submodules.myutil import Moniarm, trimLimits, radiansToDegrees, setArmAgles
 from .submodules.myconfig import *
@@ -66,7 +68,7 @@ class ChaseMoveit(Node):
         self.robotarm.home()
 
         atexit.register(self.set_park)
-        self._joint_sub = self.create_subscription(JointState, '/joint_states', self.moveit_callback, 10)
+        self._joint_sub = self.create_subscription(JointState, '/joint_states', self.moveit_callback, qos_profile_sensor_data)
         self.get_logger().info("Moveit Subscriber Awaked!! Waiting for Moveit Planning...")
 
     def moveit_callback(self, cmd_msg):

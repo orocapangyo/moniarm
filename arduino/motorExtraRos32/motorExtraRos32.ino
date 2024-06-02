@@ -24,6 +24,8 @@
 
 #include "songlcdled.h"
 
+#define ESP_API_3 1
+
 #define DOMAINID 108
 
 moniarm_interfaces__msg__CmdMotor motorMsg, angleMsg;
@@ -154,12 +156,12 @@ void motorMoving(int mid, int tarAngle) {
       tarAngle -= 180;
       moveAngle = tarAngle;
       tarAngle = curAngle + moveAngle;
-      timeFactor = 20;
+      timeFactor = 15;
     } else if (tarAngle < -180) {
       tarAngle += 180;
       moveAngle = tarAngle;
       tarAngle = curAngle + moveAngle;
-      timeFactor = 20;
+      timeFactor = 15;
     } else {
       moveAngle = tarAngle - curAngle;
     }
@@ -227,6 +229,19 @@ void initMotors(void) {
   delay(200);
   Herkulex.initialize();  //initialize motors
   delay(200);
+
+#if 0
+  //change accel profile, default 25 -> 5
+  Herkulex.writeRegistryRAM(M0_ID, 8 , 5);
+  Herkulex.writeRegistryRAM(M1_ID, 8 , 5);
+  Herkulex.writeRegistryRAM(M2_ID, 8 , 5);
+  Herkulex.writeRegistryRAM(M3_ID, 8 , 5);
+  //change accel profile, default 45 -> 0
+  Herkulex.writeRegistryRAM(M0_ID, 9 , 0);
+  Herkulex.writeRegistryRAM(M1_ID, 9 , 0);
+  Herkulex.writeRegistryRAM(M2_ID, 9 , 0);
+  Herkulex.writeRegistryRAM(M3_ID, 9 , 0);
+#endif
 }
 
 void init_callback(const void *req, void *res) {
@@ -275,8 +290,12 @@ void setup() {
   pinMode(LED_F, OUTPUT);
   RGB(ALL_OFF);  // RGB LED all off
 
+#if (ESP_API_3 == 1)
+  ledcAttachChannel(BUZZER, 5000, 8, BUZZER_CH);
+#else
   ledcSetup(BUZZER, 5000, 8);  //BUZZER, channel: 2, 5000Hz, 8bits = 256(0 ~ 255)
   ledcAttachPin(BUZZER, BUZZER_CH);
+#endif
   ledcWrite(BUZZER_CH, 0);
 
   // configure LED for output
@@ -336,11 +355,11 @@ void setup() {
   RCCHECK(rclc_timer_init_default(&timer, &support, RCL_MS_TO_NS(timer_timeout), timer_callback));
 
   // create motor control subscriber
-  RCCHECK(rclc_subscription_init_default(
+  RCCHECK(rclc_subscription_init_best_effort(
     &uros_subscriber, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(moniarm_interfaces, msg, CmdMotor), "cmd_motor"));
 
   // create motor angle publisher
-  RCCHECK(rclc_publisher_init_default(
+  RCCHECK(rclc_publisher_init_best_effort(
     &uros_publisher, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(moniarm_interfaces, msg, CmdMotor), "angle_motor"));
 
   // create executor

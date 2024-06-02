@@ -40,6 +40,7 @@ from rclpy.parameter import Parameter
 from sensor_msgs.msg import Joy
 from rclpy.qos import QoSProfile
 import atexit
+from rclpy.qos import qos_profile_sensor_data
 
 from moniarm_interfaces.srv import SetLED, PlayAni, PlaySong, Init
 from moniarm_interfaces.msg import CmdMotor
@@ -166,9 +167,8 @@ class TeleopJoyNode(Node):
         #M0, M3 torque off by default
         setArmAgles(self.motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
 
-        self.qos = QoSProfile(depth=10)
         # generate publisher for 'cmd_vel'
-        self.sub = self.create_subscription(Joy, 'joy', self.cb_joy, 10)
+        self.sub = self.create_subscription(Joy, 'joy', self.cb_joy, qos_profile_sensor_data)
         # generate publisher for 'ledSub
         self.timer = self.create_timer(TIMER_JOY, self.cb_timer)
 

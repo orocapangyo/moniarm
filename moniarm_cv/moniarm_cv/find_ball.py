@@ -27,6 +27,7 @@ from rclpy.node import Node
 import cv2
 import time
 from rclpy.parameter import Parameter
+from rclpy.qos import qos_profile_sensor_data
 
 from std_msgs.msg           import String
 from sensor_msgs.msg        import Image
@@ -63,7 +64,7 @@ class BlobDetector(Node):
         self.blob_pub = self.create_publisher(Point, "/blob/point_blob", 10)
 
         self.bridge = CvBridge()
-        self.image_sub = self.create_subscription(Image, "/image_raw",self.callback, 10)
+        self.image_sub = self.create_subscription(Image, "/image_raw",self.callback, qos_profile_sensor_data)
         print ("<< Subscribed to topic /image_raw")
         self.blob_point = Point()
 

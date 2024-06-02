@@ -50,10 +50,18 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.logging import get_logger
 import atexit
+from rclpy.qos import qos_profile_sensor_data
 
 from moniarm_interfaces.msg import CmdChase, CmdMotor
 from .submodules.myutil import clamp, Moniarm, setArmAgles
 from .submodules.myconfig import *
+
+MOVE_1ST = 10
+#PC
+MOVE_WAIT = 3
+#Jetson
+#MOVE_WAIT = 5
+MOVE_MOTOR = MOVE_WAIT + 3
 
 class ServoConvert:
     def __init__(self, id=1, center_value=0, range=MAX_ANG, direction=1):
@@ -106,7 +114,7 @@ class LowLevelCtrl(Node):
         self.get_logger().info("> actuator corrrectly initialized")
 
         # --- Create the Subscriber to obstacle_avoidance commands
-        self.ros_sub_chase = self.create_subscription(CmdChase, "/control/cmd_chase", self.update_message_from_chase, 10)
+        self.ros_sub_chase = self.create_subscription(CmdChase, "/control/cmd_chase", self.update_message_from_chase, qos_profile_sensor_data)
         self.get_logger().info("> Subscriber corrrectly initialized")
 
         self.command_x = 0.0
@@ -114,7 +122,7 @@ class LowLevelCtrl(Node):
         self.detect_object = 0
         self.inrange = 0
         #1'st move, don't use command_x_prev
-        self.command_count = 10
+        self.command_count = MOVE_1ST
 
         # --- Get the last time e got a commands
         self._last_time_cmd_rcv = time()
@@ -162,17 +170,20 @@ class LowLevelCtrl(Node):
         """
         command_x = 0.0
 
-        if self.command_count < 3:
-            self.command_x_prev[self.command_count] = command
-            self.get_logger().info( "command: %.3f, %.3f, %.3f" %(self.command_x_prev[0], self.command_x_prev[1],self.command_x_prev[2]) )
-            self.command_count += 1
-            return
-        #1'st move, increase gain
-        elif self.command_count == 10:
+        #1'st move, increase gain and move without wait
+        if self.command_count == MOVE_1ST:
             self.command_x_prev[0] = command
             self.command_x_prev[1] = command
             self.command_x_prev[2] = command
             self.command_count = 0
+        elif self.command_count < MOVE_WAIT:
+            self.command_count += 1
+            return
+        elif self.command_count < MOVE_MOTOR:
+            self.command_x_prev[self.command_count - MOVE_WAIT] = command
+            self.get_logger().info( "command: %.3f, %.3f, %.3f" %(self.command_x_prev[0], self.command_x_prev[1],self.command_x_prev[2]) )
+            self.command_count += 1
+            return
         else:
             self.command_count = 0
 
@@ -187,7 +198,7 @@ class LowLevelCtrl(Node):
             return
 
         #simple PI control, Kp=1, Ki=0.3
-        command_x = self.command_x_prev[0]*0.1 + self.command_x_prev[1]*0.2 + self.command_x_prev[2]*0.3 + command*0.5
+        command_x = self.command_x_prev[0]*0.2 + self.command_x_prev[1]*0.3 + self.command_x_prev[2]*0.4 + command*0.6
         command_x = clamp(command_x, -1.00, 1.00)
         self.command_x_prev = [0.0, 0.0, 0.0]
 
@@ -222,7 +233,7 @@ class LowLevelCtrl(Node):
         self.detect_object = 0
         self.inrange = 0
         #1'st move, don't use command_x_prev
-        self.command_count = 10
+        self.command_count = MOVE_1ST
         self.command_x_prev = [0.0, 0.0, 0.0]
 
     def set_park(self):

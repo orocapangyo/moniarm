@@ -3,6 +3,7 @@ import rclpy
 from rclpy.node import Node
 from . myconfig import *
 from moniarm_interfaces.msg import CmdMotor
+from rclpy.qos import qos_profile_sensor_data
 
 def clamp(n, minn, maxn):
     if n < minn:
@@ -41,7 +42,7 @@ class Moniarm(Node):
     """
     def __init__(self):
         super().__init__('arm_basic_node')
-        self.motorPub = self.create_publisher(CmdMotor, 'cmd_motor',10)
+        self.motorPub = self.create_publisher(CmdMotor, 'cmd_motor', qos_profile_sensor_data)
         self.motorMsg = CmdMotor()
         setArmAgles(self.motorMsg,MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
         self.armStatus = "Homing"
@@ -129,9 +130,9 @@ class Moniarm(Node):
         self.motorMsg.angle2 = MOTOR_TOQON
         self.motorMsg.angle3 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
-        sleep(0.1)
+        sleep(0.2)
         print("Homing Done")
-        
+
     def picknplace(self, object):
         #move to pick up postion
         self.motorMsg.run_time = 0.0
@@ -162,7 +163,6 @@ class Moniarm(Node):
         self.motorMsg.angle0 = MOTOR_TOQON
         self.motorMsg.angle1 = MOTOR1_HOME
         self.motorMsg.angle2 = MOTOR_TOQON
-        self.motorMsg.angle3 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
 
@@ -172,15 +172,12 @@ class Moniarm(Node):
         else:
             self.motorMsg.angle0 = MOTOR0_PLACE2
         self.motorMsg.angle1 = MOTOR_TOQON
-        self.motorMsg.angle2 = MOTOR_TOQON
-        self.motorMsg.angle3 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
 
         #move down postion
         self.motorMsg.angle0 = MOTOR_TOQOFF
         self.motorMsg.angle1 = MOTOR_TOQON
-        self.motorMsg.angle2 = MOTOR_TOQON
         self.motorMsg.angle3 = MOTOR3_PICKUP
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
@@ -191,7 +188,6 @@ class Moniarm(Node):
 
         #lift up
         self.motorMsg.angle0 = MOTOR_TOQOFF
-        self.motorMsg.angle1 = MOTOR_TOQON
         self.motorMsg.angle2 = MOTOR2_HOME
         self.motorMsg.angle3 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
@@ -199,7 +195,6 @@ class Moniarm(Node):
         self.motorMsg.angle0 = MOTOR_TOQON
         self.motorMsg.angle1 = MOTOR1_HOME
         self.motorMsg.angle2 = MOTOR_TOQON
-        self.motorMsg.angle3 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
 

@@ -50,6 +50,8 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.logging import get_logger
 from darknet_ros_msgs.msg import BoundingBoxes
+from rclpy.qos import qos_profile_sensor_data
+
 from moniarm_interfaces.msg import CmdChase
 from .submodules.myutil import clamp, Moniarm, radiansToDegrees, trimLimits
 from .submodules.myconfig import *
@@ -82,7 +84,7 @@ class ChaseObject(Node):
         self._time_detected = 0.0
         self.detect_object = 0
 
-        self.sub_center = self.create_subscription(BoundingBoxes, "/darknet_ros/bounding_boxes", self.update_object, 10)
+        self.sub_center = self.create_subscription(BoundingBoxes, "/darknet_ros/bounding_boxes", self.update_object, qos_profile_sensor_data)
         self.get_logger().info("Subscriber set")
 
         self.pub_chase = self.create_publisher(CmdChase, "/control/cmd_chase", 10)

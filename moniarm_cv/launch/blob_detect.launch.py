@@ -23,7 +23,8 @@ def generate_launch_description():
     DeclareLaunchArgument('cv_parameter', default_value=cv_parameter),
     Node(
       package='moniarm_cv', executable='find_ball', name='blob_detect_node',
-      output='screen', emulate_tty=True,
+      #output='screen',
+      emulate_tty=True,
       parameters=[cv_parameter],
     ),
   ])
