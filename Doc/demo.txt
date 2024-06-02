@@ -1,7 +1,7 @@
 ## Gamepad ##
-jetson@nano:~$ ros2 launch monicar2_bringup mcu.launch.py
+jetson@nano:~$ ros2 launch moniarm_bringup mcu.launch.py
 #jetson or pc, terminal #2
-jetson@nano:~$ ros2 launch monicar2_teleop teleop_joy.launch.py
+jetson@nano:~$ ros2 launch moniarm_teleop teleop_joy.launch.py
 
 ## Keyboard ##
 jetson@nano:~$ ros2 launch moniarm_bringup mcu.launch.py
