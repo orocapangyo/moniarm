@@ -13,7 +13,7 @@ find_package(urdf REQUIRED)
 ################################################################################
 # Install
 ################################################################################
-install(DIRECTORY meshes rviz urdf xacro launch
+install(DIRECTORY meshes rviz xacro launch
   DESTINATION share/${PROJECT_NAME}
 )
 

@@ -6,20 +6,47 @@
   <!-- Constants for robot dimensions -->
   <xacro:property name="mass" value="1" /> <!-- arbitrary value for mass -->
   <xacro:property name="width" value="0.1" /> <!-- Square dimensions (widthxwidth) of beams -->
-  <xacro:property name="height1" value="0.3" /> <!-- Link 1 -->
-  <xacro:property name="height2" value="0.45" /> <!-- Link 2 -->
+  <xacro:property name="height1" value="0.01" /> <!-- Link 1 -->
+  <xacro:property name="height2" value="0.01" /> <!-- Link 2 -->
   <xacro:property name="height3" value="0.01" /> <!-- Link 3 -->
+  <xacro:property name="height3" value="0.01" /> <!-- Link 4 -->
+  <xacro:property name="height3" value="0.01" /> <!-- Link 5 -->
   <xacro:property name="camera_link" value="0.05" /> <!-- Size of square 'camera' box -->
   <xacro:property name="axel_offset" value="0.05" /> <!-- Space btw top of beam and the each joint -->
 
-  <joint name="${prefix}base_joint" type="fixed">
-    <xacro:insert_block name="origin" />
-    <parent link="${parent}"/>
-    <child link="${prefix}base_link" />
-  </joint>
-
   <!-- Base Link -->
-  <link name="${prefix}base_link">
+  <link name="base_link">
+      <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+              <mesh filename="package://moniarm_description/meshes/base.stl" scale="0.005 0.005 0.005"/>
+          </geometry>
+      </collision>
+      <visual>
+          <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+          <geometry>
+              <mesh filename="package://moniarm_description/meshes/base.stl" scale="0.005 0.005 0.005"/>
+          </geometry>
+          <material name="grey"/>
+      </visual>
+      <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <mass value="1"/>
+          <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+      </inertial>
+  </link>
+
+  <!-- Joint 1, motor0 -->
+  <joint name="${prefix}joint1" type="continuous">
+    <parent link="${prefix}base_link"/>
+    <child link="${prefix}link1"/>
+    <origin xyz="0 0 ${height1}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <dynamics damping="0.7"/>
+  </joint>
+  
+  <!-- Link 1-->
+  <link name="${prefix}link1">
     <collision>
 				<origin rpy="0 0 0" xyz="0 0 0" />
 				<geometry>
@@ -28,7 +55,7 @@
 			</collision>
 
     <visual>
-      <origin xyz="-0.1 -0.15 0" rpy="89.5 0 1.5708"/>
+      <origin xyz="0.06 -0.12 0.17" rpy="0 0 -1.5708"/>
       <geometry>
 					<mesh filename="package://moniarm_description/meshes/link1.stl" scale="0.005 0.005 0.005" />
       </geometry>
@@ -45,16 +72,17 @@
       </inertial>
     </link>
 
-    <joint name="${prefix}joint1" type="continuous">
-      <parent link="${prefix}base_link"/>
-      <child link="${prefix}link1"/>
-      <origin xyz="0 0 ${height1}" rpy="0 0 0"/>
+    <!-- Joint 2, motor1 -->
+    <joint name="${prefix}joint2" type="continuous">
+      <parent link="${prefix}link1"/>
+      <child link="${prefix}link2"/>
+      <origin xyz="0 0.01 ${height2}" rpy="0 0 0"/>
       <axis xyz="0 1 0"/>
       <dynamics damping="0.7"/>
     </joint>
 
-    <!-- Middle Link -->
-    <link name="${prefix}link1">
+    <!-- Link 2-->
+    <link name="${prefix}link2">
       <collision>
         <origin xyz="0 0 ${height2/2 - axel_offset}" rpy="0 0 0"/>
         <geometry>
@@ -63,8 +91,7 @@
       </collision>
 
       <visual>
-        <!-- <origin xyz="0.04 -0.45 0" rpy="0.01 -0.06 -0.01"/> -->
-        <origin xyz="-0.02 -0.1 -0.3" rpy="1.2 0 1.5708"/>
+        <origin xyz="-0.02 -0.1 -0.02" rpy="1.2 -0.1 0"/>
         <geometry>
 					<mesh filename="package://moniarm_description/meshes/link2.stl" scale="0.005 0.005 0.005" />
         </geometry>
@@ -81,16 +108,17 @@
         </inertial>
       </link>
 
-      <joint name="${prefix}joint2" type="continuous">
-        <parent link="${prefix}link1"/>
-        <child link="${prefix}link2"/>
+      <!-- Joint 3, motor2 -->
+      <joint name="${prefix}joint3" type="continuous">
+        <parent link="${prefix}link2"/>
+        <child link="${prefix}link3"/>
         <origin xyz="0 0.01 ${height2}" rpy="0 0 0"/>
         <axis xyz="0 1 0"/>
         <dynamics damping="0.7"/>
       </joint>
 
-      <!-- Top Link -->
-      <link name="${prefix}link2">
+      <!-- Link 3 -->
+      <link name="${prefix}link3">
         <collision>
           <origin xyz="0 0 ${height3/2 - axel_offset}" rpy="0 0 0"/>
           <geometry>
@@ -99,12 +127,11 @@
         </collision>
 
         <visual>
-          <!-- <origin xyz="-0.5 0 -0.45" rpy="1.2 0 1.5708"/> -->
-          <origin xyz="-0.64 -0.2 -0.4" rpy="2.1 0.1 1.5708"/>
+          <origin xyz="-0.02 -0.1 0.0" rpy="1.2 0.3 0"/>
           <geometry>
             <mesh filename="package://moniarm_description/meshes/link3.stl" scale="0.005 0.005 0.005" />
           </geometry>
-          <material name="white"/>
+          <material name="green"/>
         </visual>
 
         <inertial>
@@ -117,14 +144,15 @@
           </inertial>
         </link>
 
-        <joint name="${prefix}joint3" type="fixed">
+        <!-- Joint 4, motor3 -->
+        <joint name="${prefix}joint4" type="continuous">
           <origin xyz="0 0 0.5" rpy="0 0 0" />
-          <parent link="${prefix}link2"/>
-          <child link="${prefix}tool_link" />
+          <parent link="${prefix}link3"/>
+          <child link="${prefix}link4" />
         </joint>
 
-        <!-- Tool Link -->
-        <link name="${prefix}tool_link">
+          <!-- Link 4, motor+link+pump -->
+        <link name="${prefix}link4">
         <collision>
           <origin xyz="0 0 ${height3/2 - axel_offset}" rpy="0 0 0"/>
           <geometry>
@@ -133,12 +161,11 @@
         </collision>
 
         <visual>
-          <!-- <origin xyz="-0.55 -0.15 -1.13" rpy="1.57 0 1.5708"/> -->
-          <origin xyz="-0.435 -0.33 -1.13" rpy="1.57 0 1.5708"/>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
           <geometry>
             <mesh filename="package://moniarm_description/meshes/link4.stl" scale="0.005 0.005 0.005" />
           </geometry>
-          <material name="black"/>
+          <material name="green"/>
         </visual>
 
         <inertial>

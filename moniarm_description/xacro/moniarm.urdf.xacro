@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- Revolute-Revolute Manipulator -->
 
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="2dof_robot">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="Moniarm">
   <xacro:arg name="prefix" default="" />
 
   <!-- Import moniarm macro -->
@@ -19,6 +19,13 @@
     <static>true</static>
   </gazebo>
 
+  <!-- World fixed joint-->
+  <joint name="world_fixed" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="world"/>
+    <child link="base_link"/>
+  </joint>
+  
   <xacro:moniarm parent="world" prefix="$(arg prefix)">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </xacro:moniarm>
