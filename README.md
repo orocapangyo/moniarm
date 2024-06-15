@@ -213,7 +213,7 @@ jetson@nano:~/ros2_ws$ ros2 launch darknet_ros yolov4-moniarm.launch.py
 jetson@nano:~/ros2_ws$ ros2 launch moniarm_control yolo_all.launch.py
 ```
 
-### **Moveit2 state publisher**  
+### **state publisher -> robot**  
 joint_states publisher -> Move robot arm accordingly, TBD  
 <p align="center">
     <img src='Images/blank.gif' width=500 />
@@ -221,12 +221,12 @@ joint_states publisher -> Move robot arm accordingly, TBD
 
 ```bash
 #terminal #1, Jetson
-jetson@nano:~$ ros2 launch moniarm_control chase_moveit.launch
+jetson@nano:~$ ros2 launch moniarm_bringup mcu.launch.py
 #terminal #2, Laptop
-zeta@changwhan-ASUS:~/ros2_ws$ ros2 launch moniarm_description moniarm.launch
+zeta@changwhan-ASUS:~/ros2_ws$ ros2 launch moniarm_control state_all.launch.py
 ```
 
-### **Moveit2 planner**
+### **Moveit2 planner -> robot**
 moveit planner -> Move robot arm accordingly, TBD  
 <p align="center">
     <img src='Images/blank.gif' width=500 />

@@ -57,7 +57,7 @@ from .submodules.myconfig import *
 
 class ChaseMoveit(Node):
     def __init__(self):
-        super().__init__('moveit_control_node')
+        super().__init__('state_control_node')
         self.declare_parameters(
             namespace='',
             parameters=[
@@ -65,28 +65,26 @@ class ChaseMoveit(Node):
         self.get_logger().info("Setting Up the Node...")
 
         self.robotarm = Moniarm()
-        self.robotarm.home()
+        self.robotarm.zero()
+
+        self.motorMsg = CmdMotor()
+        setArmAgles(self.motorMsg, MOTOR0_ZERO, MOTOR1_ZERO, MOTOR2_ZERO, MOTOR3_ZERO, GRIPPER_OPEN, 0.0)
 
         atexit.register(self.set_park)
         self._joint_sub = self.create_subscription(JointState, '/joint_states', self.moveit_callback, qos_profile_sensor_data)
         self.get_logger().info("Moveit Subscriber Awaked!! Waiting for Moveit Planning...")
 
     def moveit_callback(self, cmd_msg):
-        motorMsg = CmdMotor()
-        #M0, M3 torque off by default
-        setArmAgles(motorMsg, cmd_msg.position[0], cmd_msg.position[1], cmd_msg.position[2], cmd_msg.position[3], cmd_msg.position[4], 0.0)
         #print( str(cmd_msg.position[0]) + ':' + str(cmd_msg.position[1]) + ':' + str(cmd_msg.position[2]) + ':' + str(cmd_msg.position[3]) )
+        self.motorMsg.angle0 = trimLimits(radiansToDegrees(cmd_msg.position[0]))
+        self.motorMsg.angle1 = trimLimits(radiansToDegrees(cmd_msg.position[1]))
+        self.motorMsg.angle2 = trimLimits(radiansToDegrees(cmd_msg.position[2]))
+        self.motorMsg.angle3 = trimLimits(radiansToDegrees(cmd_msg.position[3]))
+        #can't control air pump, then grip=0 always
+        setArmAgles(self.motorMsg, self.motorMsg.angle0 , self.motorMsg.angle1 , self.motorMsg.angle2 , self.motorMsg.angle3, 0, 0.0)
 
-        motorMsg.angle0 = trimLimits(radiansToDegrees(cmd_msg.position[0]))
-        motorMsg.angle1 = trimLimits(radiansToDegrees(cmd_msg.position[1]))
-        motorMsg.angle2 = trimLimits(radiansToDegrees(cmd_msg.position[2]))
-        motorMsg.angle3 = trimLimits(radiansToDegrees(cmd_msg.position[3]))
-        self.robotarm.run(motorMsg)
-
-        self.timediff = time() - self.prev_time
-        self.prev_time = time()
-        print( str(motorMsg.angle0) + ':' + str(motorMsg.angle1) + ':' + str(motorMsg.angle2)
-        + ':' + str(motorMsg.angle3) + ':' + str(self.timediff))
+        self.robotarm.run(self.motorMsg)
+        print( str(self.motorMsg.angle0) + ':' + str(self.motorMsg.angle1) + ':' + str(self.motorMsg.angle2) + ':' + str(self.motorMsg.angle3) )
 
     def set_park(self):
         self.get_logger().info('Arm parking, be careful')
