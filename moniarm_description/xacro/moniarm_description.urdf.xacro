@@ -5,151 +5,195 @@
 
   <!-- Constants for robot dimensions -->
   <xacro:property name="mass" value="1" /> <!-- arbitrary value for mass -->
-  <xacro:property name="width" value="0.1" /> <!-- Square dimensions (widthxwidth) of beams -->
-  <xacro:property name="height1" value="0.3" /> <!-- Link 1 -->
-  <xacro:property name="height2" value="0.45" /> <!-- Link 2 -->
-  <xacro:property name="height3" value="0.01" /> <!-- Link 3 -->
-  <xacro:property name="camera_link" value="0.05" /> <!-- Size of square 'camera' box -->
+
+  <xacro:property name="width0" value="0.02" /> <!-- Square dimensions (widthxwidth) -->
+  <xacro:property name="height0" value="0.18" /> <!-- base link -->
+
+  <xacro:property name="width1" value="0.02" /> <!-- Square dimensions (widthxwidth) -->
+  <xacro:property name="height1" value="0.095" /> <!-- Link 1 -->
+  <xacro:property name="offsety1" value="0.08" />
+
+  <xacro:property name="width2" value="0.02" /> <!-- Square dimensions (widthxwidth) -->
+  <xacro:property name="height2" value="0.5" /> <!-- Link 2 -->
+  <xacro:property name="offsety2" value="0.045" />
+  <xacro:property name="offsetz" value="-0.05" />
+
+  <xacro:property name="width3" value="0.02" /> <!-- Square dimensions (widthxwidth) -->
+  <xacro:property name="height3" value="0.48" /> <!-- Link 3 -->
+  <xacro:property name="width4" value="0.02" /> <!-- Square dimensions (widthxwidth) -->
+  <xacro:property name="height4" value="0.48" /> <!-- Link 4 -->
+
+  <xacro:property name="offset34_y" value="-0.08" />
+  <xacro:property name="offset34_z" value="-0.06" />
   <xacro:property name="axel_offset" value="0.05" /> <!-- Space btw top of beam and the each joint -->
 
-  <joint name="${prefix}base_joint" type="fixed">
-    <xacro:insert_block name="origin" />
-    <parent link="${parent}"/>
-    <child link="${prefix}base_link" />
+  <!-- Base Link -->
+  <link name="base_link">
+    <collision>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <geometry>
+        <box size="${width0} ${width0} ${height0}"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <geometry>
+        <mesh filename="package://moniarm_description/meshes/URDF_joint0.stl" scale="0.005 0.005 0.005"/>
+      </geometry>
+      <material name="grey"/>
+    </visual>
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <mass value="1"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+  </link>
+
+  <!-- Joint 1, motor0, z origin = parent height -->
+  <joint name="${prefix}joint1" type="revolute">
+    <parent link="${prefix}base_link"/>
+    <child link="${prefix}link1"/>
+    <origin xyz="0 ${offsety1} ${height0}" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <dynamics damping="0.7"/>
+    <limit velocity="4.8" effort="1" lower="${-pi*0.33}" upper="${pi*0.33}" />
   </joint>
 
-  <!-- Base Link -->
-  <link name="${prefix}base_link">
+  <!-- Link 1-->
+  <link name="${prefix}link1">
     <collision>
-				<origin rpy="0 0 0" xyz="0 0 0" />
-				<geometry>
-        <box size="${width} ${width} ${height1}"/>
+			<origin rpy="0 0 0" xyz="0 0 0" />
+			<geometry>
+        <box size="${width1} ${width1} ${height1}"/>
       </geometry>
-			</collision>
+		</collision>
+    <visual>
+      <origin xyz="0.0 -${offsety1} 0.0" rpy="0.0 0.0 0"/>
+      <geometry>
+					<mesh filename="package://moniarm_description/meshes/URDF_joint1.stl" scale="0.005 0.005 0.005" />
+      </geometry>
+      <material name="white"/>
+    </visual>
+    <inertial>
+      <origin xyz="0 0 ${height1/2}" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+        ixx="${mass / 12.0 * (width1*width1 + height1*height1)}" ixy="0.0" ixz="0.0"
+        iyy="${mass / 12.0 * (height1*height1 + width1*width1)}" iyz="0.0"
+        izz="${mass / 12.0 * (width1*width1 + width1*width1)}"/>
+      </inertial>
+    </link>
+
+  <!-- Joint 2, motor1, z origin = parent height -->
+  <joint name="${prefix}joint2" type="revolute">
+    <parent link="${prefix}link1"/>
+    <child link="${prefix}link2"/>
+    <origin xyz="0 ${offsety2} ${height1}" rpy="0 0 0"/>
+    <filename xyz="0 1 0"/>
+    <dynamics damping="0.7"/>
+    <limit velocity="4.8" effort="1" lower="${-pi*0.6}" upper="${pi*0.6}" />
+  </joint>
+
+  <!-- Link 2-->
+  <link name="${prefix}link2">
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${width2} ${width2} ${height2}"/>
+      </geometry>
+    </collision>
 
     <visual>
-      <origin xyz="-0.1 -0.15 0" rpy="89.5 0 1.5708"/>
+      <origin xyz="0.0 -0.08 ${offsetz}" rpy="0.0 0.0 0.0"/>
       <geometry>
-					<mesh filename="package://moniarm_description/meshes/link1.stl" scale="0.005 0.005 0.005" />
+        <mesh filename="package://moniarm_description/meshes/URDF_joint2.stl" scale="0.005 0.005 0.005" />
       </geometry>
       <material name="white"/>
     </visual>
 
     <inertial>
-      <origin xyz="0 0 ${height1/2}" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <mass value="${mass}"/>
       <inertia
-        ixx="${mass / 12.0 * (width*width + height1*height1)}" ixy="0.0" ixz="0.0"
-        iyy="${mass / 12.0 * (height1*height1 + width*width)}" iyz="0.0"
-        izz="${mass / 12.0 * (width*width + width*width)}"/>
+        ixx="${mass / 12.0 * (width2*width2 + height2*height2)}" ixy="0.0" ixz="0.0"
+        iyy="${mass / 12.0 * (height2*height2 + width2*width2)}" iyz="0.0"
+        izz="${mass / 12.0 * (width2*width2 + width2*width2)}"/>
       </inertial>
     </link>
 
-    <joint name="${prefix}joint1" type="continuous">
-      <parent link="${prefix}base_link"/>
-      <child link="${prefix}link1"/>
-      <origin xyz="0 0 ${height1}" rpy="0 0 0"/>
-      <axis xyz="0 1 0"/>
-      <dynamics damping="0.7"/>
-    </joint>
+  <!-- Joint 3, motor2, z origin = parent height  -->
+  <joint name="${prefix}joint3" type="revolute">
+    <parent link="${prefix}link2"/>
+    <child link="${prefix}link3"/>
+    <origin xyz="0 0 ${height2}" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <dynamics damping="0.7"/>
+    <limit velocity="4.8" effort="1" lower="${-pi*0.6}" upper="${pi*0.6}" />
+  </joint>
 
-    <!-- Middle Link -->
-    <link name="${prefix}link1">
-      <collision>
-        <origin xyz="0 0 ${height2/2 - axel_offset}" rpy="0 0 0"/>
-        <geometry>
-          <box size="${width} ${width} ${height2}"/>
-        </geometry>
-      </collision>
+  <!-- Link 3 -->
+  <link name="${prefix}link3">
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${width3} ${width3} ${height3}"/>
+      </geometry>
+    </collision>
 
-      <visual>
-        <!-- <origin xyz="0.04 -0.45 0" rpy="0.01 -0.06 -0.01"/> -->
-        <origin xyz="-0.02 -0.1 -0.3" rpy="1.2 0 1.5708"/>
-        <geometry>
-					<mesh filename="package://moniarm_description/meshes/link2.stl" scale="0.005 0.005 0.005" />
-        </geometry>
-        <material name="white"/>
-      </visual>
+    <visual>
+      <origin xyz="0.0 ${offset34_y} ${offset34_z}" rpy="0.0 0.0 0.0"/>
+      <geometry>
+        <mesh filename="package://moniarm_description/meshes/URDF_joint3.stl" scale="0.005 0.005 0.005" />
+      </geometry>
+      <material name="green"/>
+    </visual>
 
-      <inertial>
-        <origin xyz="0 0 ${height2/2 - axel_offset}" rpy="0 0 0"/>
-        <mass value="${mass}"/>
-        <inertia
-          ixx="${mass / 12.0 * (width*width + height2*height2)}" ixy="0.0" ixz="0.0"
-          iyy="${mass / 12.0 * (height2*height2 + width*width)}" iyz="0.0"
-          izz="${mass / 12.0 * (width*width + width*width)}"/>
-        </inertial>
-      </link>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+        ixx="${mass / 12.0 * (width3*width3 + height3*height3)}" ixy="0.0" ixz="0.0"
+        iyy="${mass / 12.0 * (height3*height3 + width3*width3)}" iyz="0.0"
+        izz="${mass / 12.0 * (width3*width3 + width3*width3)}"/>
+      </inertial>
+    </link>
 
-      <joint name="${prefix}joint2" type="continuous">
-        <parent link="${prefix}link1"/>
-        <child link="${prefix}link2"/>
-        <origin xyz="0 0.01 ${height2}" rpy="0 0 0"/>
-        <axis xyz="0 1 0"/>
-        <dynamics damping="0.7"/>
-      </joint>
+  <!-- Joint 4, motor3, z origin = parent height  -->
+    <joint name="${prefix}joint4" type="revolute">
+    <origin xyz="0 0 ${height3}" rpy="0 0 0" />
+    <parent link="${prefix}link3"/>
+    <child link="${prefix}link4" />
+    <axis xyz="1 0 0"/>
+    <dynamics damping="0.7"/>
+    <limit velocity="4.8" effort="1" lower="${-pi*0.6}" upper="${pi*0.6}" />
+  </joint>
 
-      <!-- Top Link -->
-      <link name="${prefix}link2">
-        <collision>
-          <origin xyz="0 0 ${height3/2 - axel_offset}" rpy="0 0 0"/>
-          <geometry>
-            <box size="${width} ${width} ${height2}"/>
-          </geometry>
-        </collision>
+  <!-- Link 4, motor+link+pump -->
+  <link name="${prefix}link4">
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <box size="${width4} ${width4} ${height4}"/>
+    </geometry>
+  </collision>
 
-        <visual>
-          <!-- <origin xyz="-0.5 0 -0.45" rpy="1.2 0 1.5708"/> -->
-          <origin xyz="-0.64 -0.2 -0.4" rpy="2.1 0.1 1.5708"/>
-          <geometry>
-            <mesh filename="package://moniarm_description/meshes/link3.stl" scale="0.005 0.005 0.005" />
-          </geometry>
-          <material name="white"/>
-        </visual>
+  <visual>
+    <origin xyz="0.0 ${offset34_y} ${offset34_z}" rpy="0.0 0.0 0.0"/>
+    <geometry>
+      <mesh filename="package://moniarm_description/meshes/URDF_joint4.stl" scale="0.005 0.005 0.005" />
+    </geometry>
+    <material name="yellow"/>
+  </visual>
 
-        <inertial>
-          <origin xyz="0 0 ${height3/2 - axel_offset}" rpy="0 0 0"/>
-          <mass value="${mass}"/>
-          <inertia
-            ixx="${mass / 12.0 * (width*width + height3*height3)}" ixy="0.0" ixz="0.0"
-            iyy="${mass / 12.0 * (height3*height3 + width*width)}" iyz="0.0"
-            izz="${mass / 12.0 * (width*width + width*width)}"/>
-          </inertial>
-        </link>
-
-        <joint name="${prefix}joint3" type="fixed">
-          <origin xyz="0 0 0.5" rpy="0 0 0" />
-          <parent link="${prefix}link2"/>
-          <child link="${prefix}tool_link" />
-        </joint>
-
-        <!-- Tool Link -->
-        <link name="${prefix}tool_link">
-        <collision>
-          <origin xyz="0 0 ${height3/2 - axel_offset}" rpy="0 0 0"/>
-          <geometry>
-            <box size="${width} ${width} ${height2}"/>
-          </geometry>
-        </collision>
-
-        <visual>
-          <!-- <origin xyz="-0.55 -0.15 -1.13" rpy="1.57 0 1.5708"/> -->
-          <origin xyz="-0.435 -0.33 -1.13" rpy="1.57 0 1.5708"/>
-          <geometry>
-            <mesh filename="package://moniarm_description/meshes/link4.stl" scale="0.005 0.005 0.005" />
-          </geometry>
-          <material name="black"/>
-        </visual>
-
-        <inertial>
-          <origin xyz="0 0 ${height3/2 - axel_offset}" rpy="0 0 0"/>
-          <mass value="${mass}"/>
-          <inertia
-            ixx="${mass / 12.0 * (width*width + height3*height3)}" ixy="0.0" ixz="0.0"
-            iyy="${mass / 12.0 * (height3*height3 + width*width)}" iyz="0.0"
-            izz="${mass / 12.0 * (width*width + width*width)}"/>
-          </inertial>
-        </link>
+  <inertial>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <mass value="${mass}"/>
+    <inertia
+      ixx="${mass / 12.0 * (width4*width4 + height4*height4)}" ixy="0.0" ixz="0.0"
+      iyy="${mass / 12.0 * (height4*height4 + width4*width4)}" iyz="0.0"
+      izz="${mass / 12.0 * (width4*width4 + width4*width4)}"/>
+    </inertial>
+  </link>
 
   </xacro:macro>
 
