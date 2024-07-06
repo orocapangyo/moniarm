@@ -148,7 +148,6 @@ class Moniarm(Node):
         self.motorPub.publish(self.motorMsg)
         sleep(0.2)
         self.motorMsg.angle3 = MOTOR3_ZERO
-        self.motorMsg.angle2 = MOTOR2_HOME
         self.motorPub.publish(self.motorMsg)
         sleep(1.5)
         self.motorMsg.angle1 = MOTOR1_ZERO

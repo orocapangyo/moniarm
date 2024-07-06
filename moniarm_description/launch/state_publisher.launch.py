@@ -12,6 +12,14 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
     urdf_file_name = 'robot.urdf'
 
+    zero_parameter = LaunchConfiguration(
+        'zero_parameter',
+        default=os.path.join(
+        get_package_share_directory('moniarm_description'),
+        'param/zeros.yaml'
+        )
+    )
+
     urdf = os.path.join(
         get_package_share_directory('moniarm_description'),
         'urdf',
@@ -28,6 +36,6 @@ def generate_launch_description():
             executable='robot_state_publisher',
             name='robot_state_publisher',
             output='screen',
-            parameters=[{'use_sim_time': use_sim_time}],
+            parameters=[{'use_sim_time': use_sim_time, 'zeros': zero_parameter}],
             arguments=[urdf])
     ])

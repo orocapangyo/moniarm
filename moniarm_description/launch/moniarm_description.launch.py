@@ -14,7 +14,8 @@
 
 # Author: Minsoo Song
 
-
+import os
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
@@ -25,6 +26,7 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     # Declare arguments
     declared_arguments = []
+
     declared_arguments.append(
         DeclareLaunchArgument(
             "description_package",
@@ -55,6 +57,16 @@ def generate_launch_description():
     description_file = LaunchConfiguration("description_file")
     prefix = LaunchConfiguration("prefix")
 
+    zero_parameter = LaunchConfiguration(
+        'zero_parameter',
+        default=os.path.join(
+        get_package_share_directory('moniarm_description'),
+        'param/zeros.yaml'
+        )
+    )
+
+    DeclareLaunchArgument('zero_parameter', default_value=zero_parameter),
+
     # Get URDF via xacro
     robot_description_content = Command(
         [
@@ -68,7 +80,7 @@ def generate_launch_description():
             prefix,
         ]
     )
-    robot_description = {"robot_description": robot_description_content}
+    robot_description = {"robot_description": robot_description_content, "zeros":  zero_parameter}
 
     rviz_config_file = PathJoinSubstitution(
         [FindPackageShare(description_package), "rviz", "moniarm.rviz"]
@@ -78,6 +90,7 @@ def generate_launch_description():
         package="joint_state_publisher_gui",
         executable="joint_state_publisher_gui",
     )
+
     robot_state_publisher_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",

@@ -91,7 +91,7 @@
     <origin xyz="0 ${offsety2} ${height1}" rpy="0 0 0"/>
     <filename xyz="0 1 0"/>
     <dynamics damping="0.7"/>
-    <limit velocity="4.8" effort="1" lower="${-pi*0.6}" upper="${pi*0.6}" />
+    <limit velocity="4.8" effort="1" lower="${-pi*0.2}" upper="${pi*0.1}" />
   </joint>
 
   <!-- Link 2-->
@@ -128,7 +128,7 @@
     <origin xyz="0 0 ${height2}" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
     <dynamics damping="0.7"/>
-    <limit velocity="4.8" effort="1" lower="${-pi*0.6}" upper="${pi*0.6}" />
+    <limit velocity="4.8" effort="1" lower="${-pi*0.1}" upper="${pi*0.6}" />
   </joint>
 
   <!-- Link 3 -->
@@ -165,7 +165,7 @@
     <child link="${prefix}link4" />
     <axis xyz="1 0 0"/>
     <dynamics damping="0.7"/>
-    <limit velocity="4.8" effort="1" lower="${-pi*0.6}" upper="${pi*0.6}" />
+    <limit velocity="4.8" effort="1" lower="${-pi*0.0}" upper="${pi*0.6}" />
   </joint>
 
   <!-- Link 4, motor+link+pump -->

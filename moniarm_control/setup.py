@@ -8,7 +8,7 @@ submodules = "moniarm_control/submodules"
 
 setup(
     name=package_name,
-    version='0.9.9',
+    version='1.0.0',
     packages=find_packages(exclude=[]),
     data_files=[
         ('share/ament_index/resource_index/packages', ['resource/' + package_name]),

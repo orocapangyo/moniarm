@@ -59,10 +59,10 @@ enum states {
 #define MOTOR_TOQON 540
 #define MAX_MOVE_TIME 1500
 
-#define M0_ID 6
-#define M1_ID 7
-#define M2_ID 8
-#define M3_ID 15
+#define M0_ID 1
+#define M1_ID 2
+#define M2_ID 3
+#define M3_ID 4
 
 #define RXD1 15
 #define TXD1 23

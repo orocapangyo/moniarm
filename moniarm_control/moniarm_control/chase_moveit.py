@@ -66,16 +66,16 @@ class ChaseMoveit(Node):
 
         self.robotarm = Moniarm()
         self.robotarm.zero()
+        #self.robotarm.home()
 
         self.motorMsg = CmdMotor()
         setArmAgles(self.motorMsg, MOTOR0_ZERO, MOTOR1_ZERO, MOTOR2_ZERO, MOTOR3_ZERO, GRIPPER_OPEN, 0.0)
-
+        #setArmAgles(self.motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
         atexit.register(self.set_park)
         self._joint_sub = self.create_subscription(JointState, '/joint_states', self.moveit_callback, qos_profile_sensor_data)
         self.get_logger().info("Moveit Subscriber Awaked!! Waiting for Moveit Planning...")
 
     def moveit_callback(self, cmd_msg):
-        #print( str(cmd_msg.position[0]) + ':' + str(cmd_msg.position[1]) + ':' + str(cmd_msg.position[2]) + ':' + str(cmd_msg.position[3]) )
         self.motorMsg.angle0 = trimLimits(radiansToDegrees(cmd_msg.position[0]))
         self.motorMsg.angle1 = trimLimits(radiansToDegrees(cmd_msg.position[1]))
         self.motorMsg.angle2 = trimLimits(radiansToDegrees(cmd_msg.position[2]))

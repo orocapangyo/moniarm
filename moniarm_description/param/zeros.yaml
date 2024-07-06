@@ -1,0 +1,7 @@
+moniarm_description:
+  ros__parameters:
+    zeros:
+      joint1: 0.0
+      joint2: 0.087
+      joint3: 1.482
+      joint4: 1.744
