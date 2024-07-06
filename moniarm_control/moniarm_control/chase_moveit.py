@@ -65,12 +65,12 @@ class ChaseMoveit(Node):
         self.get_logger().info("Setting Up the Node...")
 
         self.robotarm = Moniarm()
+        #can't move direct to zero, so home position first
+        self.robotarm.home()
         self.robotarm.zero()
-        #self.robotarm.home()
 
         self.motorMsg = CmdMotor()
         setArmAgles(self.motorMsg, MOTOR0_ZERO, MOTOR1_ZERO, MOTOR2_ZERO, MOTOR3_ZERO, GRIPPER_OPEN, 0.0)
-        #setArmAgles(self.motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
         atexit.register(self.set_park)
         self._joint_sub = self.create_subscription(JointState, '/joint_states', self.moveit_callback, qos_profile_sensor_data)
         self.get_logger().info("Moveit Subscriber Awaked!! Waiting for Moveit Planning...")

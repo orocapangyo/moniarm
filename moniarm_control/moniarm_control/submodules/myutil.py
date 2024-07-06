@@ -109,13 +109,13 @@ class Moniarm(Node):
         sleep(1.5)
         self.motorMsg.angle2 = 90
         self.motorPub.publish(self.motorMsg)
-        sleep(1.5)
+        sleep(1.0)
         self.motorMsg.angle1 = MOTOR1_HOME
         self.motorPub.publish(self.motorMsg)
-        sleep(1.5)
+        sleep(1.0)
         self.motorMsg.angle3 = MOTOR3_HOME
         self.motorPub.publish(self.motorMsg)
-        sleep(1.5)
+        sleep(1.0)
         self.motorMsg.angle2 = MOTOR2_HOME
         self.motorPub.publish(self.motorMsg)
         sleep(0.6)
@@ -124,13 +124,13 @@ class Moniarm(Node):
         sleep(0.1)
         self.motorMsg.angle0 = MOTOR0_HOME
         self.motorPub.publish(self.motorMsg)
-        sleep(1.5)
+        sleep(1.0)
         self.motorMsg.angle0 = MOTOR_TOQON
         self.motorMsg.angle1 = MOTOR_TOQON
         self.motorMsg.angle2 = MOTOR_TOQON
         self.motorMsg.angle3 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
-        sleep(0.2)
+        sleep(0.1)
         print("Homing Done")
 
     def zero(self):
@@ -138,30 +138,30 @@ class Moniarm(Node):
         #torque on at first except MOTOR0
         self.motorMsg.grip = GRIPPER_OPEN
         self.motorMsg.run_time = 0.0
-        self.motorMsg.angle0 = MOTOR_TOQON
+        self.motorMsg.angle0 = MOTOR_TOQOFF
         self.motorMsg.angle1 = MOTOR_TOQON
         self.motorMsg.angle2 = MOTOR_TOQON
         self.motorMsg.angle3 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
-        sleep(0.2)
-        self.motorMsg.angle0 = MOTOR_TOQOFF
+        sleep(0.1)
+        self.motorMsg.angle1 = MOTOR1_HOME - 10
         self.motorPub.publish(self.motorMsg)
-        sleep(0.2)
-        self.motorMsg.angle3 = MOTOR3_ZERO
+        sleep(0.8)
+        self.motorMsg.angle2 = MOTOR2_HOME - 20
         self.motorPub.publish(self.motorMsg)
-        sleep(1.5)
-        self.motorMsg.angle1 = MOTOR1_ZERO
+        sleep(0.8)
+        self.motorMsg.angle3 = MOTOR3_HOME - 20
         self.motorPub.publish(self.motorMsg)
-        sleep(1.5)
+        sleep(0.8)
         self.motorMsg.angle2 = MOTOR2_ZERO
         self.motorPub.publish(self.motorMsg)
-        sleep(0.6)
-        self.motorMsg.angle0 = MOTOR_TOQON
+        sleep(0.8)
+        self.motorMsg.angle1 = MOTOR1_ZERO
         self.motorPub.publish(self.motorMsg)
-        sleep(0.1)
-        self.motorMsg.angle0 = MOTOR0_HOME
+        sleep(0.8)
+        self.motorMsg.angle3 = MOTOR3_ZERO
         self.motorPub.publish(self.motorMsg)
-        sleep(1.5)
+        sleep(0.8)
         self.motorMsg.angle0 = MOTOR_TOQON
         self.motorMsg.angle1 = MOTOR_TOQON
         self.motorMsg.angle2 = MOTOR_TOQON

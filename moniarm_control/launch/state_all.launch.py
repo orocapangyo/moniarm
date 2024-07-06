@@ -12,11 +12,6 @@ def generate_launch_description():
         FindPackageShare("moniarm_description"), '/launch', '/moniarm_description.launch.py'])
     ),
 
-    IncludeLaunchDescription(
-      PythonLaunchDescriptionSource([
-        FindPackageShare("moniarm_control"), '/launch', '/chase_yolo.launch.py'])
-    ),
-
     Node(
       package='moniarm_control', executable='chase_moveit', name='state_control_node',
       output='screen', emulate_tty=True,
