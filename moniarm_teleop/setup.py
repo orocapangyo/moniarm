@@ -40,6 +40,7 @@ setup(
         'console_scripts': [
             'teleop_keyboard = moniarm_teleop.script.teleop_keyboard:main',
             'teleop_joy = moniarm_teleop.script.teleop_joy:main',
+            'teleop_getdata = moniarm_teleop.script.teleop_getdata:main',
         ],
     },
 )

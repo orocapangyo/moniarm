@@ -22,13 +22,11 @@ def generate_launch_description():
         FindPackageShare("moniarm_cv"), '/launch', '/blob_detect.launch.py'])
     ),
 
-    IncludeLaunchDescription(
-      PythonLaunchDescriptionSource([
-        FindPackageShare("moniarm_control"), '/launch', '/chase_ball.launch.py'])
-    ),
+    #Node(
+    #  package='moniarm_teleop', executable='teleop_getdata', name='teleop_getdata_node',
+    #  output='screen',
+    #  emulate_tty=True,
+    #  prefix = 'gnome-terminal --',
+    #),
 
-    IncludeLaunchDescription(
-      PythonLaunchDescriptionSource([
-        FindPackageShare("moniarm_control"), '/launch', '/motor_chase.launch.py'])
-    ),
   ])

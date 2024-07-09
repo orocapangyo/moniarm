@@ -52,20 +52,22 @@ def generate_launch_description():
         )
     )
 
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "zero_parameter",
+            default_value=os.path.join(
+                get_package_share_directory('moniarm_description'),
+                'param/zeros.yaml'
+            ),
+            description="start position"
+        )
+    )
+
     # Initialize Arguments
     description_package = LaunchConfiguration("description_package")
     description_file = LaunchConfiguration("description_file")
     prefix = LaunchConfiguration("prefix")
-
-    zero_parameter = LaunchConfiguration(
-        'zero_parameter',
-        default=os.path.join(
-        get_package_share_directory('moniarm_description'),
-        'param/zeros.yaml'
-        )
-    )
-
-    DeclareLaunchArgument('zero_parameter', default_value=zero_parameter),
+    zero_parameter = LaunchConfiguration("zero_parameter")
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -80,7 +82,8 @@ def generate_launch_description():
             prefix,
         ]
     )
-    robot_description = {"robot_description": robot_description_content, "zeros":  zero_parameter}
+
+    robot_description = {"robot_description": robot_description_content}
 
     rviz_config_file = PathJoinSubstitution(
         [FindPackageShare(description_package), "rviz", "moniarm.rviz"]
@@ -89,13 +92,14 @@ def generate_launch_description():
     joint_state_publisher_node = Node(
         package="joint_state_publisher_gui",
         executable="joint_state_publisher_gui",
+        parameters=[zero_parameter],
     )
 
     robot_state_publisher_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
-        parameters=[robot_description],
+        parameters=[robot_description, zero_parameter],
     )
     rviz_node = Node(
         package="rviz2",

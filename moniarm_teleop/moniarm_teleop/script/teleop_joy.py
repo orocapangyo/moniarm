@@ -38,7 +38,6 @@ import rclpy
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from sensor_msgs.msg import Joy
-from rclpy.qos import QoSProfile
 import atexit
 from rclpy.qos import qos_profile_sensor_data
 
