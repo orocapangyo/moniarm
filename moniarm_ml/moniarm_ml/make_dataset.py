@@ -167,7 +167,7 @@ def main():
     angle2 = 0
     angle3 = 0
 
-    rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_control/moniarm_control/')
+    rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_ml/moniarm_ml/')
     fhandle = open(rosPath + 'iknet.csv', 'w')
 
     motorMsg = CmdMotor()

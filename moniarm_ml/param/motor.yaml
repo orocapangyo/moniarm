@@ -1,5 +1,0 @@
-/**:
-  ros__parameters:
-    K_x: -0.3
-    DETECT_CLASS1 : "pepsi"
-    DETECT_CLASS2 : "car"
