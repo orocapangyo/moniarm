@@ -1,14 +1,12 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>moniarm_teleop</name>
+  <name>moniarm_ml</name>
   <version>1.0.0</version>
-  <description>
-    Teleoperation node using keyboard for moniarm
-  </description>
-  <license>Apache 2.0</license>
+  <description>Moniarm AI/ML</description>
   <maintainer email="zeta0707@gmail.com">ChangWhan Lee</maintainer>
-  <author email="bishopearson@gmail.com">Bishop Pearson</author>
+  <license>Apache 2.0</license>
+
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>rclpy</exec_depend>
 

@@ -3,8 +3,8 @@ from glob import glob
 from setuptools import find_packages
 from setuptools import setup
 
-package_name = 'moniarm_teleop'
-submodules = "moniarm_teleop/submodules"
+package_name = 'moniarm_ml'
+submodules = "moniarm_ml/submodules"
 
 setup(
     name=package_name,
@@ -32,14 +32,12 @@ setup(
         'Topic :: Software Development',
     ],
     description=(
-        'Teleoperation node using keyboard or joystick for moniarm'
+        'Robot arm control nodes'
     ),
     license='Apache License, Version 2.0',
-    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'teleop_keyboard = moniarm_teleop.script.teleop_keyboard:main',
-            'teleop_joy = moniarm_teleop.script.teleop_joy:main',
+            'make_dataset = moniarm_ml.make_dataset:main',
         ],
     },
 )
