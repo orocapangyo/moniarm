@@ -3,13 +3,11 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset
 
-
 class IKDataset(Dataset):
-    def __init__(self, kinematics_pose_csv, joint_states_csv):
+    def __init__(self, kinematics_pose_csv):
         kinematics_pose = pd.read_csv(kinematics_pose_csv)
-        joint_states = pd.read_csv(joint_states_csv)
-        input_ = kinematics_pose.iloc[:, 3:10].values
-        output = joint_states.iloc[:, 8:12].values
+        input_ = kinematics_pose.iloc[:, 0:2].values
+        output = kinematics_pose.iloc[:, 2:6].values
         self.input_ = torch.tensor(input_, dtype=torch.float32)
         self.output = torch.tensor(output, dtype=torch.float32)
 
@@ -21,8 +19,8 @@ class IKDataset(Dataset):
 
 
 class IKNet(nn.Module):
-    pose = 7
-    dof = 4
+    pose = 2        #x,y
+    dof = 4         #4DoF
     min_dim = 10
     max_dim = 500
     min_dropout = 0.1

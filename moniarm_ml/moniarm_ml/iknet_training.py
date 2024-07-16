@@ -6,7 +6,6 @@ import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Subset
-
 from iknet import IKDataset, IKNet
 
 
@@ -48,9 +47,7 @@ def main():
         type=str,
         default="./dataset/train/kinematics_pose.csv",
     )
-    parser.add_argument(
-        "--joint-states-csv", type=str, default="./dataset/train/joint_states.csv"
-    )
+
     parser.add_argument("--train-val-ratio", type=float, default=0.8)
     parser.add_argument("--batch-size", type=int, default=10000)
     parser.add_argument("--epochs", type=int, default=100)

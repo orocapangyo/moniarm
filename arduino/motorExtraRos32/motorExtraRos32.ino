@@ -252,7 +252,11 @@ void init_callback(const void *req, void *res) {
   index = (int)(req_in->index);
   //initialize
   if (index == 1) {
-    Herkulex.torqueOFF(BROADCAST_ID);
+    //Herkulex.torqueOFF(BROADCAST_ID);
+    //make not move motor1 temporary
+    Herkulex.torqueOFF(M0_ID);
+    Herkulex.torqueOFF(M2_ID);
+    Herkulex.torqueOFF(M3_ID);
   } else if (index == 2) {
     Herkulex.torqueON(BROADCAST_ID);
   } else {

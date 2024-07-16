@@ -37,7 +37,8 @@ setup(
     license='Apache License, Version 2.0',
     entry_points={
         'console_scripts': [
-            'make_dataset = moniarm_ml.make_dataset:main',
+            'makedataset = moniarm_ml.make_dataset:main',
+            'iknet = moniarm_ml.iknet_inference:main',
         ],
     },
 )

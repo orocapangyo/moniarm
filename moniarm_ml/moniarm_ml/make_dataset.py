@@ -168,7 +168,7 @@ def main():
     angle3 = 0
 
     rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_ml/moniarm_ml/')
-    fhandle = open(rosPath + 'iknet.csv', 'w')
+    fhandle = open(rosPath + 'kinematics_pose.csv', 'w')
 
     motorMsg = CmdMotor()
     #M0, M3 torque off by default
