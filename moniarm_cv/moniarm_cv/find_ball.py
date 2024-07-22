@@ -31,7 +31,7 @@ from rclpy.qos import qos_profile_sensor_data
 
 from std_msgs.msg           import String
 from sensor_msgs.msg        import Image
-from geometry_msgs.msg      import Point
+from geometry_msgs.msg      import PointStamped
 from cv_bridge              import CvBridge, CvBridgeError
 from .submodules.blob_detector import *
 
@@ -61,12 +61,12 @@ class BlobDetector(Node):
         print (">> Publishing image to topic image_blob")
         self.image_pub = self.create_publisher(Image, "/blob/image_blob", 10)
         self.mask_pub = self.create_publisher(Image, "/blob/image_mask", 10)
-        self.blob_pub = self.create_publisher(Point, "/blob/point_blob", 10)
+        self.blob_pub = self.create_publisher(PointStamped, "/blob/point_blob", 10)
 
         self.bridge = CvBridge()
         self.image_sub = self.create_subscription(Image, "/image_raw",self.callback, qos_profile_sensor_data)
         print ("<< Subscribed to topic /image_raw")
-        self.blob_point = Point()
+        self.blob_point = PointStamped()
 
     def set_threshold(self, thr_min, thr_max):
         self._threshold = [thr_min, thr_max]
@@ -113,8 +113,9 @@ class BlobDetector(Node):
                 #--- Find x and y position in camera adimensional frame
                 x, y = get_blob_relative_position(cv_image, keyPoint)
 
-                self.blob_point.x = x
-                self.blob_point.y = y
+                self.blob_point.point.x = x
+                self.blob_point.point.y = y
+                self.blob_point.header.stamp = self.get_clock().now().to_msg()
                 self.blob_pub.publish(self.blob_point)
                 break
 

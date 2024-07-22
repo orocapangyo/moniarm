@@ -28,13 +28,12 @@ def trimLimits(mtr_pos):
 
     return int(mtr_pos)
 
-def setArmAgles(arm, ang0, ang1, ang2, ang3, grip, timediff):
+def setArmAgles(arm, ang0, ang1, ang2, ang3, grip):
     arm.angle0 = ang0
     arm.angle1 = ang1
     arm.angle2= ang2
     arm.angle3 = ang3
     arm.grip = grip
-    arm.run_time = timediff
 
 class Moniarm(Node):
     """
@@ -44,8 +43,8 @@ class Moniarm(Node):
         super().__init__('arm_basic_node')
         self.motorPub = self.create_publisher(CmdMotor, 'cmd_motor', qos_profile_sensor_data)
         self.motorMsg = CmdMotor()
-        setArmAgles(self.motorMsg,MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
-        self.armStatus = "Homing"
+        setArmAgles(self.motorMsg,MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN)
+        self.armStatus = 'HOMING'
 
     def run(self, mMSG):
         self.motorMsg.angle0 = mMSG.angle0
@@ -53,13 +52,11 @@ class Moniarm(Node):
         self.motorMsg.angle2 = mMSG.angle2
         self.motorMsg.angle3 = mMSG.angle3
         self.motorMsg.grip =  mMSG.grip
-        self.motorMsg.run_time = mMSG.run_time
         self.motorPub.publish(self.motorMsg)
 
     def park(self):
         print("Parking...")
         self.motorMsg.grip = GRIPPER_OPEN
-        self.motorMsg.run_time = 0.0
         self.motorMsg.angle0 = MOTOR_TOQON
         self.motorMsg.angle1 = MOTOR_TOQON
         self.motorMsg.angle2 = MOTOR_TOQON
@@ -97,7 +94,6 @@ class Moniarm(Node):
         print("Homing...")
         #torque on at first except MOTOR0
         self.motorMsg.grip = GRIPPER_OPEN
-        self.motorMsg.run_time = 0.0
         self.motorMsg.angle0 = MOTOR_TOQON
         self.motorMsg.angle1 = MOTOR_TOQON
         self.motorMsg.angle2 = MOTOR_TOQON
@@ -137,7 +133,6 @@ class Moniarm(Node):
         print("Zeroing...")
         #torque on at first except MOTOR0
         self.motorMsg.grip = GRIPPER_OPEN
-        self.motorMsg.run_time = 0.0
         self.motorMsg.angle0 = MOTOR_TOQOFF
         self.motorMsg.angle1 = MOTOR_TOQON
         self.motorMsg.angle2 = MOTOR_TOQON
@@ -170,22 +165,23 @@ class Moniarm(Node):
         sleep(0.2)
         print("Zoering Done")
 
-    def picknplace(self, object):
-        #move to pick up postion
-        self.motorMsg.run_time = 0.0
-        self.motorMsg.angle0 = MOTOR_TOQOFF
-        self.motorMsg.angle1 = MOTOR_TOQON
-        self.motorMsg.angle2 = MOTOR_TOQON
-        self.motorMsg.angle3 = MOTOR3_PICKUP
-        self.motorPub.publish(self.motorMsg)
-        sleep(1.0)
-        self.motorMsg.angle1 = MOTOR1_PICKUP
-        self.motorPub.publish(self.motorMsg)
-        sleep(1.0)
-        self.motorMsg.angle2 = MOTOR2_PICKUP
-        self.motorMsg.angle3 = MOTOR_TOQON
-        self.motorPub.publish(self.motorMsg)
-        sleep(1.0)
+    def picknplace(self, object, down):
+        if down == 1:
+            #move to pick up postion
+            self.motorMsg.angle0 = MOTOR_TOQOFF
+            self.motorMsg.angle1 = MOTOR_TOQON
+            self.motorMsg.angle2 = MOTOR_TOQON
+            self.motorMsg.angle3 = MOTOR3_PICKUP
+            self.motorPub.publish(self.motorMsg)
+            sleep(1.0)
+            self.motorMsg.angle1 = MOTOR1_PICKUP
+            self.motorPub.publish(self.motorMsg)
+            sleep(1.0)
+            self.motorMsg.angle2 = MOTOR2_PICKUP
+            self.motorMsg.angle3 = MOTOR_TOQON
+            self.motorPub.publish(self.motorMsg)
+            sleep(1.0)
+
         #grap action
         self.motorMsg.grip = GRIPPER_CLOSE
         self.motorPub.publish(self.motorMsg)
@@ -241,7 +237,7 @@ class Moniarm(Node):
         self.motorMsg.angle2 = MOTOR_TOQON
         self.motorMsg.angle3 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
-        sleep(2.0)
+        sleep(1.5)
 
 def main(args=None):
     rclpy.init(args=args)

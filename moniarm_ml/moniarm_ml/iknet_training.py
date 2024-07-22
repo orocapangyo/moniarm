@@ -1,5 +1,4 @@
 import argparse
-
 import pytorch_pfn_extras as ppe
 import pytorch_pfn_extras.training.extensions as extensions
 import torch
@@ -8,17 +7,14 @@ from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Subset
 from iknet import IKDataset, IKNet
 
-
 def get_data_loaders(args):
-    dataset = IKDataset(args.kinematics_pose_csv, args.joint_states_csv)
+    dataset = IKDataset(args.kinematics_pose_csv)
     train_size = int(len(dataset) * args.train_val_ratio)
     train_dataset = Subset(dataset, list(range(0, train_size)))
     val_dataset = Subset(dataset, list(range(train_size, len(dataset))))
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=True)
-
     return train_loader, val_loader
-
 
 def train(manager, args, model, device, train_loader):
     while not manager.stop_trigger:
@@ -31,14 +27,12 @@ def train(manager, args, model, device, train_loader):
                 ppe.reporting.report({"train/loss": loss.item() / args.batch_size})
                 loss.backward()
 
-
 def validate(args, model, device, data, target):
     model.eval()
     data, target = data.to(device), target.to(device)
     output = model(data)
     loss = (output - target).norm()
     ppe.reporting.report({"val/loss": loss.item() / args.batch_size})
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -68,7 +62,7 @@ def main():
         extensions.ProgressBar(),
         extensions.observe_lr(optimizer=optimizer),
         extensions.ParameterStatistics(model, prefix="model"),
-        # extensions.VariableStatisticsPlot(model),
+        extensions.VariableStatisticsPlot(model),
         extensions.Evaluator(
             val_loader,
             model,
@@ -98,7 +92,6 @@ def main():
 
     if args.save_model:
         torch.save(model.state_dict(), "iknet.pth")
-
 
 if __name__ == "__main__":
     main()

@@ -78,7 +78,7 @@ void loop() {
       Serial.print(newID);
     } else {
       newID = oldID;
-      Serial.print("Watch green LED blink");
+      Serial.println("Watch green LED blink");
     }
   }
 

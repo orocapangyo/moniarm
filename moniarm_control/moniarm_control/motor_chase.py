@@ -106,7 +106,7 @@ class LowLevelCtrl(Node):
 
         self.motorMsg = CmdMotor()
         #M0, M3 torque off by default
-        setArmAgles(self.motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF, GRIPPER_OPEN, 0.0)
+        setArmAgles(self.motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF, GRIPPER_OPEN)
         self.get_logger().info("Setting Up low level arm control node...")
 
         self.actuators = {}
@@ -130,12 +130,12 @@ class LowLevelCtrl(Node):
         self._timeout_ctrl = 100
         self._timeout_command = 2           #2 seconds
 
-        self.armStatus = "Homing"
-        self.get_logger().info("Homing")
         self.robotarm = Moniarm()
+
+        self.armStatus = 'HOMING'
         self.robotarm.home()
-        self.get_logger().info("Homing Done")
-        self.armStatus = "Searching"
+
+        self.armStatus = 'SEARCHING'
         atexit.register(self.set_park)
 
     #don't use this function
@@ -189,9 +189,9 @@ class LowLevelCtrl(Node):
 
         # steering is chase cmmand
         if inrange == 1:
-            self.armStatus = "PickingUp"
+            self.armStatus = 'PICKUP'
             self.get_logger().info("Object is inrange, then pick up. Object: %d" %(det_object))
-            self.robotarm.picknplace(det_object)
+            self.robotarm.picknplace(det_object, 1)
             self.get_logger().info("Now Home")
             self.armStatus = "Searching"
             self.reset_avoid()

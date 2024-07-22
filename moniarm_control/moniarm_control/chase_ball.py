@@ -49,7 +49,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.logging import get_logger
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import PointStamped
 from moniarm_interfaces.msg import CmdChase
 from rclpy.qos import qos_profile_sensor_data
 
@@ -77,7 +77,7 @@ class ChaseBall(Node):
         self._time_detected = 0.0
         self.detect_object = 0
 
-        self.sub_center = self.create_subscription(Point, "/blob/point_blob", self.update_ball, qos_profile_sensor_data)
+        self.sub_center = self.create_subscription(PointStamped, "/blob/point_blob", self.update_ball, qos_profile_sensor_data)
         self.get_logger().info("Subscriber set")
 
         self.pub_chase = self.create_publisher(CmdChase, "/control/cmd_chase", 10)
@@ -94,8 +94,15 @@ class ChaseBall(Node):
         return time() - self._time_detected < 1.0
 
     def update_ball(self, message):
-        self.blob_x = message.x
-        self.blob_y = message.y
+        #ignore 1 second previous message
+        msg_secs = message.header.stamp.sec
+        now = self.get_clock().now().to_msg().sec
+        if (msg_secs + 1 < now):
+            self.get_logger().info("Stamp %d, %d" %(now, msg_secs ) )
+            return
+
+        self.blob_x = message.point.x
+        self.blob_y = message.point.y
         self._time_detected = time()
         #self.get_logger().info("Detected x, y: %.2f  %.2f "%(self.blob_x, self.blob_y))
 

@@ -70,7 +70,7 @@ class ChaseMoveit(Node):
         self.robotarm.zero()
 
         self.motorMsg = CmdMotor()
-        setArmAgles(self.motorMsg, MOTOR0_ZERO, MOTOR1_ZERO, MOTOR2_ZERO, MOTOR3_ZERO, GRIPPER_OPEN, 0.0)
+        setArmAgles(self.motorMsg, MOTOR0_ZERO, MOTOR1_ZERO, MOTOR2_ZERO, MOTOR3_ZERO, GRIPPER_OPEN)
         atexit.register(self.set_park)
         self._joint_sub = self.create_subscription(JointState, '/joint_states', self.moveit_callback, qos_profile_sensor_data)
         self.get_logger().info("Moveit Subscriber Awaked!! Waiting for Moveit Planning...")
@@ -81,7 +81,7 @@ class ChaseMoveit(Node):
         self.motorMsg.angle2 = trimLimits(radiansToDegrees(cmd_msg.position[2]))
         self.motorMsg.angle3 = trimLimits(radiansToDegrees(cmd_msg.position[3]))
         #can't control air pump, then grip=0 always
-        setArmAgles(self.motorMsg, self.motorMsg.angle0 , self.motorMsg.angle1 , self.motorMsg.angle2 , self.motorMsg.angle3, 0, 0.0)
+        setArmAgles(self.motorMsg, self.motorMsg.angle0 , self.motorMsg.angle1 , self.motorMsg.angle2 , self.motorMsg.angle3, GRIPPER_OPEN)
 
         self.robotarm.run(self.motorMsg)
         print( str(self.motorMsg.angle0) + ':' + str(self.motorMsg.angle1) + ':' + str(self.motorMsg.angle2) + ':' + str(self.motorMsg.angle3) )

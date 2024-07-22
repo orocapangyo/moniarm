@@ -26,7 +26,7 @@
 
 #define ESP_API_3 1
 
-#define DOMAINID 108
+#define DOMAINID 11
 
 moniarm_interfaces__msg__CmdMotor motorMsg, angleMsg;
 moniarm_interfaces__srv__SetLED_Request req_led;
@@ -136,7 +136,7 @@ void motorMoving(int mid, int tarAngle) {
   int moveAngle = 0, moveTime = 0, curAngle = 0;
   int timeFactor = 30;
 
-  //don't move angle input
+  //filter out not moving case at first
   if (tarAngle == MOTOR_NOMOVE)
     return;
   else if (tarAngle == MOTOR_TOQOFF) {
@@ -252,11 +252,7 @@ void init_callback(const void *req, void *res) {
   index = (int)(req_in->index);
   //initialize
   if (index == 1) {
-    //Herkulex.torqueOFF(BROADCAST_ID);
-    //make not move motor1 temporary
-    Herkulex.torqueOFF(M0_ID);
-    Herkulex.torqueOFF(M2_ID);
-    Herkulex.torqueOFF(M3_ID);
+    Herkulex.torqueOFF(BROADCAST_ID);
   } else if (index == 2) {
     Herkulex.torqueON(BROADCAST_ID);
   } else {
@@ -272,10 +268,10 @@ void timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   angleMsg.angle1 = int(Herkulex.getAngle(M1_ID));
   angleMsg.angle2 = int(Herkulex.getAngle(M2_ID));
   angleMsg.angle3 = int(Herkulex.getAngle(M3_ID));
-  angleMsg.run_time = float(timer_timeout) / 1000.0;
 
   RCLC_UNUSED(last_call_time);
   RCSOFTCHECK(rcl_publish(&uros_publisher, &angleMsg, NULL));
+  return;
 }
 
 void setup() {

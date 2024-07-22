@@ -194,8 +194,7 @@ def main():
     timediff = 0.0
 
     motorMsg = CmdMotor()
-    #M0, M3 torque off by default
-    setArmAgles(motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
+    setArmAgles(motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN)
 
     try:
         print(msg)
@@ -273,7 +272,7 @@ def main():
                 timediff = time() - prev_time
                 prev_time = time()
 
-                setArmAgles(motorMsg, control_motor0, control_motor1, control_motor2, control_motor3, control_gripper, timediff)
+                setArmAgles(motorMsg, control_motor0, control_motor1, control_motor2, control_motor3, control_gripper)
                 robotarm.run(motorMsg)
                 print('M0= %d, M1=%d, M2= %d, M3=%d, G=%d'%(control_motor0, control_motor1, control_motor2, control_motor3, control_gripper))
                 fhandle.write(str(motorMsg.angle0) + ',' + str(motorMsg.angle1) + ',' + str(motorMsg.angle2) + ',' + str(motorMsg.angle3)

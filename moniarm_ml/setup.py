@@ -38,7 +38,7 @@ setup(
     entry_points={
         'console_scripts': [
             'makedataset = moniarm_ml.make_dataset:main',
-            'iknet = moniarm_ml.iknet_inference:main',
+            'run_iknet = moniarm_ml.iknet_inference:main',
         ],
     },
 )

@@ -63,7 +63,7 @@ def main():
 
         motorMsg = CmdMotor()
         #M0, M3 torque off by default
-        setArmAgles(motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
+        setArmAgles(motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN)
 
         while(1):
             # Get next line from file
@@ -76,7 +76,7 @@ def main():
             sys.stdout.write(str(motor0) + ',' + str(motor1) + ',' + str(motor2) + ',' + str(motor3) + ',' + str(grip) + ',' + str(time_diff))
             sys.stdout.flush()
 
-            setArmAgles(motorMsg, int(motor0), int(motor1), int(motor2), int(motor3), int(grip), float(time_diff))
+            setArmAgles(motorMsg, int(motor0), int(motor1), int(motor2), int(motor3), int(grip))
             robotarm.run(motorMsg)
 
             try:

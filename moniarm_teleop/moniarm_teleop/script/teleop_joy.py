@@ -163,8 +163,7 @@ class TeleopJoyNode(Node):
         self.robotarm.home()
 
         self.motorMsg = CmdMotor()
-        #M0, M3 torque off by default
-        setArmAgles(self.motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
+        setArmAgles(self.motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN)
 
         # generate publisher for 'cmd_vel'
         self.sub = self.create_subscription(Joy, 'joy', self.cb_joy, qos_profile_sensor_data)
@@ -245,7 +244,7 @@ class TeleopJoyNode(Node):
             timediff = time() - self.prev_time
             self.prev_time = time()
 
-            setArmAgles(self.motorMsg, self.control_motor0, self.control_motor1, self.control_motor2, self.control_motor3, self.control_gripper, timediff)
+            setArmAgles(self.motorMsg, self.control_motor0, self.control_motor1, self.control_motor2, self.control_motor3, self.control_gripper)
             self.robotarm.run(self.motorMsg)
             print('M0= %d, M1 %d, M2= %d, M3= %d, G=%d'%(self.control_motor0, self.control_motor1, self.control_motor2, self.control_motor3, self.control_gripper))
             self.fhandle.write(str(self.motorMsg.angle0) + ',' + str(self.motorMsg.angle1) + ',' + str(self.motorMsg.angle2) + ',' + str(self.motorMsg.angle3)

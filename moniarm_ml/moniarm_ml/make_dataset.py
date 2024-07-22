@@ -40,7 +40,7 @@ import sys
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import PointStamped
 
 from moniarm_interfaces.srv import Init
 from moniarm_interfaces.msg import CmdMotor
@@ -78,7 +78,7 @@ class ServicenSubscriber(Node):
 
         qos_profile2 = qos_profile_sensor_data
         self.blob_subscriber = self.create_subscription(
-            Point,
+            PointStamped,
             "/blob/point_blob",
             self.update_ball,
             qos_profile2
@@ -90,8 +90,15 @@ class ServicenSubscriber(Node):
         self.req = Init.Request()
 
     def update_ball(self, message):
-        self.blob_x = message.x
-        self.blob_y = message.y
+        #ignore 1 second previous message
+        msg_secs = message.header.stamp.sec
+        now = self.get_clock().now().to_msg().sec
+        if (msg_secs + 1 < now):
+            self.get_logger().info("Stamp %d, %d" %(now, msg_secs ) )
+            return
+        
+        self.blob_x = message.point.x
+        self.blob_y = message.point.y
         self.get_logger().info("Detected blob: %.2f  %.2f "%(self.blob_x, self.blob_y))
         return
 
@@ -150,12 +157,6 @@ def main():
 
     # just key check
     status = 0
-    control_motor0 = MOTOR0_HOME
-    control_motor1 = MOTOR1_HOME
-    control_motor2 = MOTOR2_HOME
-    control_motor3 = MOTOR3_HOME
-    control_gripper = GRIPPER_OPEN
-
     svcSubscriber = ServicenSubscriber()
 
     #torqu on, normal status
@@ -172,7 +173,7 @@ def main():
 
     motorMsg = CmdMotor()
     #M0, M3 torque off by default
-    setArmAgles(motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN, 0.0)
+    setArmAgles(motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN)
 
     try:
         print(msg)

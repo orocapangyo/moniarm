@@ -28,7 +28,7 @@ moniarm_interfaces__srv__GetStatus_Response res;
 
 int flag;
 
-#define DOMAINID 108
+#define DOMAINID 11
 
 int led_status;
 int led_success;
