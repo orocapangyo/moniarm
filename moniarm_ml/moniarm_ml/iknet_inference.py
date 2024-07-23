@@ -45,21 +45,19 @@ Subscribes to
 from time import sleep, time
 import rclpy
 from rclpy.node import Node
-from rclpy.parameter import Parameter
 from rclpy.logging import get_logger
 from geometry_msgs.msg import PointStamped
 from rclpy.qos import qos_profile_sensor_data
 import atexit
 
 from moniarm_interfaces.msg import  CmdMotor
-from .submodules.myutil import clamp, Moniarm, setArmAgles
+from .submodules.myutil import Moniarm, setArmAgles
 from .submodules.myconfig import *
-from .submodules.iknet import IKNet
 
 import argparse
-import sys
+import os
 import torch
-
+from .submodules.iknet import IKNet
 
 class IKnetBall(Node):
     def __init__(self):
@@ -74,13 +72,13 @@ class IKnetBall(Node):
         self.motorMsg = CmdMotor()
         #M0, M3 torque off by default
         setArmAgles(self.motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF, GRIPPER_OPEN)
-        self.get_logger().info("Setting Up low level arm control node...")
+        self.get_logger().info("Setting Up control node...")
 
         self.sub_center = self.create_subscription(PointStamped, "/blob/point_blob", self.update_ball, qos_profile_sensor_data)
         self.get_logger().info("Subscriber set")
 
         # Create a timer that will gate the node actions twice a second
-        self.timer = self.create_timer(0.2, self.node_callback)
+        self.timer = self.create_timer(0.1, self.node_callback)
 
         self.robotarm = Moniarm()
 
@@ -90,11 +88,12 @@ class IKnetBall(Node):
 
         atexit.register(self.set_park)
 
+        rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_ml/moniarm_ml/')
         parser = argparse.ArgumentParser()
         parser.add_argument(
             "--model",
             type=str,
-            default="/home/zeta/ros2_ws/src/moniarm/moniarm_ml/moniarm_ml/iknet.pth",
+            default= rosPath + "iknet.pth",
         )
 
         parser.add_argument("--x", type=float, default=0.0)
@@ -116,7 +115,7 @@ class IKnetBall(Node):
         msg_secs = message.header.stamp.sec
         now = self.get_clock().now().to_msg().sec
         if (msg_secs + 1 < now):
-            self.get_logger().info("Stamp %d, %d" %(now, msg_secs ) )
+            #self.get_logger().info("Stamp %d, %d" %(now, msg_secs ) )
             return
         self.blob_x = message.point.x
         self.blob_y = message.point.y

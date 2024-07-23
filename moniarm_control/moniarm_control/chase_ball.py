@@ -98,7 +98,7 @@ class ChaseBall(Node):
         msg_secs = message.header.stamp.sec
         now = self.get_clock().now().to_msg().sec
         if (msg_secs + 1 < now):
-            self.get_logger().info("Stamp %d, %d" %(now, msg_secs ) )
+            #self.get_logger().info("Stamp %d, %d" %(now, msg_secs ) )
             return
 
         self.blob_x = message.point.x

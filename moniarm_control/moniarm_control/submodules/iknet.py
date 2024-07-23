@@ -9,7 +9,7 @@ class IKDataset(Dataset):
         input_ = kinematics_pose.iloc[:, 0:2].values
         output = kinematics_pose.iloc[:, 2:6].values
         self.input_ = torch.tensor(input_, dtype=torch.float32)
-        self.output = torch.tensor(output, dtype=torch.int32)
+        self.output = torch.tensor(output, dtype=torch.float32)
 
     def __len__(self):
         return len(self.output)

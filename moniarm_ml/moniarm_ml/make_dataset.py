@@ -44,7 +44,7 @@ from geometry_msgs.msg import PointStamped
 
 from moniarm_interfaces.srv import Init
 from moniarm_interfaces.msg import CmdMotor
-from .submodules.myutil import Moniarm, clamp, setArmAgles
+from .submodules.myutil import Moniarm, setArmAgles
 from .submodules.myconfig import *
 
 if os.name == 'nt':
@@ -94,9 +94,9 @@ class ServicenSubscriber(Node):
         msg_secs = message.header.stamp.sec
         now = self.get_clock().now().to_msg().sec
         if (msg_secs + 1 < now):
-            self.get_logger().info("Stamp %d, %d" %(now, msg_secs ) )
+            #self.get_logger().info("Stamp %d, %d" %(now, msg_secs ) )
             return
-        
+
         self.blob_x = message.point.x
         self.blob_y = message.point.y
         self.get_logger().info("Detected blob: %.2f  %.2f "%(self.blob_x, self.blob_y))
