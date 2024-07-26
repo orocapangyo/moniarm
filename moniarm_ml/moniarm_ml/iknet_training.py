@@ -51,6 +51,7 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = IKNet()
+    print(model)
     model.to(device)
     train_loader, val_loader = get_data_loaders(args)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)

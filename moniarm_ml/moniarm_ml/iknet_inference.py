@@ -53,11 +53,10 @@ import atexit
 from moniarm_interfaces.msg import  CmdMotor
 from .submodules.myutil import Moniarm, setArmAgles
 from .submodules.myconfig import *
+from .iknet import IKNet
 
-import argparse
 import os
-import torch
-from .submodules.iknet import IKNet
+import torch, argparse
 
 class IKnetBall(Node):
     def __init__(self):
@@ -102,6 +101,7 @@ class IKnetBall(Node):
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = IKNet()
+        print(self.model)
         self.model.to(self.device)
         self.model.load_state_dict(torch.load(args.model))
         self.model.eval()
@@ -140,15 +140,21 @@ class IKnetBall(Node):
             #motor move directly
             self.get_logger().info("Go to object")
             self.motorMsg.angle0 = int(output[0].item())
-            self.motorMsg.angle1 = int(output[1].item())
+            self.motorMsg.angle1 = MOTOR_NOMOVE
             self.motorMsg.angle2 = int(output[2].item())
-            self.motorMsg.angle3 = int(output[3].item())
+            self.motorMsg.angle3 =  int(output[3].item())
             self.robotarm.run(self.motorMsg)
             sleep(1.0)
+            self.motorMsg.angle0 = MOTOR_NOMOVE
+            self.motorMsg.angle1 = int(output[1].item())
+            self.motorMsg.angle2 = MOTOR_NOMOVE
+            self.motorMsg.angle3 = MOTOR_NOMOVE
+            self.robotarm.run(self.motorMsg)
+            sleep(0.5)
 
             self.get_logger().info("Picking up")
             #then pick it up, need new function
-            self.robotarm.picknplace(detect_object, 1)
+            self.robotarm.picknplace(detect_object, 0)
             self.reset_avoid()
 
     def reset_avoid(self):

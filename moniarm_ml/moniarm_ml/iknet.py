@@ -46,7 +46,7 @@ class IKNet(nn.Module):
         input_dim = self.pose
         for output_dim in self.input_dims:
             layers.append(nn.Linear(input_dim, output_dim))
-            layers.append(nn.ReLU())
+            #layers.append(nn.ReLU())
             layers.append(nn.Dropout(self.dropout))
             input_dim = output_dim
         layers.append(nn.Linear(input_dim, self.dof))
