@@ -2,8 +2,8 @@
 
 ## if no parameter, then exit after print usage
 if [ "$#" -lt 1 ]; then
-    echo "Usage: $0 M0_ID M1_ID M2_ID M3_ID"
-    echo "example: setMotorid.sh 1 2 3 4"
+    echo "Usage: $0 M0_ID M1_ID M1M_ID M2_ID M3_ID"
+    echo "example: setMotorid.sh 1 2 3 4 5"
 	exit 1
 fi
 
@@ -17,10 +17,10 @@ for d in ./*/; do
 			echo 'Matched' "$filename"
 			sed -i "s/#define M0_ID.*/#define M0_ID $1/g" "$filename"
 			sed -i "s/#define M1_ID.*/#define M1_ID $2/g" "$filename"
-			sed -i "s/#define M2_ID.*/#define M2_ID $3/g" "$filename"
-			sed -i "s/#define M3_ID.*/#define M3_ID $4/g" "$filename"
-			sed -i "s/#define M1M_ID.*/#define M1M_ID 0/g" "$filename"
-			sed -i "s/#define MONIARM2.*/#define MONIARM2 0/g" "$filename"
+			sed -i "s/#define M1M_ID.*/#define M1M_ID $3/g" "$filename"
+			sed -i "s/#define M2_ID.*/#define M2_ID $4/g" "$filename"
+			sed -i "s/#define M3_ID.*/#define M3_ID $5/g" "$filename"
+			sed -i "s/#define MONIARM2.*/#define MONIARM2 1/g" "$filename"
 		fi
 	done
 	cd ..

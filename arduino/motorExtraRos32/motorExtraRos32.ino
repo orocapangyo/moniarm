@@ -56,8 +56,8 @@
 #include "songlcdled.h"
 
 #define ESP_API_3 1
-
 #define DOMAINID 11
+#define MONIARM2 0
 
 moniarm_interfaces__msg__CmdMotor motorMsg, angleMsg;
 moniarm_interfaces__srv__SetLED_Request req_led;
@@ -94,6 +94,7 @@ enum states {
 #define M1_ID 2
 #define M2_ID 3
 #define M3_ID 4
+#define M1M_ID 0
 
 #define RXD1 15
 #define TXD1 23
@@ -172,9 +173,17 @@ void motorMoving(int mid, int tarAngle) {
     return;
   else if (tarAngle == MOTOR_TOQOFF) {
     Herkulex.torqueOFF(mid);
+#if (MONIARM2 == 1)
+    if (mid == M1_ID)
+      Herkulex.torqueOFF(M1M_ID);
+#endif
     return;
   } else if (tarAngle == MOTOR_TOQON) {
     Herkulex.torqueON(mid);
+#if (MONIARM2 == 1)
+    if (mid == M1_ID)
+      Herkulex.torqueON(M1M_ID);
+#endif
     return;
   }
   //calculate moving time at first, should be enough for smooth operation
@@ -244,6 +253,10 @@ void motor_callback(const void *msgin) {
   motorMoving(M2_ID, angle2);
   motorMoving(M3_ID, angle3);
 
+#if (MONIARM2 == 1)
+  motorMoving(M1M_ID, -angle1);
+#endif
+
 #if END_EFFCTOR == AIRPUMP
   digitalWrite(PUMP_PIN, grip);
 #endif
@@ -258,6 +271,10 @@ void initMotors(void) {
   delay(200);
   Herkulex.reboot(M3_ID);
   delay(200);
+#if (MONIARM2 == 1)
+  Herkulex.reboot(M1M_ID);
+  delay(200);
+#endif
   Herkulex.initialize();  //initialize motors
   delay(200);
 
