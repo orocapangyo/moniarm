@@ -4,10 +4,11 @@ import torch.nn as nn
 from torch.utils.data import Dataset
 
 class IKDataset(Dataset):
-    def __init__(self, kinematics_pose_csv):
+    def __init__(self, kinematics_pose_csv, in_st, out_st, out_len):
         kinematics_pose = pd.read_csv(kinematics_pose_csv)
-        input_ = kinematics_pose.iloc[:, 0:2].values
-        output = kinematics_pose.iloc[:, 2:6].values
+        #always input width is 1
+        input_ = kinematics_pose.iloc[:, in_st: in_st+1].values
+        output = kinematics_pose.iloc[:, out_st:out_st+out_len].values   
         self.input_ = torch.tensor(input_, dtype=torch.float32)
         self.output = torch.tensor(output, dtype=torch.float32)
 
@@ -17,18 +18,16 @@ class IKDataset(Dataset):
     def __getitem__(self, index):
         return self.input_[index], self.output[index]
 
-
-class IKNet(nn.Module):
-    pose = 2        #x,y
-    dof = 4         #4DoF
+class IKNet(nn.Module):  
+    pose = 1     
     min_dim = 10
     max_dim = 500
     min_dropout = 0.1
     max_dropout = 0.5
 
-    def __init__(self, trial=None):
+    def __init__(self, out_ch = 3, relu = 1, trial=None):
         super().__init__()
-
+        self.dof = out_ch
         self.input_dims = [400, 300, 200, 100, 50]
         self.dropout = 0.1
         if trial is not None:
@@ -46,7 +45,8 @@ class IKNet(nn.Module):
         input_dim = self.pose
         for output_dim in self.input_dims:
             layers.append(nn.Linear(input_dim, output_dim))
-            #layers.append(nn.ReLU())
+            if relu == 1:
+                layers.append(nn.ReLU())
             layers.append(nn.Dropout(self.dropout))
             input_dim = output_dim
         layers.append(nn.Linear(input_dim, self.dof))

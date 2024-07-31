@@ -170,7 +170,7 @@ def main():
 
     rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_ml/moniarm_ml/')
     fhandle = open(rosPath + 'kinematics_pose.csv', 'w')
-
+    fhandle.write('x,y,angle0,angle1,angle2,angle3\n')
     motorMsg = CmdMotor()
     #M0, M3 torque off by default
     setArmAgles(motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN)

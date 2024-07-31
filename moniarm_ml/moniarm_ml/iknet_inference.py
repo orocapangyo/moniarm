@@ -58,6 +58,11 @@ from .iknet import IKNet
 import os
 import torch, argparse
 
+MAX_X = 1
+MAX_Y = 3
+RELU_X = 0
+RELU_Y = 1
+
 class IKnetBall(Node):
     def __init__(self):
         super().__init__('iknet_ball_node')
@@ -90,21 +95,31 @@ class IKnetBall(Node):
         rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_ml/moniarm_ml/')
         parser = argparse.ArgumentParser()
         parser.add_argument(
-            "--model",
+            "--modelx",
             type=str,
-            default= rosPath + "iknet.pth",
+            default= rosPath + "iknet_x.pth",
         )
-
+        parser.add_argument(
+            "--modely",
+            type=str,
+            default= rosPath + "iknet_y.pth",
+        )
         parser.add_argument("--x", type=float, default=0.0)
         parser.add_argument("--y", type=float, default=0.0)
         args = parser.parse_args()
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model = IKNet()
-        print(self.model)
-        self.model.to(self.device)
-        self.model.load_state_dict(torch.load(args.model))
-        self.model.eval()
+        self.modelx = IKNet(MAX_X, RELU_X)
+        print(self.modelx)
+        self.modelx.to(self.device)
+        self.modelx.load_state_dict(torch.load(args.modelx))
+        self.modelx.eval()
+
+        self.modely = IKNet(MAX_Y, RELU_Y)
+        print(self.modely)
+        self.modely.to(self.device)
+        self.modely.load_state_dict(torch.load(args.modely))
+        self.modely.eval()
 
     @property
     def is_detected(self):
@@ -131,26 +146,39 @@ class IKnetBall(Node):
             detect_object = 1           #blob detects only one object, then it's 1
             self.armStatus = 'PICKUP'
             #caculate angles from IKNet
-            input_ = torch.FloatTensor([self.blob_x, self.blob_y])
+            input_ = torch.FloatTensor([self.blob_x])
             input_ = input_.to(self.device)
             print(f"input: {input_}")
-            output = self.model(input_)
-            print(f"output: {output}")
+            outputx = self.modelx(input_)
+            print(f"output: {outputx}")
+
+            #caculate angles from IKNet
+            input_ = torch.FloatTensor([self.blob_y])
+            input_ = input_.to(self.device)
+            print(f"input: {input_}")
+            outputy = self.modely(input_)
+            print(f"output: {outputy}")
 
             #motor move directly
             self.get_logger().info("Go to object")
-            self.motorMsg.angle0 = int(output[0].item())
+            self.motorMsg.angle0 = int(outputx[0].item())
             self.motorMsg.angle1 = MOTOR_NOMOVE
-            self.motorMsg.angle2 = int(output[2].item())
-            self.motorMsg.angle3 =  int(output[3].item())
-            self.robotarm.run(self.motorMsg)
-            sleep(1.0)
-            self.motorMsg.angle0 = MOTOR_NOMOVE
-            self.motorMsg.angle1 = int(output[1].item())
             self.motorMsg.angle2 = MOTOR_NOMOVE
             self.motorMsg.angle3 = MOTOR_NOMOVE
             self.robotarm.run(self.motorMsg)
-            sleep(0.5)
+            sleep(1.0)
+            self.motorMsg.angle0 = MOTOR_NOMOVE
+            self.motorMsg.angle1 = MOTOR_NOMOVE
+            self.motorMsg.angle2 = int(outputy[1].item())
+            self.motorMsg.angle3 = int(outputy[2].item())
+            self.robotarm.run(self.motorMsg)
+            sleep(1.0)
+            self.motorMsg.angle0 = MOTOR_NOMOVE
+            self.motorMsg.angle1 = int(outputy[0].item())
+            self.motorMsg.angle2 = MOTOR_NOMOVE
+            self.motorMsg.angle3 = MOTOR_NOMOVE
+            self.robotarm.run(self.motorMsg)
+            sleep(1.0)
 
             self.get_logger().info("Picking up")
             #then pick it up, need new function
