@@ -25,7 +25,7 @@ class IKNet(nn.Module):
     min_dropout = 0.1
     max_dropout = 0.5
 
-    def __init__(self, out_ch = 3, relu = 1, trial=None):
+    def __init__(self, out_ch = 3, trial=None):
         super().__init__()
         self.dof = out_ch
         self.input_dims = [400, 300, 200, 100, 50]
@@ -45,8 +45,7 @@ class IKNet(nn.Module):
         input_dim = self.pose
         for output_dim in self.input_dims:
             layers.append(nn.Linear(input_dim, output_dim))
-            if relu == 1:
-                layers.append(nn.ReLU())
+            layers.append(nn.ReLU())
             layers.append(nn.Dropout(self.dropout))
             input_dim = output_dim
         layers.append(nn.Linear(input_dim, self.dof))

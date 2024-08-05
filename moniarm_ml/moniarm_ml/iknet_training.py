@@ -14,8 +14,6 @@ LOC_IN_Y = 1
 LOC_OUT_Y = 3
 MAX_Y = 3
 
-RELU_X = 0
-RELU_Y = 1
 
 def get_data_loaders(args, in_st, out_st, out_len):
     dataset = IKDataset(args.kinematics_pose_csv, in_st, out_st, out_len)
@@ -61,7 +59,7 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     #x -> angle0
-    model = IKNet(MAX_X, RELU_X)
+    model = IKNet(MAX_X)
     print(model)
     model.to(device)
     train_loader, val_loader = get_data_loaders(args, LOC_IN_X, LOC_OUT_X, MAX_X)
@@ -124,7 +122,7 @@ def mainy():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     #y-> angle1,2,3
-    model = IKNet(MAX_Y, RELU_Y)
+    model = IKNet(MAX_Y)
     print(model)
     model.to(device)
     train_loader, val_loader = get_data_loaders(args, LOC_IN_Y, LOC_OUT_Y, MAX_Y)

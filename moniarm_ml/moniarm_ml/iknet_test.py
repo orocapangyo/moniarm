@@ -10,9 +10,6 @@ LOC_IN_Y = 1
 LOC_OUT_Y = 3
 MAX_Y = 3
 
-RELU_X = 0
-RELU_Y = 1
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -24,7 +21,7 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     #
-    model = IKNet(MAX_X, RELU_X)
+    model = IKNet(MAX_X)
     model.load_state_dict(torch.load("iknet_x.pth"))
     model.to(device)
     model.eval()
@@ -50,7 +47,7 @@ def mainy():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     #
-    model = IKNet(MAX_Y, RELU_Y)
+    model = IKNet(MAX_Y)
     model.load_state_dict(torch.load("iknet_y.pth"))
     model.to(device)
     model.eval()
