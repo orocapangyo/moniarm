@@ -101,12 +101,19 @@ class ChaseObject(Node):
         return time() - self._time_detected < 1.0
 
     def update_object(self, message):
+        #ignore 1 second previous message
+        msg_secs = message.header.stamp.sec
+        now = self.get_clock().now().to_msg().sec
+        if (msg_secs + 1 < now):
+            #self.get_logger().info("Stamp %d, %d" %(now, msg_secs ) )
+            return
+        
         for box in message.bounding_boxes:
             #
             #yolov4-tiny, 416x416
             if (box.class_id == self.DETECT_CLASS1) or (box.class_id == self.DETECT_CLASS2):
-                self.blob_x = float((box.xmax + box.xmin)/PICTURE_SIZE_X/2.0) - 0.5
-                self.blob_y = float((box.ymax + box.ymin)/PICTURE_SIZE_Y/2.0) - 0.5
+                self.blob_x = float((box.xmax + box.xmin)/PICTURE_SIZE_X) - 1.0
+                self.blob_y = float((box.ymax + box.ymin)/PICTURE_SIZE_Y) - 1.0
                 self._time_detected = time()
 
                 if box.class_id == self.DETECT_CLASS1:
@@ -114,7 +121,7 @@ class ChaseObject(Node):
                 else:
                     self.detect_object = 2
 
-                #self.get_logger().info("Detected: %.2f  %.2f "%(self.blob_x, self.blob_y))
+                self.get_logger().info("Detected: %.2f  %.2f "%(self.blob_x, self.blob_y))
             else:
                 self.detect_object = 0
 

@@ -209,7 +209,7 @@ def main():
             if status == 1:
                 if mStatus == 0:
                     print('x= %.2f, y=%.2f, M0= %d, M1=%d, M2=%d, M3=%d' %(blob_x, blob_y, angle0, angle1, angle2, angle3))
-                    fhandle.write(str(blob_x) + ',' + str(blob_y) + ',' + str(angle0) + ',' + str(angle1) + ',' + str(angle2)
+                    fhandle.write(str(blob_x+1.0) + ',' + str(blob_y+1.0) + ',' + str(angle0) + ',' + str(angle1) + ',' + str(angle2)
                                 + ',' + str(angle3) + '\n')
                     #move home to check collect more data
                     robotarm.home()

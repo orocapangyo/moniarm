@@ -46,7 +46,7 @@ from time import sleep, time
 import rclpy
 from rclpy.node import Node
 from rclpy.logging import get_logger
-from geometry_msgs.msg import PointStamped
+from darknet_ros_msgs.msg import BoundingBoxes
 from rclpy.qos import qos_profile_sensor_data
 import atexit
 
@@ -55,16 +55,37 @@ from .submodules.myutil import Moniarm, setArmAgles
 from .submodules.myconfig import *
 from .iknet import IKNet
 
-import os
-import torch, argparse
+import os, torch
 
 MAX_X = 1
 MAX_Y = 3
 
-class IKnetBall(Node):
+class IKnetYolo(Node):
     def __init__(self):
-        super().__init__('iknet_ball_node')
+        super().__init__('iknet_yolo_node')
         self.get_logger().info("Setting Up the Node...")
+
+        self.declare_parameters(
+            namespace='',
+            parameters=[
+                ('DETECT_CLASS1', "pepsi"),
+                ('DETECT_CLASS2', "car"),
+           ])
+        self.get_logger().info("Setting Up the Node...")
+        self.DETECT_CLASS1 = self.get_parameter_or('DETECT_CLASS1').get_parameter_value().string_value
+        self.DETECT_CLASS2 = self.get_parameter_or('DETECT_CLASS2').get_parameter_value().string_value
+
+        print('DETECT_CLASS 1: %s, DETECT_CLASS 2: %s'%
+            (self.DETECT_CLASS1,
+            self.DETECT_CLASS2)
+        )
+
+        self.blob_x = 0.0
+        self.blob_y = 0.0
+        self._time_detected = 0.0
+        self.detect_object = 0
+
+        self.sub_center = self.create_subscription(BoundingBoxes, "/darknet_ros/bounding_boxes", self.update_object, qos_profile_sensor_data)
 
         self.blob_x = 0.0
         self.blob_y = 0.0
@@ -75,9 +96,6 @@ class IKnetBall(Node):
         #M0, M3 torque off by default
         setArmAgles(self.motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF, GRIPPER_OPEN)
         self.get_logger().info("Setting Up control node...")
-
-        self.sub_center = self.create_subscription(PointStamped, "/blob/point_blob", self.update_ball, qos_profile_sensor_data)
-        self.get_logger().info("Subscriber set")
 
         # Create a timer that will gate the node actions twice a second
         self.timer = self.create_timer(0.1, self.node_callback)
@@ -91,49 +109,51 @@ class IKnetBall(Node):
         atexit.register(self.set_park)
 
         rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_ml/moniarm_ml/')
-        parser = argparse.ArgumentParser()
-        parser.add_argument(
-            "--modelx",
-            type=str,
-            default= rosPath + "iknet_x.pth",
-        )
-        parser.add_argument(
-            "--modely",
-            type=str,
-            default= rosPath + "iknet_y.pth",
-        )
-        parser.add_argument("--x", type=float, default=0.0)
-        parser.add_argument("--y", type=float, default=0.0)
-        args = parser.parse_args()
+
+        modelx = rosPath + "iknet_x.pth"
+        modely = rosPath + "iknet_y.pth"
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.modelx = IKNet(MAX_X)
-        print(self.modelx)
+        #print(self.modelx)
         self.modelx.to(self.device)
-        self.modelx.load_state_dict(torch.load(args.modelx))
+        self.modelx.load_state_dict(torch.load(modelx))
         self.modelx.eval()
 
         self.modely = IKNet(MAX_Y)
-        print(self.modely)
+        #print(self.modely)
         self.modely.to(self.device)
-        self.modely.load_state_dict(torch.load(args.modely))
+        self.modely.load_state_dict(torch.load(modely))
         self.modely.eval()
 
     @property
     def is_detected(self):
         return time() - self._time_detected < 1.0
 
-    def update_ball(self, message):
+    def update_object(self, message):
         #ignore 1 second previous message
         msg_secs = message.header.stamp.sec
         now = self.get_clock().now().to_msg().sec
         if (msg_secs + 1 < now):
-            #self.get_logger().info("Stamp %d, %d" %(now, msg_secs ) )
+            self.get_logger().info("Stamp %d, %d" %(now, msg_secs ) )
             return
-        self.blob_x = message.point.x
-        self.blob_y = message.point.y
-        self._time_detected = time()
-        self.get_logger().info("Detected x, y: %.2f  %.2f "%(self.blob_x, self.blob_y))
+        
+        for box in message.bounding_boxes:
+            #
+            #yolov4-tiny, 416x416
+            if (box.class_id == self.DETECT_CLASS1) or (box.class_id == self.DETECT_CLASS2):
+                self.blob_x = float((box.xmax + box.xmin)/PICTURE_SIZE_X) - 1.0
+                self.blob_y = float((box.ymax + box.ymin)/PICTURE_SIZE_Y) - 1.0
+                self._time_detected = time()
+
+                if box.class_id == self.DETECT_CLASS1:
+                    self.detect_object = 1
+                else:
+                    self.detect_object = 2
+
+                self.get_logger().info("Detected: %.2f  %.2f %.2f "%(box.xmax, box.xmin, self.blob_x))
+            else:
+                self.detect_object = 0
 
     def get_control_action(self):
         if self.armStatus != 'SEARCHING' :
@@ -141,7 +161,6 @@ class IKnetBall(Node):
             return
 
         if self.is_detected == 1:
-            detect_object = 1           #blob detects only one object, then it's 1
             self.armStatus = 'PICKUP'
             #caculate angles from IKNet
             input_ = torch.FloatTensor([self.blob_x + 1.0])
@@ -180,7 +199,7 @@ class IKnetBall(Node):
 
             self.get_logger().info("Picking up")
             #then pick it up, need new function
-            self.robotarm.picknplace(detect_object, 0)
+            self.robotarm.picknplace(self.detect_object , 0)
             self.reset_avoid()
 
     def reset_avoid(self):
@@ -204,9 +223,9 @@ class IKnetBall(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    iknet_ball = IKnetBall()
-    rclpy.spin(iknet_ball)
-    iknet_ball.destroy_node()
+    iknet_yolo = IKnetYolo()
+    rclpy.spin(iknet_yolo)
+    iknet_yolo.destroy_node()
     rclpy.shutdown()
 
 if __name__ == "__main__":

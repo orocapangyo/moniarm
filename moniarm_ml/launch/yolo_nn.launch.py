@@ -7,6 +7,7 @@ from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
+
 def generate_launch_description():
   motor_parameter = LaunchConfiguration(
     'motor_parameter',
@@ -20,8 +21,9 @@ def generate_launch_description():
     DeclareLaunchArgument('motor_parameter', default_value=motor_parameter),
 
     Node(
-      package='moniarm_control', executable='chase_ball', name='chase_ball_node',
-	    output='screen', emulate_tty=True,
+      package='moniarm_ml',  executable='yolo_nn',  name='iknet_yolo_node',
+      output='screen',  emulate_tty=True,
       parameters=[motor_parameter],
-    ),
+      namespace='',
+    )
   ])
