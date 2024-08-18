@@ -7,7 +7,7 @@ if [ "$#" -lt 1 ]; then
 	exit 1
 fi
 
-echo "set MOTOR_ID" "$1" "$2" "$3" "$4"
+echo "set MOTOR_ID" "$1" "$2" "$3" "$4" "$5"
 
 cd ../arduino/
 for d in ./*/; do
