@@ -150,7 +150,7 @@ def constrain(input_vel, low_bound, high_bound):
 
     return input_vel
 
-def check_linear_limit_velocity(velocity):
+def check_angle_range(velocity):
     return constrain(velocity, -MAX_ANG, MAX_ANG)
 
 def main():
@@ -191,8 +191,12 @@ def main():
     fhandle = open(rosPath + 'automove.csv', 'w')
 
     prev_time = time()
+    prev_time_move = time()
+    #current key - previous key
     timediff = 0.0
-
+    #current move - previous move
+    timediff_move = 0.0
+    keystroke = 0
     motorMsg = CmdMotor()
     setArmAgles(motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN)
 
@@ -201,28 +205,28 @@ def main():
         while(1):
             key = get_key(settings)
             if key == 'x':              # motor1
-                control_motor1 = check_linear_limit_velocity(control_motor1 + ANG_STEP)
+                control_motor1 = check_angle_range(control_motor1 + ANG_STEP)
                 status = status + 1
             elif key == 'w':            # motor1
-                control_motor1 = check_linear_limit_velocity(control_motor1 - ANG_STEP)
+                control_motor1 = check_angle_range(control_motor1 - ANG_STEP)
                 status = status + 1
             elif key == 'z':            # motor2
-                control_motor2 = check_linear_limit_velocity(control_motor2 + ANG_STEP)
+                control_motor2 = check_angle_range(control_motor2 + ANG_STEP)
                 status = status + 1
             elif key == 'q':            # motor2
-                control_motor2 = check_linear_limit_velocity(control_motor2 - ANG_STEP)
+                control_motor2 = check_angle_range(control_motor2 - ANG_STEP)
                 status = status + 1
             elif key == 'c':            # motor3
-                control_motor3 = check_linear_limit_velocity(control_motor3 + ANG_STEP)
+                control_motor3 = check_angle_range(control_motor3 + ANG_STEP)
                 status = status + 1
             elif key == 'e':            # motor3
-                control_motor3 = check_linear_limit_velocity(control_motor3 - ANG_STEP)
+                control_motor3 = check_angle_range(control_motor3 - ANG_STEP)
                 status = status + 1
             elif key == 'a':            # motor0
-                control_motor0 = check_linear_limit_velocity(control_motor0 + ANG_STEP)
+                control_motor0 = check_angle_range(control_motor0 + ANG_STEP)
                 status = status + 1
             elif key == 'd':            # motor0
-                control_motor0 = check_linear_limit_velocity(control_motor0 - ANG_STEP)
+                control_motor0 = check_angle_range(control_motor0 - ANG_STEP)
                 status = status + 1
 
             elif key == 'l':            # led control
@@ -255,30 +259,46 @@ def main():
                     control_gripper = GRIPPER_OPEN
 
             else:
+                timediff = time() - prev_time
                 #Ctrl-C, then stop working
                 if (key == '\x03'):
                     break
+                #continous key stop
+                elif ((keystroke > 0) and (timediff > 0.1)):
+                    keystroke = 0
                 #no valid input, then don't control arm
                 else:
                     continue
 
-            #key pressed, torque
+            #key pressed
             if status == 1:
                 control_motor0 = int(clamp(control_motor0, MOTOR0_MIN, MOTOR0_MAX))
                 control_motor1 = int(clamp(control_motor1, MOTOR1_MIN, MOTOR1_MAX))
                 control_motor2 = int(clamp(control_motor2, MOTOR2_MIN, MOTOR2_MAX))
                 control_motor3 = int(clamp(control_motor3, MOTOR3_MIN, MOTOR3_MAX))
-
                 timediff = time() - prev_time
                 prev_time = time()
-
-                setArmAgles(motorMsg, control_motor0, control_motor1, control_motor2, control_motor3, control_gripper)
-                robotarm.run(motorMsg)
-                print('M0= %d, M1=%d, M2= %d, M3=%d, G=%d'%(control_motor0, control_motor1, control_motor2, control_motor3, control_gripper))
-                fhandle.write(str(motorMsg.angle0) + ',' + str(motorMsg.angle1) + ',' + str(motorMsg.angle2) + ',' + str(motorMsg.angle3)
-                            + ',' + str(motorMsg.grip) + ',' + str(timediff) + '\n')
-
                 status = 0
+                #print(timediff, keystroke, control_motor0, control_motor1, control_motor3)
+
+                #continous key press, usually less than 100ms
+                if (timediff < 0.10):
+                    keystroke = keystroke + 1
+                    #ignore 3 continous key
+                    if(keystroke < CONTKEY):
+                        continue
+
+            timediff_move = time() - prev_time_move
+            prev_time_move = time()
+
+            keystroke = 0
+            setArmAgles(motorMsg, control_motor0, control_motor1, control_motor2, control_motor3, control_gripper)
+            robotarm.run(motorMsg)
+            print('M0= %d, M1=%d, M2= %d, M3=%d, G=%d'%(control_motor0, control_motor1, control_motor2, control_motor3, control_gripper))
+            fhandle.write(str(motorMsg.angle0) + ',' + str(motorMsg.angle1) + ',' + str(motorMsg.angle2) + ',' + str(motorMsg.angle3)
+                        + ',' + str(motorMsg.grip) + ',' + str(timediff_move) + '\n')
+            fhandle.flush()
+                
 
     except Exception as e:
         print(e)

@@ -140,9 +140,6 @@ def constrain(input_vel, low_bound, high_bound):
 
     return input_vel
 
-def check_linear_limit_velocity(velocity):
-    return constrain(velocity, -MAX_ANG, MAX_ANG)
-
 def main():
     settings = None
     if os.name != 'nt':

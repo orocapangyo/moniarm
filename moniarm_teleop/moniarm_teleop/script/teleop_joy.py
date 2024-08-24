@@ -151,6 +151,7 @@ class TeleopJoyNode(Node):
         self.control_motor2 = MOTOR2_HOME
         self.control_motor3 = MOTOR3_HOME
         self.control_gripper = GRIPPER_OPEN
+        self.keystroke = 0
 
         self.led_client = ClientAsyncLed()
         self.ani_client = ClientAsyncAni()
@@ -174,10 +175,13 @@ class TeleopJoyNode(Node):
         self.fhandle = open(rosPath + 'automove.csv', 'w')
 
         self.prev_time = time()
+        self.prev_time_move = time()
         self.timediff = 0.0
 
     def cb_joy(self, joymsg):
         status = 0
+
+        timediff = time() - self.prev_time
 
         if joymsg.buttons[0] == 1 and self.mode_button_last == 0:
             print('colorIdx: %d'%(self.colorIdx))
@@ -230,6 +234,9 @@ class TeleopJoyNode(Node):
         elif joymsg.axes[2] != 0:
             status = status + 1
             self.control_motor3 -= joymsg.axes[2] * self.max_deg / self.step_deg
+        #continous key stop
+        elif ((self.keystroke > 0) and (timediff > 0.1)):
+            self.keystroke = 0
         else:
             #nothing to do, then return
             return True
@@ -243,13 +250,26 @@ class TeleopJoyNode(Node):
 
             timediff = time() - self.prev_time
             self.prev_time = time()
-
-            setArmAgles(self.motorMsg, self.control_motor0, self.control_motor1, self.control_motor2, self.control_motor3, self.control_gripper)
-            self.robotarm.run(self.motorMsg)
-            print('M0= %d, M1 %d, M2= %d, M3= %d, G=%d'%(self.control_motor0, self.control_motor1, self.control_motor2, self.control_motor3, self.control_gripper))
-            self.fhandle.write(str(self.motorMsg.angle0) + ',' + str(self.motorMsg.angle1) + ',' + str(self.motorMsg.angle2) + ',' + str(self.motorMsg.angle3)
-                               + ',' + str(self.motorMsg.grip)+ ',' + str(timediff) + '\n')
             status = 0
+
+            #continous key press, usually less than 100ms
+            if (timediff < 0.10):
+                self.keystroke = self.keystroke + 1
+                #ignore 3 continous key
+                if(self.keystroke < CONTKEY):
+                    return
+                
+        timediff_move = time() - self.prev_time_move
+        self.prev_time_move = time()
+
+        self.keystroke = 0
+        setArmAgles(self.motorMsg, self.control_motor0, self.control_motor1, self.control_motor2, self.control_motor3, self.control_gripper)
+        self.robotarm.run(self.motorMsg)
+        print('M0= %d, M1 %d, M2= %d, M3= %d, G=%d'%(self.control_motor0, self.control_motor1, self.control_motor2, self.control_motor3, self.control_gripper))
+        self.fhandle.write(str(self.motorMsg.angle0) + ',' + str(self.motorMsg.angle1) + ',' + str(self.motorMsg.angle2) + ',' + str(self.motorMsg.angle3)
+                            + ',' + str(self.motorMsg.grip)+ ',' + str(timediff_move) + '\n')
+        self.fhandle.flush()
+            
 
     def cb_timer(self):
         self.chatCount += 1                     # protect chattering

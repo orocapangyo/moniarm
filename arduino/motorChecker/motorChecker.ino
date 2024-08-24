@@ -36,6 +36,8 @@
 
 #include <Herkulex.h>
 
+#define MONIARM2 1
+
 // LED control pins
 #define LED_L 19
 #define LED_R 18
@@ -45,8 +47,9 @@
 
 #define M0_ID 1
 #define M1_ID 2
-#define M2_ID 3
-#define M3_ID 4
+#define M2_ID 4
+#define M3_ID 5
+#define M1M_ID 3
 
 #define RXD1 15
 #define TXD1 23
@@ -91,6 +94,10 @@ void setup() {
   delay(200);
   Herkulex.reboot(M1_ID);
   delay(200);
+#if (MONIARM2 == 1)
+  Herkulex.reboot(M1M_ID);
+  delay(200);
+#endif
   Herkulex.reboot(M2_ID);
   delay(200);
   Herkulex.reboot(M3_ID);
@@ -133,12 +140,18 @@ void loop() {
       Herkulex.setLed(M1_ID, LED_BLUE);
       Herkulex.setLed(M2_ID, LED_GREEN);
       Herkulex.setLed(M3_ID, LED_BLUE);
+#if (MONIARM2 == 1)
+      Herkulex.setLed(M1M_ID, LED_BLUE);
+#endif
       blinkStatus = true;
     } else {
       Herkulex.setLed(M0_ID, 0);
       Herkulex.setLed(M1_ID, 0);
       Herkulex.setLed(M2_ID, 0);
       Herkulex.setLed(M3_ID, 0);
+#if (MONIARM2 == 1)
+      Herkulex.setLed(M1M_ID, 0);
+#endif
       blinkStatus = false;
     }
 
@@ -161,10 +174,26 @@ void loop() {
         digitalWrite(PUMP_PIN, targetAngle);
       } else {
         Serial.println("Moving motor...");
+#if (MONIARM2 == 1)
+        if (motorID == M1_ID)
+          Herkulex.moveOneAngle(M1M_ID, -targetAngle, 500, LED_RED);  //move motor with 500 speed
+        if (motorID == M1M_ID)
+          Herkulex.moveOneAngle(M1_ID, -targetAngle, 500, LED_RED);  //move motor with 500 speed
+#endif
         Herkulex.moveOneAngle(motorID, targetAngle, 500, LED_RED);  //move motor with 500 speed
         delay(1200);
         Serial.print("Get servo Angle:");
-        Serial.println(Herkulex.getAngle(motorID));
+        Serial.print(Herkulex.getAngle(M0_ID));
+        Serial.print(":");
+        Serial.print(Herkulex.getAngle(M1_ID));
+        Serial.print(":");
+#if (MONIARM2 == 1)
+        Serial.print(Herkulex.getAngle(M1M_ID));
+        Serial.print(":");
+#endif
+        Serial.print(Herkulex.getAngle(M2_ID));
+        Serial.print(":");
+        Serial.println(Herkulex.getAngle(M3_ID));
       }
     }
   }

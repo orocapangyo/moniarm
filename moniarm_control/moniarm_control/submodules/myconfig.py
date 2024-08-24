@@ -62,8 +62,9 @@ MAX_SONG = 5
 MAX_ANIM = 3
 MAX_COLOR = 6
 MAX_CHAT = 5
-TIMER_JOY = 0.1
+TIMER_JOY = 0.05
 
 #teleop_keyboard parameter
 MAX_ANG = 120
 ANG_STEP = 1
+CONTKEY = 3

@@ -57,7 +57,7 @@
 
 #define ESP_API_3 1
 #define DOMAINID 11
-#define MONIARM2 0
+#define MONIARM2 1
 
 moniarm_interfaces__msg__CmdMotor motorMsg, angleMsg;
 moniarm_interfaces__srv__SetLED_Request req_led;
@@ -92,9 +92,9 @@ enum states {
 
 #define M0_ID 1
 #define M1_ID 2
-#define M2_ID 3
-#define M3_ID 4
-#define M1M_ID 0
+#define M2_ID 4
+#define M3_ID 5
+#define M1M_ID 3
 
 #define RXD1 15
 #define TXD1 23
@@ -459,12 +459,18 @@ void loop() {
       Herkulex.setLed(M1_ID, LED_BLUE);
       Herkulex.setLed(M2_ID, LED_GREEN);
       Herkulex.setLed(M3_ID, LED_BLUE);
+#if (MONIARM2 == 1)
+    Herkulex.setLed(M1M_ID, LED_BLUE);
+#endif
       blinkStatus = true;
     } else {
       Herkulex.setLed(M0_ID, 0);
       Herkulex.setLed(M1_ID, 0);
       Herkulex.setLed(M2_ID, 0);
       Herkulex.setLed(M3_ID, 0);
+#if (MONIARM2 == 1)
+    Herkulex.setLed(M1M_ID, 0);
+#endif
       blinkStatus = false;
     }
 
