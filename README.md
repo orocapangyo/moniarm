@@ -8,7 +8,7 @@ ROS code: ZETA7, JH Moon, MS Song
 
 ## Test System information
 
-**Jetson Nano 4GB/2GB + ESP32 + Herkulex DRS-0101 Motor**    
+**Jetson Nano 4GB/Laptop + ESP32 + Herkulex DRS-0101 Motor**    
 * Ubuntu 20.04
 * ROS Galactic
 
@@ -20,13 +20,13 @@ ROS code: ZETA7, JH Moon, MS Song
 ├── moniarm_cv            => Computer Vision Package
 ├── moniarm_description   => Show robot model
 ├── moniarm_interfaces    => Custom message and serivce
-├── moniarm_moveit2       => Moveit2
 ├── moniarm_ml            => AI/ML
+├── moniarm_teleop        => Teleoperation by human
 ├── arduino               => micro ros on ESP32, udev rules, motor tester
-├── processing            => serial capture sketch for humanGuide
 (...)
-├── Images
-├── Doc
+├── script                => configure motor, camera, etc
+├── Images                => Image for this README
+├── Doc                   => command list
 ├── LICENSE
 ├── README.md
 ```

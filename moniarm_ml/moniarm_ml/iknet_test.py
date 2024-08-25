@@ -20,7 +20,7 @@ def main():
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    #
+    #x -> angle0
     model = IKNet(MAX_X)
     model.load_state_dict(torch.load("iknet_x.pth"))
     model.to(device)
@@ -46,7 +46,7 @@ def mainy():
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    #
+    #y-> angle1,2,3
     model = IKNet(MAX_Y)
     model.load_state_dict(torch.load("iknet_y.pth"))
     model.to(device)

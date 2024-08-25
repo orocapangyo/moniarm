@@ -37,7 +37,7 @@ def mainy(y):
 
 if __name__ == "__main__":
     # run example
-    # python iknet_testfn.py --x -1.0 --y -1.0
+    # python iknet_testfn.py --x -0.5 --y 0.5
     parser = argparse.ArgumentParser()
     parser.add_argument("--x", type=float, default=0.0)
     parser.add_argument("--y", type=float, default=0.0)

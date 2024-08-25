@@ -14,7 +14,6 @@ LOC_IN_Y = 1
 LOC_OUT_Y = 3
 MAX_Y = 3
 
-
 def get_data_loaders(args, in_st, out_st, out_len):
     dataset = IKDataset(args.kinematics_pose_csv, in_st, out_st, out_len)
     train_size = int(len(dataset) * args.train_val_ratio)
