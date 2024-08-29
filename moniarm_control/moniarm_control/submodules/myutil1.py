@@ -120,7 +120,7 @@ class Moniarm(Node):
         sleep(0.2)
         self.motorMsg.angle0 = MOTOR0_HOME
         self.motorPub.publish(self.motorMsg)
-        sleep(1.0)
+        sleep(1.5)
         self.motorMsg.angle0 = MOTOR_TOQON
         self.motorMsg.angle1 = MOTOR_TOQON
         self.motorMsg.angle2 = MOTOR_TOQON

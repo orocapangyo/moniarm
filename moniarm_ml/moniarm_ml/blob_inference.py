@@ -90,7 +90,6 @@ class IKnetBall(Node):
         atexit.register(self.set_park)
 
         rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_ml/moniarm_ml/')
-        rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_ml/moniarm_ml/')
 
         modelx = rosPath + "iknet_x.pth"
         modely = rosPath + "iknet_y.pth"

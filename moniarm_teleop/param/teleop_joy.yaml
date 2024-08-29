@@ -1,4 +1,4 @@
 teleop_joy_node:
   ros__parameters:
     max_deg: 120
-    step_deg: 80
+    step_deg: 30

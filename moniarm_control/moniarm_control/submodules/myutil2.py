@@ -75,7 +75,7 @@ class Moniarm(Node):
         sleep(0.7)
         self.motorMsg.angle0 = MOTOR0_HOME
         self.motorPub.publish(self.motorMsg)
-        sleep(0.7)
+        sleep(2.0)
 
         self.motorMsg.angle0 = MOTOR_TOQOFF
         self.motorMsg.angle1 = MOTOR_TOQOFF
@@ -111,7 +111,7 @@ class Moniarm(Node):
 
         self.motorMsg.angle0 = MOTOR0_HOME
         self.motorPub.publish(self.motorMsg)
-        sleep(1.0)
+        sleep(1.5)
         print("Homing Done")
 
     def zero(self):
