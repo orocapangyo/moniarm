@@ -46,13 +46,13 @@ GRIPPER_CLOSE = 1
 #yolo_chase or blob_chase
 PICTURE_SIZE_X = 640.0
 PICTURE_SIZE_Y = 480.0
-CALIBPICTURE = 0.00
-
-PICTURE_YOLO = 416.0
 
 #object detected range, control power view
 IN_RANGE_MIN = -0.05
 IN_RANGE_MAX = 0.05
+# a*x + b for angle_x
+K_a = -32.000
+K_b = 34.000
 
 #object tracking PI controller
 Ktimer = 0.1

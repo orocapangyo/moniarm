@@ -57,7 +57,6 @@ from .iknet import IKNet
 
 import os, torch
 
-MAX_X = 1
 MAX_Y = 3
 
 class IKnetBall(Node):
@@ -90,17 +89,9 @@ class IKnetBall(Node):
         atexit.register(self.set_park)
 
         rosPath = os.path.expanduser('~/ros2_ws/src/moniarm/moniarm_ml/moniarm_ml/')
-
-        modelx = rosPath + "iknet_x.pth"
         modely = rosPath + "iknet_y.pth"
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.modelx = IKNet(MAX_X)
-        #print(self.modelx)
-        self.modelx.to(self.device)
-        self.modelx.load_state_dict(torch.load(modelx))
-        self.modelx.eval()
-
         self.modely = IKNet(MAX_Y)
         #print(self.modely)
         self.modely.to(self.device)
@@ -131,11 +122,10 @@ class IKnetBall(Node):
         if self.is_detected == 1:
             detect_object = 1           #blob detects only one object, then it's 1
             self.armStatus = 'PICKUP'
-            #caculate angles from IKNet
-            input_ = torch.FloatTensor([self.blob_x + 1.0])
-            input_ = input_.to(self.device)
+            #caculate angles from linear equation
+            input_ = self.blob_x + 1.0
+            outputx = K_a*(self.blob_x + 1.0) + K_b
             print(f"input: {input_}")
-            outputx = self.modelx(input_)
             print(f"output: {outputx}")
 
             #caculate angles from IKNet
@@ -147,7 +137,7 @@ class IKnetBall(Node):
 
             #motor move directly
             self.get_logger().info("Go to object")
-            self.motorMsg.angle0 = int(outputx[0].item())
+            self.motorMsg.angle0 = int(outputx)
             self.motorMsg.angle1 = MOTOR_NOMOVE
             self.motorMsg.angle2 = MOTOR_NOMOVE
             self.motorMsg.angle3 = MOTOR_NOMOVE
