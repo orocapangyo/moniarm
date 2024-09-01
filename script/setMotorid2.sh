@@ -9,8 +9,6 @@ fi
 
 echo "set MOTOR_ID" "$1" "$2" "$3" "$4" "$5"
 
-cp ~/ros2_ws/src/moniarm/moniarm_control/moniarm_control/submodules/myutil2.py ~/ros2_ws/src/moniarm/moniarm_control/moniarm_control/submodules/myutil.py 
-
 cd ../arduino/
 for d in ./*/; do
 	cd "$d";

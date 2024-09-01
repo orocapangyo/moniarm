@@ -55,15 +55,26 @@ Left Stick up/down:     shoulder(M1) move
 Right Stick up/down:    Elbow(M2) move
 Right Stick left/right: Wrist(M3) move
 
+*** Jetson ***
 'X' : gripper open/close
 'A' : Change led
 'B' : Play buzzer song
 'Y' : Play OLED animation
+L - 2 : Home
+R - 2 : Motor Initiailze
+
+*** PC ***
+'X' : gripper open/close
+'Y' : Change led
+'B' : Play buzzer song
+L - 1 : Play OLED animation
+L - 2 : Home
+R - 2 : Motor Initiailze
 """
 
 class ClientAsyncLed(Node):
     def __init__(self):
-        super().__init__('LEDClientAsync')
+        super().__init__('ClientAsyncLed')
         self.cli = self.create_client(SetLED, 'SetLED')
         while not self.cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('LED service not available, waiting again...')
@@ -128,7 +139,7 @@ class TeleopJoyNode(Node):
                 ('step_deg', 20),
             ])
 
-        print(' moniarm Teleop Joystick controller')
+        print(' Moniarm Teleop Joystick controller')
         print(msg)
         self.max_deg = self.get_parameter_or('max_deg', Parameter('max_deg', Parameter.Type.INTEGER, 120)).get_parameter_value().integer_value
         self.step_deg = self.get_parameter_or('step_deg', Parameter('step_deg', Parameter.Type.INTEGER, 20)).get_parameter_value().integer_value
@@ -212,6 +223,18 @@ class TeleopJoyNode(Node):
             print('Initialize motors')
             self.int_client.send_request(0)
             self.mode_button_last = joymsg.buttons[7]
+
+        # initialize motors when motor error happens
+        elif joymsg.buttons[6] == 1 and self.mode_button_last == 0:
+            print('Home position')
+            self.robotarm.home()
+            self.control_motor0 = MOTOR0_HOME
+            self.control_motor1 = MOTOR1_HOME
+            self.control_motor2 = MOTOR2_HOME
+            self.control_motor3 = MOTOR3_HOME
+            self.control_gripper = GRIPPER_OPEN
+            self.keystroke = 0
+            self.mode_button_last = joymsg.buttons[6]
 
         elif joymsg.buttons[3] == 1 and self.mode_button_last == 0:
             status = status + 1

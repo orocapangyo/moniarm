@@ -376,7 +376,14 @@ void setup() {
       break;
   } while (1);
 
-  Herkulex.torqueON(BROADCAST_ID);
+  Herkulex.torqueON(M0_ID);
+  Herkulex.torqueON(M1_ID);
+  Herkulex.torqueON(M2_ID);
+  Herkulex.torqueON(M3_ID);
+
+#if (MONIARM2 == 1)
+  Herkulex.torqueON(M1M_ID);
+#endif
 
   allocator = rcl_get_default_allocator();
 

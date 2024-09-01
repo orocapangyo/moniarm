@@ -73,7 +73,7 @@ Communications Failed
 
 class ClientAsyncLed(Node):
     def __init__(self):
-        super().__init__('LEDClientAsync')
+        super().__init__('ClientAsyncLed')
         self.cli = self.create_client(SetLED, 'SetLED')
         while not self.cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('LED service not available, waiting again...')
@@ -258,6 +258,15 @@ def main():
                 else:
                     control_gripper = GRIPPER_OPEN
 
+            elif key == 'h':
+                print('Home position')
+                robotarm.home()
+                control_motor0 = MOTOR0_HOME
+                control_motor1 = MOTOR1_HOME
+                control_motor2 = MOTOR2_HOME
+                control_motor3 = MOTOR3_HOME
+                control_gripper = GRIPPER_OPEN
+                keystroke = 0
             else:
                 timediff = time() - prev_time
                 #Ctrl-C, then stop working
