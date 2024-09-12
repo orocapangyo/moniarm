@@ -20,7 +20,7 @@ for d in ./*/; do
 			sed -i "s/#define M2_ID.*/#define M2_ID $3/g" "$filename"
 			sed -i "s/#define M3_ID.*/#define M3_ID $4/g" "$filename"
 			sed -i "s/#define M1M_ID.*/#define M1M_ID 0/g" "$filename"
-			sed -i "s/#define MONIARM2.*/#define MONIARM2 0/g" "$filename"
+			sed -i "s/#define DUAL_SHOULDER.*/#define DUAL_SHOULDER 0/g" "$filename"
 		fi
 	done
 	cd ..

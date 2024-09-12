@@ -57,7 +57,7 @@
 
 #define ESP_API_3 1
 #define DOMAINID 11
-#define MONIARM2 1
+#define DUAL_SHOULDER 0
 
 moniarm_interfaces__msg__CmdMotor motorMsg, angleMsg;
 moniarm_interfaces__srv__SetLED_Request req_led;
@@ -92,9 +92,9 @@ enum states {
 
 #define M0_ID 1
 #define M1_ID 2
-#define M2_ID 4
-#define M3_ID 5
-#define M1M_ID 3
+#define M2_ID 3
+#define M3_ID 4
+#define M1M_ID 0
 
 #define RXD1 15
 #define TXD1 23
@@ -173,14 +173,14 @@ void motorMoving(int mid, int tarAngle) {
     return;
   else if (tarAngle == MOTOR_TOQOFF) {
     Herkulex.torqueOFF(mid);
-#if (MONIARM2 == 1)
+#if (DUAL_SHOULDER == 1)
     if (mid == M1_ID)
       Herkulex.torqueOFF(M1M_ID);
 #endif
     return;
   } else if (tarAngle == MOTOR_TOQON) {
     Herkulex.torqueON(mid);
-#if (MONIARM2 == 1)
+#if (DUAL_SHOULDER == 1)
     if (mid == M1_ID)
       Herkulex.torqueON(M1M_ID);
 #endif
@@ -233,7 +233,9 @@ void motorMoving(int mid, int tarAngle) {
     DEBUG_PRINTLN(moveTime);
 #endif
 
-    Herkulex.moveOneAngle(mid, tarAngle, moveTime, LED_RED);
+    Herkulex.moveOneAngle(mid, tarAngle, moveTime, LED_GREEN);
+    //time for command sending, 10ms
+    delay(10);
   }
 }
 
@@ -253,7 +255,7 @@ void motor_callback(const void *msgin) {
   motorMoving(M2_ID, angle2);
   motorMoving(M3_ID, angle3);
 
-#if (MONIARM2 == 1)
+#if (DUAL_SHOULDER == 1)
   motorMoving(M1M_ID, -angle1);
 #endif
 
@@ -271,7 +273,7 @@ void initMotors(void) {
   delay(200);
   Herkulex.reboot(M3_ID);
   delay(200);
-#if (MONIARM2 == 1)
+#if (DUAL_SHOULDER == 1)
   Herkulex.reboot(M1M_ID);
   delay(200);
 #endif
@@ -381,7 +383,7 @@ void setup() {
   Herkulex.torqueON(M2_ID);
   Herkulex.torqueON(M3_ID);
 
-#if (MONIARM2 == 1)
+#if (DUAL_SHOULDER == 1)
   Herkulex.torqueON(M1M_ID);
 #endif
 
@@ -466,7 +468,7 @@ void loop() {
       Herkulex.setLed(M1_ID, LED_BLUE);
       Herkulex.setLed(M2_ID, LED_GREEN);
       Herkulex.setLed(M3_ID, LED_BLUE);
-#if (MONIARM2 == 1)
+#if (DUAL_SHOULDER == 1)
     Herkulex.setLed(M1M_ID, LED_BLUE);
 #endif
       blinkStatus = true;
@@ -475,7 +477,7 @@ void loop() {
       Herkulex.setLed(M1_ID, 0);
       Herkulex.setLed(M2_ID, 0);
       Herkulex.setLed(M3_ID, 0);
-#if (MONIARM2 == 1)
+#if (DUAL_SHOULDER == 1)
     Herkulex.setLed(M1M_ID, 0);
 #endif
       blinkStatus = false;

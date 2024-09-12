@@ -169,12 +169,12 @@ class Moniarm(Node):
             sleep(1.0)
             self.motorMsg.angle1 = MOTOR1_PICKUP
             self.motorPub.publish(self.motorMsg)
-            sleep(1.0)
+            sleep(0.5)
 
         #grap action
         self.motorMsg.grip = GRIPPER_CLOSE
         self.motorPub.publish(self.motorMsg)
-        sleep(1.0)
+        sleep(0.5)
 
         #lift up
         self.motorMsg.angle1 = MOTOR_TOQON
@@ -182,7 +182,7 @@ class Moniarm(Node):
         self.motorMsg.angle3 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
-        self.motorMsg.angle1 = (MOTOR1_HOME - 20)
+        self.motorMsg.angle1 = (MOTOR1_HOME - 30)
         self.motorMsg.angle2 = MOTOR_TOQON
         self.motorPub.publish(self.motorMsg)
         sleep(1.0)
@@ -203,7 +203,7 @@ class Moniarm(Node):
         sleep(1.0)
         self.motorMsg.grip = GRIPPER_OPEN
         self.motorPub.publish(self.motorMsg)
-        sleep(1.0)
+        sleep(0.2)
         #place action
 
         #lift up
