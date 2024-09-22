@@ -51,8 +51,8 @@ PICTURE_SIZE_Y = 480.0
 IN_RANGE_MIN = -0.05
 IN_RANGE_MAX = 0.05
 # a*x + b for angle_x
-K_a = -32.000
-K_b = 34.000
+K_a = -29.000
+K_b = 31.000
 
 #object tracking PI controller
 Ktimer = 0.1

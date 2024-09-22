@@ -176,12 +176,22 @@ class IKnetYolo(Node):
             sleep(1.0)
             self.motorMsg.angle0 = MOTOR_NOMOVE
             self.motorMsg.angle1 = MOTOR_NOMOVE
-            self.motorMsg.angle2 = int(outputy[1].item())
-            self.motorMsg.angle3 = int(outputy[2].item())
+            self.motorMsg.angle2 = int(outputy[1].item()+0.5)
+            self.motorMsg.angle3 = int(outputy[2].item()+0.5)
             self.robotarm.run(self.motorMsg)
             sleep(0.5)
             self.motorMsg.angle0 = MOTOR_NOMOVE
-            self.motorMsg.angle1 = int(outputy[0].item())
+            #compenstate manually for far distance
+            if self.blob_y < -0.45:
+                self.motorMsg.angle1 = int(outputy[0].item()+4.5)
+            elif self.blob_y < -0.25:
+                self.motorMsg.angle1 = int(outputy[0].item()+2.5)
+            elif self.blob_y < -0.10:
+                self.motorMsg.angle1 = int(outputy[0].item()+1.5)
+            elif self.blob_y < 0.10:
+                self.motorMsg.angle1 = int(outputy[0].item()+0.5)
+            else:
+                self.motorMsg.angle1 = int(outputy[0].item()-0.5)
             self.motorMsg.angle2 = MOTOR_NOMOVE
             self.motorMsg.angle3 = MOTOR_NOMOVE
             self.robotarm.run(self.motorMsg)

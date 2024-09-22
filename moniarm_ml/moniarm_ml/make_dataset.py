@@ -209,7 +209,8 @@ def main():
                     fhandle.write(str(blob_x+1.0) + ',' + str(blob_y+1.0) + ',' + str(angle0) + ',' + str(angle1) + ',' + str(angle2)
                                 + ',' + str(angle3) + '\n')
                     fhandle.flush()
-                    #move home to check collect more data
+                    #move home to collect more data, pickup action first
+                    robotarm.pickup()
                     robotarm.home()
                 status = 0
 
