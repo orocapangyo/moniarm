@@ -58,7 +58,7 @@
 #define TXD2 17
 
 // Time interval for measurements in milliseconds
-const int INTERVAL = 100;
+const int INTERVAL = 1000;
 long previousMillis = 0;
 long currentMillis = 0;
 
@@ -143,6 +143,9 @@ void loop() {
 #if (DUAL_SHOULDER == 1)
       Herkulex.setLed(M1M_ID, LED_BLUE);
 #endif
+      digitalWrite(LED_L, HIGH);
+      digitalWrite(LED_R, HIGH);
+      digitalWrite(PUMP_PIN, HIGH);
       blinkStatus = true;
     } else {
       Herkulex.setLed(M0_ID, 0);
@@ -152,6 +155,9 @@ void loop() {
 #if (DUAL_SHOULDER == 1)
       Herkulex.setLed(M1M_ID, 0);
 #endif
+      digitalWrite(LED_L, LOW);
+      digitalWrite(LED_R, LOW);
+      digitalWrite(PUMP_PIN, LOW);
       blinkStatus = false;
     }
 
