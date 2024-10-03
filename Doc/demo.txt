@@ -23,6 +23,11 @@ $ ros2 run rqt_image_view rqt_image_view
 
 ## Custom Yolo ##
 #terminal #1, #object detect using Yolo_v4
-jetson@nano:~/ros2_ws$ ros2 launch darknet_ros yolov4-moniarm.launch.py
+$ ros2 launch darknet_ros yolov4-moniarm.launch.py
+
 #terminal #2,camera publish, object -> start or stop
-jetson@nano:~/ros2_ws$ ros2 launch moniarm_control yolo_all.launch.py
+ros2 launch moniarm_control yolo_all.launch.py
+
+ ## Take picture for yolo training
+ros2 launch moniarm_control take_picture.launch.py
+ros2 run image_view image_view --ros-args --remap /image:=/image_raw
