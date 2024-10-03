@@ -65,8 +65,8 @@ class ChaseObject(Node):
             namespace='',
             parameters=[
                 ('K_x', -0.3),
-                ('DETECT_CLASS1', "pepsi"),
-                ('DETECT_CLASS2', "car"),
+                ('DETECT_CLASS1', "watermelon"),
+                ('DETECT_CLASS2', "pineapple"),
            ])
         self.get_logger().info("Setting Up the Node...")
         self.K_x = self.get_parameter_or('K_x').get_parameter_value().double_value

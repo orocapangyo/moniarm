@@ -21,7 +21,7 @@ def generate_launch_description():
     DeclareLaunchArgument('motor_parameter', default_value=motor_parameter),
 
     Node(
-      package='moniarm_ml',  executable='yolo_nn',  name='nn_yolo_node',
+      package='moniarm_ml',  executable='blob_nn',  name='nn_yolo_node',
       output='screen',  emulate_tty=True,
       parameters=[motor_parameter],
       namespace='',

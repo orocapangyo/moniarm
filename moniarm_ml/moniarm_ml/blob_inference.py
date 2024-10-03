@@ -61,7 +61,7 @@ MAX_Y = 3
 
 class IKnetBall(Node):
     def __init__(self):
-        super().__init__('iknet_ball_node')
+        super().__init__('nn_blob_node')
         self.get_logger().info("Setting Up the Node...")
 
         self.blob_x = 0.0

@@ -61,14 +61,14 @@ MAX_Y = 3
 
 class IKnetYolo(Node):
     def __init__(self):
-        super().__init__('iknet_yolo_node')
+        super().__init__('nn_yolo_node')
         self.get_logger().info("Setting Up the Node...")
 
         self.declare_parameters(
             namespace='',
             parameters=[
-                ('DETECT_CLASS1', "pepsi"),
-                ('DETECT_CLASS2', "car"),
+                ('DETECT_CLASS1', "watermelon"),
+                ('DETECT_CLASS2', "pineapple"),
            ])
         self.get_logger().info("Setting Up the Node...")
         self.DETECT_CLASS1 = self.get_parameter_or('DETECT_CLASS1').get_parameter_value().string_value
