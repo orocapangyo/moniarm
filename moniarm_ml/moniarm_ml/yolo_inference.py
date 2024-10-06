@@ -92,8 +92,7 @@ class IKnetYolo(Node):
         self.detect_object = 0
 
         self.motorMsg = CmdMotor()
-        #M0, M3 torque off by default
-        setArmAgles(self.motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR_TOQOFF, GRIPPER_OPEN)
+        setArmAgles(self.motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN)
         self.get_logger().info("Setting Up control node...")
 
         # Create a timer that will gate the node actions twice a second

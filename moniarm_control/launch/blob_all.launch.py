@@ -26,9 +26,4 @@ def generate_launch_description():
       PythonLaunchDescriptionSource([
         FindPackageShare("moniarm_control"), '/launch', '/chase_ball.launch.py'])
     ),
-
-    IncludeLaunchDescription(
-      PythonLaunchDescriptionSource([
-        FindPackageShare("moniarm_control"), '/launch', '/motor_chase.launch.py'])
-    ),
   ])

@@ -47,13 +47,13 @@ Publishes commands to
 from time import sleep, time
 import rclpy
 from rclpy.node import Node
-from rclpy.parameter import Parameter
 from rclpy.logging import get_logger
 from darknet_ros_msgs.msg import BoundingBoxes
 from rclpy.qos import qos_profile_sensor_data
+from moniarm_interfaces.msg import CmdMotor
+import atexit
 
-from moniarm_interfaces.msg import CmdChase
-from .submodules.myutil import clamp, Moniarm, radiansToDegrees, trimLimits
+from .submodules.myutil import Moniarm, setArmAgles
 from .submodules.myconfig import *
 
 class ChaseObject(Node):
@@ -64,18 +64,16 @@ class ChaseObject(Node):
         self.declare_parameters(
             namespace='',
             parameters=[
-                ('K_x', -0.3),
                 ('DETECT_CLASS1', "watermelon"),
                 ('DETECT_CLASS2', "pineapple"),
            ])
+        
         self.get_logger().info("Setting Up the Node...")
-        self.K_x = self.get_parameter_or('K_x').get_parameter_value().double_value
         self.DETECT_CLASS1 = self.get_parameter_or('DETECT_CLASS1').get_parameter_value().string_value
         self.DETECT_CLASS2 = self.get_parameter_or('DETECT_CLASS2').get_parameter_value().string_value
 
-        print('K_x: %s, DETECT_CLASS 1: %s, DETECT_CLASS 2: %s'%
-            (self.K_x,
-            self.DETECT_CLASS1,
+        print('DETECT_CLASS 1: %s, DETECT_CLASS 2: %s'%
+            (self.DETECT_CLASS1,
             self.DETECT_CLASS2)
         )
 
@@ -87,14 +85,15 @@ class ChaseObject(Node):
         self.sub_center = self.create_subscription(BoundingBoxes, "/darknet_ros/bounding_boxes", self.update_object, qos_profile_sensor_data)
         self.get_logger().info("Subscriber set")
 
-        self.pub_chase = self.create_publisher(CmdChase, "/control/cmd_chase", 10)
-        self.get_logger().info("Publisher set")
+         # Create a timer that will gate the node actions twice a second
+        self.timer = self.create_timer(Ktimer, self.node_callback)
 
-        self._message = CmdChase()
-
-        # Create a timer that will gate the node actions twice a second
-        timer_period = Ktimer
-        self.timer = self.create_timer(timer_period, self.node_callback)
+        self.motorMsg = CmdMotor()
+        setArmAgles(self.motorMsg, MOTOR0_HOME, MOTOR1_HOME, MOTOR2_HOME, MOTOR3_HOME, GRIPPER_OPEN)
+        self.robotarm = Moniarm()
+        self.armStatus = 'HOMING'
+        self.robotarm.home()
+        self.armStatus = 'SEARCHING'
 
     @property
     def is_detected(self):
@@ -105,7 +104,7 @@ class ChaseObject(Node):
         msg_secs = message.header.stamp.sec
         now = self.get_clock().now().to_msg().sec
         if (msg_secs + 1 < now):
-            #self.get_logger().info("Stamp %d, %d" %(now, msg_secs ) )
+            self.get_logger().info("Stamp %d, %d" %(now, msg_secs ) )
             return
         
         for box in message.bounding_boxes:
@@ -126,36 +125,50 @@ class ChaseObject(Node):
                 self.detect_object = 0
 
     def get_control_action(self):
-        """
-        Based on the current ranges, calculate the command
-        """
-        command_x = 0.0
-        inrange = 0
-        detect_object = 0
+        if self.armStatus != 'SEARCHING' :
+            print(self.armStatus)
+            return
 
-        if self.is_detected:
-            # --- Apply steering, proportional to how close is the object
-            command_x = self.K_x * self.blob_x * 2.0
-            command_x = clamp(command_x, -1.0, 1.0)
-            if ((self.blob_x > IN_RANGE_MIN) and (self.blob_x < IN_RANGE_MAX)) :
-                inrange = 1
+        if self.is_detected == 1:
+            self.armStatus = 'PICKUP'
+            #caculate angles from linear equation
+            input_ = self.blob_x + 1.0
+            outputx = K_a*(self.blob_x + 1.0) + K_b
+            print(f"input: {input_}")
+            print(f"output: {outputx}")
 
-            detect_object = self.detect_object
-            #self.get_logger().info("Range= %.3f, CommandX= %.3f" % (self.blob_x, command_x))
+            #motor move directly
+            self.get_logger().info("Go to object")
+            self.motorMsg.angle0 = int(outputx)
+            self.motorMsg.angle1 = MOTOR_NOMOVE
+            self.motorMsg.angle2 = MOTOR_NOMOVE
+            self.motorMsg.angle3 = MOTOR_NOMOVE
+            self.robotarm.run(self.motorMsg)
+            sleep(1.0)
 
-        return (detect_object, command_x, inrange)
+            self.get_logger().info("Picking up")
+            #then pick it up, need new function
+            self.robotarm.picknplace(self.detect_object, 1)
+            self.reset_avoid()
+
+    def reset_avoid(self):
+        self.motorMsg.angle0 = MOTOR0_HOME
+        self.motorMsg.angle1 = MOTOR1_HOME
+        self.motorMsg.angle2 = MOTOR2_HOME
+        self.motorMsg.angle3 = MOTOR3_HOME
+        self.robotarm.run(self.motorMsg)
+        sleep(1.0)
+        self.get_logger().info("reset avoid")
+        self.armStatus = 'SEARCHING'
+        self.detect_object = 0
 
     def node_callback(self):
          # -- update the message
-        self._message.object, self._message.cmd_x, self._message.inrange = self.get_control_action()
-        self._message.stamp = self.get_clock().now().to_msg()
+        self.get_control_action()
 
-        # -- publish it, only blob detected
-        if self.is_detected:
-            self.get_logger().info("CommandX= %.3f In= %d " %(self._message.cmd_x, self._message.inrange) )
-            self.pub_chase.publish(self._message)
-        #else:
-        #    self.get_logger().info("Missing object")
+    def set_park(self):
+        self.get_logger().info('Arm parking, be careful')
+        self.robotarm.park()
 
 def main(args=None):
     rclpy.init(args=args)
