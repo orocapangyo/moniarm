@@ -3,24 +3,9 @@
 ## if no parameter, then exit after print usage
 if [ "$#" -lt 1 ]; then
     echo "Usage: $0 target"
-    echo "target: select one between these"
-    echo "csicam, usbcam"
+    echo "target: select camera port number, default is 0"
 	exit 1
 fi
 
-cd ../moniarm_control/launch
-if [ "$1" == "usbcam" ]; then
-    for filename in ./*.launch.py; do
-        if [[ $(awk '/csicam/' "$filename") ]]; then
-            echo 'Matched' "$filename"
-            sed -i "s/csicam/usbcam/g" "$filename"
-        fi
-    done
-else
-    for filename in ./*.launch.py; do
-        if [[ $(awk '/usbcam/' "$filename") ]]; then
-            echo 'Matched' "$filename"
-            sed -i "s/usbcam/csicam/g" "$filename"
-        fi
-    done
-fi
+echo "set camera port to" "$1"
+sed -i "s/camport: .*/camport: $1/g" ../moniarm_cv/param/cvparam.yaml

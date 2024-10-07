@@ -11,7 +11,6 @@ find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
     "msg/Arm3dof.msg"
-    "msg/Joint.msg"
     "msg/CmdMotor.msg"
     "msg/CmdChase.msg"
     "srv/GetStatus.srv"

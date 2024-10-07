@@ -44,9 +44,9 @@ class CameraeNode(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    csiCamera = CameraeNode()
-    rclpy.spin(csiCamera)
-    csiCamera.destroy_node()
+    Camera = CameraeNode()
+    rclpy.spin(Camera)
+    Camera.destroy_node()
     rclpy.shutdown()
 
 if __name__ == "__main__":
