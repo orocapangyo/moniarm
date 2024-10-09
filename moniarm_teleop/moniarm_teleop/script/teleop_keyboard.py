@@ -33,15 +33,13 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from time import sleep, time
-import os
-import select
-import sys
+import os, select, sys
 import rclpy
 from rclpy.node import Node
 
 from moniarm_interfaces.srv import SetLED, PlayAni, PlaySong, Init
 from moniarm_interfaces.msg import CmdMotor
-from .submodules.myutil import Moniarm, clamp, setArmAgles
+from .submodules.myutil import Moniarm, clamp, setArmAgles, calculate_position_5dof
 from .submodules.myconfig import *
 
 if os.name == 'nt':
@@ -302,6 +300,8 @@ def main():
 
             keystroke = 0
             setArmAgles(motorMsg, control_motor0, control_motor1, control_motor2, control_motor3, control_gripper)
+            #y, z = calculate_position_5dof(control_motor1, control_motor2,control_motor3)
+            #print('y=%.1f,z=%.1f(cm)' %(y*100, z*100))
             robotarm.run(motorMsg)
             print('M0= %d, M1=%d, M2= %d, M3=%d, G=%d'%(control_motor0, control_motor1, control_motor2, control_motor3, control_gripper))
             fhandle.write(str(motorMsg.angle0) + ',' + str(motorMsg.angle1) + ',' + str(motorMsg.angle2) + ',' + str(motorMsg.angle3)

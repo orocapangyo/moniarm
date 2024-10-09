@@ -1,4 +1,5 @@
 from time import sleep
+import math
 import rclpy
 from rclpy.node import Node
 from . myconfig import *
@@ -13,10 +14,35 @@ def clamp(n, minn, maxn):
     else:
         return n
 
-# Convert radians to degreees
-def radiansToDegrees(position_radians):
-    position_radians = position_radians * 57.2958
-    return int(position_radians)
+
+def calculate_position_5dof(theta1, theta2, theta3):
+    """
+    Calculate the z-position of a 5DOF robot arm.
+    L0 (float): Length of the base link (vertical offset)
+    L1 (float): Length of the first link
+    L2 (float): Length of the second link
+    L3 (float): Length of the third link
+    L4 (float): Length of the fourth link (end-effector)
+    theta0 (float): Angle of the base joint in radians (rotation around z-axis)
+        Parameters:
+    theta1 (float): Angle of the first joint in radians
+    theta2 (float): Angle of the second joint in radians
+    theta3 (float): Angle of the third joint in radians
+    
+    Returns:
+    float: The z-position of the end-effector
+    """
+    L0 = 0.050 - 0.014  #height of base, 5.0cm, offset by experiment
+    L1 = 0.045          #link1 length, 4.5cm
+    L2 = 0.099          #link2 length, 9.9cm
+    L3 = 0.099          #link3 length, 9.9cm
+    L4 = 0.146          #link4 length, 14.6cm
+    r_theta1 = math.radians(theta1)
+    r_theta2 = math.radians(theta2)
+    r_theta3 = math.radians(theta3)
+    y = L2 * math.sin(r_theta1) +  L3 * math.sin(r_theta1 + r_theta2) + L4 * math.sin(r_theta1 + r_theta2 + r_theta3)
+    z = L0 + L1 + L2 * math.cos(r_theta1) +  L3 * math.cos(r_theta1 + r_theta2) + L4 * math.cos(r_theta1 + r_theta2 + r_theta3)
+    return y, z
 
 # Sometimes servo angle goes just above 180 or just below 0 - trim to 0 or 180
 def trimLimits(mtr_pos):
@@ -116,7 +142,7 @@ class Moniarm(Node):
 
         self.motorMsg.angle2 = 90
         self.motorPub.publish(self.motorMsg)
-        sleep(0.7)
+        sleep(1.0)
 
         self.motorMsg.angle3 = MOTOR3_HOME
         self.motorPub.publish(self.motorMsg)

@@ -43,6 +43,7 @@ Publishes commands to
 """
 
 from time import sleep, time
+import math
 import rclpy
 from rclpy.node import Node
 from rclpy.parameter import Parameter
@@ -52,7 +53,7 @@ import atexit
 from rclpy.qos import qos_profile_sensor_data
 
 from moniarm_interfaces.msg import CmdMotor
-from .submodules.myutil import Moniarm, trimLimits, radiansToDegrees, setArmAgles
+from .submodules.myutil import Moniarm, trimLimits, setArmAgles
 from .submodules.myconfig import *
 
 class ChaseMoveit(Node):
@@ -76,10 +77,10 @@ class ChaseMoveit(Node):
         self.get_logger().info("Moveit Subscriber Awaked!! Waiting for Moveit Planning...")
 
     def moveit_callback(self, cmd_msg):
-        self.motorMsg.angle0 = trimLimits(radiansToDegrees(cmd_msg.position[0]))
-        self.motorMsg.angle1 = trimLimits(radiansToDegrees(cmd_msg.position[1]))
-        self.motorMsg.angle2 = trimLimits(radiansToDegrees(cmd_msg.position[2]))
-        self.motorMsg.angle3 = trimLimits(radiansToDegrees(cmd_msg.position[3]))
+        self.motorMsg.angle0 = trimLimits(math.degrees(cmd_msg.position[0]))
+        self.motorMsg.angle1 = trimLimits(math.degrees(cmd_msg.position[1]))
+        self.motorMsg.angle2 = trimLimits(math.degrees(cmd_msg.position[2]))
+        self.motorMsg.angle3 = trimLimits(math.degrees(cmd_msg.position[3]))
         #can't control air pump, then grip=0 always
         setArmAgles(self.motorMsg, self.motorMsg.angle0 , self.motorMsg.angle1 , self.motorMsg.angle2 , self.motorMsg.angle3, GRIPPER_OPEN)
 

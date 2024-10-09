@@ -43,7 +43,7 @@ from rclpy.qos import qos_profile_sensor_data
 
 from moniarm_interfaces.srv import SetLED, PlayAni, PlaySong, Init
 from moniarm_interfaces.msg import CmdMotor
-from .submodules.myutil import Moniarm, clamp, setArmAgles
+from .submodules.myutil import Moniarm, clamp, setArmAgles, calculate_position_5dof
 from .submodules.myconfig import *
 
 msg = """
@@ -287,6 +287,8 @@ class TeleopJoyNode(Node):
 
         self.keystroke = 0
         setArmAgles(self.motorMsg, self.control_motor0, self.control_motor1, self.control_motor2, self.control_motor3, self.control_gripper)
+        #y, z = calculate_position_5dof(self.control_motor1, self.control_motor2,self.control_motor3)
+        #print('y=%.1f,z=%.1f(cm)' %(y*100, z*100))
         self.robotarm.run(self.motorMsg)
         print('M0= %d, M1 %d, M2= %d, M3= %d, G=%d'%(self.control_motor0, self.control_motor1, self.control_motor2, self.control_motor3, self.control_gripper))
         self.fhandle.write(str(self.motorMsg.angle0) + ',' + str(self.motorMsg.angle1) + ',' + str(self.motorMsg.angle2) + ',' + str(self.motorMsg.angle3)

@@ -97,7 +97,7 @@ cd {$workspace_path}/src/moniarm/arduino
 ```bash
 cd ~/ros2_ws/src/moniarm/script
 ./selDomain.sh ROS_DOMAIN_ID
-./camSelect.sh CAMTYPE
+./camSelect.sh PORT_NUM
 ./setMotorid.sh M0_ID M1_ID M2_ID M3_ID
 ```
 - To build
@@ -121,7 +121,7 @@ Control Robot Arm with gamepad/jostick
 ```bash
 cd {$workspace_path}
 # jetson , terminal #1
-jetson@nano:~$ ros2 launch moniarm_cv usbcam.launch.py
+$ ros2 launch moniarm_cv usbcam.launch.py
 
 $ ros2 run rqt_image_view rqt_image_view
 # or
@@ -137,9 +137,9 @@ Control Robot Arm with gamepad/jostick
 ```bash
 cd {$workspace_path}
 # jetson , terminal #1
-jetson@nano:~$ ros2 launch monicar2_bringup mcu.launch.py
+$ ros2 launch monicar2_bringup mcu.launch.py
 #jetson or pc, terminal #2
-jetson@nano:~$ ros2 launch monicar2_teleop teleop_joy.launch.py
+$ ros2 launch monicar2_teleop teleop_joy.launch.py
 
 Left Stick left/right:  Base(M0), left/light
 Left Stick up/down:     shoulder(M1) move
@@ -161,9 +161,9 @@ Control Robot Arm with keyboard
 ```bash
 cd {$workspace_path}
 # jetson , terminal #1
-jetson@nano:~$ ros2 launch moniarm_bringup mcu.launch.py
+$ ros2 launch moniarm_bringup mcu.launch.py
 #jetson or pc, terminal #2
-jetson@nano:~$ ros2 run moniarm_teleop teleop_keyboard
+$ ros2 run moniarm_teleop teleop_keyboard
 
 a/d : base(M0), left/light
 w/x : shoulder(M1) move
@@ -185,9 +185,9 @@ Autonomous move for mimicing human operation
 ```bash
 cd {$workspace_path}
 # jetson , terminal #1
-jetson@nano:~$ ros2 launch moniarm_bringup mcu.launch.py
+$ ros2 launch moniarm_bringup mcu.launch.py
 #jetson or pc, terminal #2
-jetson@nano:~$ ros2 run moniarm_control mimic_teleop
+$ ros2 run moniarm_control mimic_teleop
 ```
 
 ### **Blob pick and plance**  
@@ -208,10 +208,10 @@ Find the object of the Jetson Nano on the screen, pick it then place
 
 ```bash
 #terminal #1, #object detect using Yolo_v4
-jetson@nano:~/ros2_ws$ ros2 launch darknet_ros yolov4-moniarm.launch.py
+$ ros2 launch darknet_ros yolov4-moniarm.launch.py
 
 #terminal #2,camera publish, object -> start or stop
-jetson@nano:~/ros2_ws$ ros2 launch moniarm_control yolo_all.launch.py
+$ ros2 launch moniarm_control yolo_all.launch.py
 ```
 
 ### **state publisher -> robot**  
@@ -222,20 +222,33 @@ joint_states publisher -> Move robot arm accordingly, TBD
 
 ```bash
 #terminal #1, Jetson
-jetson@nano:~$ ros2 launch moniarm_bringup mcu.launch.py
+$ ros2 launch moniarm_bringup mcu.launch.py
 #terminal #2, Laptop
-zeta@changwhan-ASUS:~/ros2_ws$ ros2 launch moniarm_control state_all.launch.py
+$ ros2 launch moniarm_control state_all.launch.py
 ```
 
-### **Moveit2 planner -> robot**
-moveit planner -> Move robot arm accordingly, TBD  
+### **Blob pick and place with Deep Learning**
+neural network -> Move robot arm accordingly
 <p align="center">
     <img src='Images/blank.gif' width=500 />
 </p>
 
 ```bash
 #terminal #1, Jetson
-jetson@nano:~$ ros2 launch moniarm_control chase_moveit.launch
+$ ros2 launch moniarm_control blob_getdata.launch.py
 #terminal #2, Laptop
-zeta@changwhan-ASUS:~/ros2_ws$ ros2 launch moniarm_moveit demo.launch
+$ ros2 launch moniarm_ml blob_nn.launch.py
+```
+
+### **Yolo pick and place with Deep Learning**
+neural network -> Move robot arm accordingly
+<p align="center">
+    <img src='Images/blank.gif' width=500 />
+</p>
+
+```bash
+#terminal #1, Jetson
+$ ros2 launch moniarm_control yolo_getdata.launch.py 
+#terminal #2, Laptop
+$ ros2 launch moniarm_ml yolo_nn.launch.py
 ```
