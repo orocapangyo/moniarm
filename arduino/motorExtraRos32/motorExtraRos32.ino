@@ -462,8 +462,16 @@ void loop() {
   // and calculate the velocities.
   if (currentMillis - previousMillis > INTERVAL) {
     previousMillis = currentMillis;
-
-    if (blinkStatus == false) {
+    if (digitalRead(PUMP_PIN) == HIGH) {
+      Herkulex.setLed(M0_ID, LED_RED);
+      Herkulex.setLed(M1_ID, LED_RED);
+      Herkulex.setLed(M2_ID, LED_RED);
+      Herkulex.setLed(M3_ID, LED_RED);      
+#if (DUAL_SHOULDER == 1)
+    Herkulex.setLed(M1M_ID, LED_RED);
+#endif
+    }
+    else if (blinkStatus == false) {
       Herkulex.setLed(M0_ID, LED_GREEN);
       Herkulex.setLed(M1_ID, LED_BLUE);
       Herkulex.setLed(M2_ID, LED_GREEN);
