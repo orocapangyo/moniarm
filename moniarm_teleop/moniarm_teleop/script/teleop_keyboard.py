@@ -37,7 +37,7 @@ import os, select, sys
 import rclpy
 from rclpy.node import Node
 
-from moniarm_interfaces.srv import SetLED, PlayAni, PlaySong, Init
+from moniarm_interfaces.srv import PlayAni, PlaySong, Init
 from moniarm_interfaces.msg import CmdMotor
 from .submodules.myutil import Moniarm, clamp, setArmAgles, calculate_position_5dof
 from .submodules.myconfig import *
@@ -54,13 +54,14 @@ Control Your Robot!
 Moving around:
 a/d : base(M0), left/light
 w/x : shoulder(M1) move
-q/z : Elbow(M2) move
-e/c : Wrist(M3) move
+j/l : Elbow(M2) move
+i/, : Wrist(M3) move
+g   : Gripper
 
-l: Change led
 u: play buzzer song
 o: OLED animation
-i: Motor intialize
+r: Motor Reset
+h: Move home
 
 CTRL-C to quit
 """
@@ -68,20 +69,6 @@ CTRL-C to quit
 e = """
 Communications Failed
 """
-
-class ClientAsyncLed(Node):
-    def __init__(self):
-        super().__init__('ClientAsyncLed')
-        self.cli = self.create_client(SetLED, 'SetLED')
-        while not self.cli.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('LED service not available, waiting again...')
-        self.req = SetLED.Request()
-
-    def send_request(self, a):
-        self.req.index = a
-        self.future = self.cli.call_async(self.req)
-        rclpy.spin_until_future_complete(self, self.future)
-        return self.future.result()
 
 class ClientAsyncAni(Node):
     def __init__(self):
@@ -176,11 +163,9 @@ def main():
     control_motor3 = MOTOR3_HOME
     control_gripper = GRIPPER_OPEN
 
-    colorIdx = 0                                        # index for led on/off
     songIdx = 0                                         # index for buzzer song
     lcdIdx = 0                                          # index for oled animation
 
-    led_client = ClientAsyncLed()
     ani_client = ClientAsyncAni()
     song_client = ClientAsyncSong()
     int_client = ClientAsyncInit()
@@ -208,16 +193,16 @@ def main():
             elif key == 'w':            # motor1
                 control_motor1 = check_angle_range(control_motor1 - ANG_STEP)
                 status = status + 1
-            elif key == 'z':            # motor2
+            elif key == 'j':            # motor2
                 control_motor2 = check_angle_range(control_motor2 + ANG_STEP)
                 status = status + 1
-            elif key == 'q':            # motor2
+            elif key == 'l':            # motor2
                 control_motor2 = check_angle_range(control_motor2 - ANG_STEP)
                 status = status + 1
-            elif key == 'c':            # motor3
+            elif key == ',':            # motor3
                 control_motor3 = check_angle_range(control_motor3 + ANG_STEP)
                 status = status + 1
-            elif key == 'e':            # motor3
+            elif key == 'i':            # motor3
                 control_motor3 = check_angle_range(control_motor3 - ANG_STEP)
                 status = status + 1
             elif key == 'a':            # motor0
@@ -227,12 +212,6 @@ def main():
                 control_motor0 = check_angle_range(control_motor0 - ANG_STEP)
                 status = status + 1
 
-            elif key == 'l':            # led control
-                print('colorIdx: %d'%(colorIdx))
-                led_client.send_request(colorIdx)
-                colorIdx += 1
-                if colorIdx >= MAX_COLOR:
-                    colorIdx = 0
             elif key == 'u':                # play buzzer song
                 print('songIdx: %d'%(songIdx))
                 song_client.send_request(songIdx)
@@ -245,8 +224,8 @@ def main():
                 lcdIdx += 1
                 if lcdIdx >= MAX_ANIM:
                     lcdIdx = 0
-            elif key == 'i':                # initialize motors when motor error happens
-                print('Initialize motors')
+            elif key == 'r':                # initialize motors when motor error happens
+                print('Reset motors')
                 int_client.send_request(0)
 
             elif key == 'g':                # gripper toggle

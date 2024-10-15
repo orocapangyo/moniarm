@@ -61,7 +61,7 @@ Ktimer = 0.1
 MAX_SONG = 5
 MAX_ANIM = 3
 MAX_COLOR = 6
-MAX_CHAT = 5
+MAX_CHAT = 10
 TIMER_JOY = 0.05
 
 #teleop_keyboard parameter

@@ -431,6 +431,8 @@ void setup() {
   RCCHECK(rclc_executor_add_service(&executor, &service_ani, &req_ani, &res_ani, ani_callback));
   RCCHECK(rclc_executor_add_service(&executor, &service_init, &req_init, &res_init, init_callback));
 
+  rosLcd();
+
   DEBUG_PRINTLN("ROS established");
   DEBUG_PRINTLN("Done setup");
 }

@@ -316,11 +316,23 @@ void beginLcd(void) {
   display.setTextSize(2);         // set text size
   display.setTextColor(WHITE);    // set text color
   display.setCursor(0, 0);        // set position to display
-  display.println("Moniarm");  // set text
+  display.println("Moniarm");     // set text
   display.setTextSize(1);         // set text size
-  display.setCursor(0, 17);       // set position to display
-  display.println("wait IP of Jetson ");
-  display.display();  // display on OLED
+  display.setCursor(0, 57);       // set position to display
+  display.println("wait uROS AGENT");
+  display.display();              // display on OLED
+}
+
+void rosLcd(void) {
+  display.clearDisplay();         // clear display
+  display.setTextSize(2);         // set text size
+  display.setTextColor(WHITE);    // set text color
+  display.setCursor(0, 0);        // set position to display
+  display.println("Moniarm");     // set text
+  display.setTextSize(1);         // set text size
+  display.setCursor(0, 57);       // set position to display
+  display.println("uROS connected");
+  display.display();              // display on OLED
 }
 
 void showAnimation(int idx) {

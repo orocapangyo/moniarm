@@ -41,7 +41,7 @@ from sensor_msgs.msg import Joy
 import atexit
 from rclpy.qos import qos_profile_sensor_data
 
-from moniarm_interfaces.srv import SetLED, PlayAni, PlaySong, Init
+from moniarm_interfaces.srv import PlayAni, PlaySong, Init
 from moniarm_interfaces.msg import CmdMotor
 from .submodules.myutil import Moniarm, clamp, setArmAgles, calculate_position_5dof
 from .submodules.myconfig import *
@@ -57,34 +57,18 @@ Right Stick left/right: Wrist(M3) move
 
 *** Jetson ***
 'X' : gripper open/close
-'A' : Change led
 'B' : Play buzzer song
 'Y' : Play OLED animation
-L - 2 : Home
-R - 2 : Motor Initiailze
+L-2 : Move Home
+R-2 : Motor Initiailze
 
 *** PC ***
 'X' : gripper open/close
-'Y' : Change led
 'B' : Play buzzer song
-L - 1 : Play OLED animation
-L - 2 : Home
-R - 2 : Motor Initiailze
+L-1 : Play OLED animation
+L-2 : Move Home
+R-2 : Motor Initiailze
 """
-
-class ClientAsyncLed(Node):
-    def __init__(self):
-        super().__init__('ClientAsyncLed')
-        self.cli = self.create_client(SetLED, 'SetLED')
-        while not self.cli.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('LED service not available, waiting again...')
-        self.req = SetLED.Request()
-
-    def send_request(self, a):
-        self.req.index = a
-        self.future = self.cli.call_async(self.req)
-        rclpy.spin_until_future_complete(self, self.future)
-        return self.future.result()
 
 class ClientAsyncAni(Node):
     def __init__(self):
@@ -153,7 +137,6 @@ class TeleopJoyNode(Node):
         self.chatCount= 0
         self.mode_button_last = 0
 
-        self.colorIdx = 0                                        # index for led on/off
         self.songIdx = 0                                         # index for buzzer song
         self.lcdIdx = 0                                          # index for oled animation
 
@@ -164,7 +147,6 @@ class TeleopJoyNode(Node):
         self.control_gripper = GRIPPER_OPEN
         self.keystroke = 0
 
-        self.led_client = ClientAsyncLed()
         self.ani_client = ClientAsyncAni()
         self.song_client = ClientAsyncSong()
         self.int_client = ClientAsyncInit()
@@ -194,15 +176,7 @@ class TeleopJoyNode(Node):
 
         timediff = time() - self.prev_time
 
-        if joymsg.buttons[0] == 1 and self.mode_button_last == 0:
-            print('colorIdx: %d'%(self.colorIdx))
-            self.led_client.send_request(self.colorIdx)
-            self.colorIdx+=1
-            if self.colorIdx >= MAX_COLOR:
-                self.colorIdx=0
-            self.mode_button_last = joymsg.buttons[0]
-
-        elif joymsg.buttons[1] == 1 and self.mode_button_last == 0:
+        if joymsg.buttons[1] == 1 and self.mode_button_last == 0:
             print('songIdx: %d'%(self.songIdx))
             self.song_client.send_request(self.songIdx)
             self.songIdx+=1
@@ -295,10 +269,10 @@ class TeleopJoyNode(Node):
                             + ',' + str(self.motorMsg.grip)+ ',' + str(timediff_move) + '\n')
         self.fhandle.flush()
             
-
     def cb_timer(self):
-        self.chatCount += 1                     # protect chattering
-        if self.chatCount > MAX_CHAT:
+        if (self.mode_button_last == 1):
+            self.chatCount += 1                     # protect chattering
+        if (self.chatCount > MAX_CHAT):
             self.mode_button_last = 0
             self.chatCount = 0
 
