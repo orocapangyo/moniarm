@@ -55,7 +55,6 @@
 
 #include "songlcdled.h"
 
-#define ESP_API_3 1
 #define DOMAINID 11
 #define DUAL_SHOULDER 0
 
@@ -95,6 +94,11 @@ enum states {
 #define M2_ID 3
 #define M3_ID 4
 #define M1M_ID 0
+
+#define ANGLE_0OFF 0
+#define ANGLE_1OFF 0
+#define ANGLE_2OFF 0
+#define ANGLE_3OFF 0
 
 #define RXD1 15
 #define TXD1 23
@@ -250,10 +254,10 @@ void motor_callback(const void *msgin) {
   angle3 = msg->angle3;
   grip = msg->grip;
 
-  motorMoving(M0_ID, angle0);
-  motorMoving(M1_ID, angle1);
-  motorMoving(M2_ID, angle2);
-  motorMoving(M3_ID, angle3);
+  motorMoving(M0_ID, angle0 + ANGLE_0OFF);
+  motorMoving(M1_ID, angle1 + ANGLE_1OFF);
+  motorMoving(M2_ID, angle2 + ANGLE_2OFF);
+  motorMoving(M3_ID, angle3 + ANGLE_3OFF);
 
 #if (DUAL_SHOULDER == 1)
   motorMoving(M1M_ID, -angle1);
@@ -340,13 +344,8 @@ void setup() {
   pinMode(LED_F, OUTPUT);
   RGB(ALL_OFF);  // RGB LED all off
 
-#if (ESP_API_3 == 1)
-  ledcAttachChannel(BUZZER, 5000, 8, BUZZER_CH);
-#else
-  ledcSetup(BUZZER, 5000, 8);  //BUZZER, channel: 2, 5000Hz, 8bits = 256(0 ~ 255)
-  ledcAttachPin(BUZZER, BUZZER_CH);
-#endif
-  ledcWrite(BUZZER_CH, 0);
+  ledcAttach(BUZZER, 5000, 8);
+  ledcWrite(BUZZER, 0);
 
   // configure LED for output
   pinMode(LED_BUILTIN, OUTPUT);

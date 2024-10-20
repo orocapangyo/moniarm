@@ -72,13 +72,14 @@ void setup() {
   pinMode(LED_L, OUTPUT);
   pinMode(LED_R, OUTPUT);
   pinMode(LED_F, OUTPUT);
-  pinMode(BUZZER, OUTPUT);
   pinMode(PUMP_PIN, OUTPUT);
+
+  ledcAttach(BUZZER, 5000, 8);
+  ledcWrite(BUZZER, 0);
 
   digitalWrite(LED_L, LOW);
   digitalWrite(LED_R, LOW);
   digitalWrite(LED_F, LOW);
-  digitalWrite(BUZZER, LOW);
   digitalWrite(PUMP_PIN, LOW);
 
   delay(2000);           //a delay to have time for serial monitor opening
@@ -146,6 +147,7 @@ void loop() {
       digitalWrite(LED_L, HIGH);
       digitalWrite(LED_R, HIGH);
       digitalWrite(PUMP_PIN, HIGH);
+      ledcWrite(BUZZER, 255);
       blinkStatus = true;
     } else {
       Herkulex.setLed(M0_ID, 0);
@@ -158,6 +160,7 @@ void loop() {
       digitalWrite(LED_L, LOW);
       digitalWrite(LED_R, LOW);
       digitalWrite(PUMP_PIN, LOW);
+      ledcWrite(BUZZER, 0);
       blinkStatus = false;
     }
 

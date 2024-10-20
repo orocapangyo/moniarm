@@ -259,14 +259,14 @@ void playsong(int song) {
     //to calculate the note duration, take one second divided by the note type.
     //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
     int duration = 1000 / durArray[song][note];
-    ledcWriteTone(BUZZER_CH, melArray[song][note]);
+    ledcWriteTone(BUZZER, melArray[song][note]);
     delay(duration);
     //to distinguish the notes, set a minimum time between them.
     //the note's duration + 30% seems to work well:
     int pauseBetweenNotes = duration * 1.3;
     delay(pauseBetweenNotes);
     //stop the tone playing:
-    ledcWriteTone(BUZZER_CH, 0);
+    ledcWriteTone(BUZZER, 0);
   }
 }
 

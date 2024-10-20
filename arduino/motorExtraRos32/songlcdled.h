@@ -1,5 +1,4 @@
 //buzzer control
-#define   BUZZER_CH  2
 #define   BUZZER     13
 #define   MAX_SONG   5
 #define   MAX_ANIM   3
