@@ -344,9 +344,8 @@ void setup() {
   pinMode(LED_F, OUTPUT);
   RGB(ALL_OFF);  // RGB LED all off
 
-  ledcAttach(BUZZER, 5000, 8);
-  ledcWrite(BUZZER, 0);
-
+  pinMode(BUZZER, OUTPUT);
+  
   // configure LED for output
   pinMode(LED_BUILTIN, OUTPUT);
 
