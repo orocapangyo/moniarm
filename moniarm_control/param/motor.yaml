@@ -2,3 +2,5 @@
   ros__parameters:
     DETECT_CLASS1 : "watermelon"
     DETECT_CLASS2 : "pineapple"
+    K_a : -29.000
+    K_b : 29.00

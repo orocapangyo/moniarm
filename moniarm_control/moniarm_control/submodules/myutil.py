@@ -162,6 +162,34 @@ class Moniarm(Node):
         sleep(1.5)
         print("Homing Done")
 
+    def deg90(self):
+        print("90degree...")
+        #torque on at first except MOTOR0
+        self.motorMsg.grip = GRIPPER_OPEN
+        self.motorMsg.angle0 = MOTOR_TOQOFF
+        self.motorMsg.angle1 = MOTOR_TOQON
+        self.motorMsg.angle2 = MOTOR_TOQON
+        self.motorMsg.angle3 = MOTOR_TOQON
+        self.motorPub.publish(self.motorMsg)
+        sleep(0.1)
+
+        self.motorMsg.angle2 = 90
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.0)
+
+        self.motorMsg.angle3 = 90
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.0)
+        
+        self.motorMsg.angle1 = 0
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.0)
+
+        self.motorMsg.angle0 = MOTOR0_HOME
+        self.motorPub.publish(self.motorMsg)
+        sleep(1.5)
+        print("90degree Done")
+
     def zero(self):
         print("Zeroing...")
         #torque on at first except MOTOR0

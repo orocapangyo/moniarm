@@ -62,7 +62,19 @@ MAX_Y = 3
 class IKnetBall(Node):
     def __init__(self):
         super().__init__('nn_blob_node')
+        self.declare_parameters(
+            namespace='',
+            parameters=[
+                ('K_a', 0.0),
+                ('K_b', 0.0),
+           ])
+        
         self.get_logger().info("Setting Up the Node...")
+        self.K_a = self.get_parameter_or('K_a').get_parameter_value().double_value
+        self.K_b = self.get_parameter_or('K_b').get_parameter_value().double_value
+        print('K_a, K_b: %s %s' %
+            (self.K_a, self.K_b)
+        )
 
         self.blob_x = 0.0
         self.blob_y = 0.0
@@ -123,7 +135,7 @@ class IKnetBall(Node):
             self.armStatus = 'PICKUP'
             #caculate angles from linear equation
             input_ = self.blob_x + 1.0
-            outputx = K_a*(self.blob_x + 1.0) + K_b
+            outputx = self.K_a*(self.blob_x + 1.0) + self.K_b
             print(f"input: {input_}")
             print(f"output: {outputx}")
 

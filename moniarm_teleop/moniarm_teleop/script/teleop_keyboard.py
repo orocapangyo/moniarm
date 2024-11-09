@@ -62,7 +62,8 @@ u: play buzzer song
 o: OLED animation
 r: Motor Reset
 h: Move home
-
+9: 90 position
+0: zero position
 CTRL-C to quit
 """
 
@@ -242,6 +243,24 @@ def main():
                 control_motor1 = MOTOR1_HOME
                 control_motor2 = MOTOR2_HOME
                 control_motor3 = MOTOR3_HOME
+                control_gripper = GRIPPER_OPEN
+                keystroke = 0
+            elif key == '0':
+                print('Zero position')
+                robotarm.zero()
+                control_motor0 = MOTOR0_HOME
+                control_motor1 = 0
+                control_motor2 = 0
+                control_motor3 = 0
+                control_gripper = GRIPPER_OPEN
+                keystroke = 0
+            elif key == '9':
+                print('90degree position')
+                robotarm.deg90()
+                control_motor0 = MOTOR0_HOME
+                control_motor1 = 0
+                control_motor2 = 90
+                control_motor3 = 90
                 control_gripper = GRIPPER_OPEN
                 keystroke = 0
             else:

@@ -56,7 +56,6 @@
 #include "songlcdled.h"
 
 #define DOMAINID 11
-#define DUAL_SHOULDER 0
 
 moniarm_interfaces__msg__CmdMotor motorMsg, angleMsg;
 moniarm_interfaces__srv__SetLED_Request req_led;
@@ -93,12 +92,11 @@ enum states {
 #define M1_ID 2
 #define M2_ID 3
 #define M3_ID 4
-#define M1M_ID 0
 
 #define ANGLE_0OFF 0
 #define ANGLE_1OFF 0
-#define ANGLE_2OFF 0
-#define ANGLE_3OFF 0
+#define ANGLE_2OFF 1
+#define ANGLE_3OFF 2
 
 #define RXD1 15
 #define TXD1 23
@@ -177,17 +175,9 @@ void motorMoving(int mid, int tarAngle) {
     return;
   else if (tarAngle == MOTOR_TOQOFF) {
     Herkulex.torqueOFF(mid);
-#if (DUAL_SHOULDER == 1)
-    if (mid == M1_ID)
-      Herkulex.torqueOFF(M1M_ID);
-#endif
     return;
   } else if (tarAngle == MOTOR_TOQON) {
     Herkulex.torqueON(mid);
-#if (DUAL_SHOULDER == 1)
-    if (mid == M1_ID)
-      Herkulex.torqueON(M1M_ID);
-#endif
     return;
   }
   //calculate moving time at first, should be enough for smooth operation
@@ -259,10 +249,6 @@ void motor_callback(const void *msgin) {
   motorMoving(M2_ID, angle2 + ANGLE_2OFF);
   motorMoving(M3_ID, angle3 + ANGLE_3OFF);
 
-#if (DUAL_SHOULDER == 1)
-  motorMoving(M1M_ID, -angle1);
-#endif
-
 #if END_EFFCTOR == AIRPUMP
   digitalWrite(PUMP_PIN, grip);
 #endif
@@ -277,25 +263,8 @@ void initMotors(void) {
   delay(200);
   Herkulex.reboot(M3_ID);
   delay(200);
-#if (DUAL_SHOULDER == 1)
-  Herkulex.reboot(M1M_ID);
-  delay(200);
-#endif
   Herkulex.initialize();  //initialize motors
   delay(200);
-
-#if 0
-  //change accel profile, default 25 -> 5
-  Herkulex.writeRegistryRAM(M0_ID, 8 , 5);
-  Herkulex.writeRegistryRAM(M1_ID, 8 , 5);
-  Herkulex.writeRegistryRAM(M2_ID, 8 , 5);
-  Herkulex.writeRegistryRAM(M3_ID, 8 , 5);
-  //change accel profile, default 45 -> 0
-  Herkulex.writeRegistryRAM(M0_ID, 9 , 0);
-  Herkulex.writeRegistryRAM(M1_ID, 9 , 0);
-  Herkulex.writeRegistryRAM(M2_ID, 9 , 0);
-  Herkulex.writeRegistryRAM(M3_ID, 9 , 0);
-#endif
 }
 
 void init_callback(const void *req, void *res) {
@@ -342,13 +311,9 @@ void setup() {
   pinMode(LED_L, OUTPUT);
   pinMode(LED_R, OUTPUT);
   pinMode(LED_F, OUTPUT);
-  RGB(ALL_OFF);  // RGB LED all off
-
+  RGB(ALL_OFF);                               // RGB LED all off
   pinMode(BUZZER, OUTPUT);
-  
-  // configure LED for output
-  pinMode(LED_BUILTIN, OUTPUT);
-
+  pinMode(LED_BUILTIN, OUTPUT);               // configure LED for output
   beginLcd();
 
   // ROS Setup
@@ -380,10 +345,6 @@ void setup() {
   Herkulex.torqueON(M1_ID);
   Herkulex.torqueON(M2_ID);
   Herkulex.torqueON(M3_ID);
-
-#if (DUAL_SHOULDER == 1)
-  Herkulex.torqueON(M1M_ID);
-#endif
 
   allocator = rcl_get_default_allocator();
 
@@ -430,7 +391,6 @@ void setup() {
   RCCHECK(rclc_executor_add_service(&executor, &service_init, &req_init, &res_init, init_callback));
 
   rosLcd();
-
   DEBUG_PRINTLN("ROS established");
   DEBUG_PRINTLN("Done setup");
 }
@@ -463,34 +423,34 @@ void loop() {
   if (currentMillis - previousMillis > INTERVAL) {
     previousMillis = currentMillis;
     if (digitalRead(PUMP_PIN) == HIGH) {
-      Herkulex.setLed(M0_ID, LED_RED);
-      Herkulex.setLed(M1_ID, LED_RED);
-      Herkulex.setLed(M2_ID, LED_RED);
-      Herkulex.setLed(M3_ID, LED_RED);      
-#if (DUAL_SHOULDER == 1)
-    Herkulex.setLed(M1M_ID, LED_RED);
-#endif
-    }
-    else if (blinkStatus == false) {
-      Herkulex.setLed(M0_ID, LED_GREEN);
-      Herkulex.setLed(M1_ID, LED_BLUE);
-      Herkulex.setLed(M2_ID, LED_GREEN);
-      Herkulex.setLed(M3_ID, LED_BLUE);
-#if (DUAL_SHOULDER == 1)
-    Herkulex.setLed(M1M_ID, LED_BLUE);
-#endif
-      blinkStatus = true;
+      if (blinkStatus == false) {
+        Herkulex.setLed(M0_ID, LED_BLUE);
+        Herkulex.setLed(M1_ID, LED_BLUE);
+        Herkulex.setLed(M2_ID, LED_BLUE);
+        Herkulex.setLed(M3_ID, LED_BLUE);
+        blinkStatus = true;
+      } else {
+        Herkulex.setLed(M0_ID, 0);
+        Herkulex.setLed(M1_ID, 0);
+        Herkulex.setLed(M2_ID, 0);
+        Herkulex.setLed(M3_ID, 0);
+        blinkStatus = false;
+      }
     } else {
-      Herkulex.setLed(M0_ID, 0);
-      Herkulex.setLed(M1_ID, 0);
-      Herkulex.setLed(M2_ID, 0);
-      Herkulex.setLed(M3_ID, 0);
-#if (DUAL_SHOULDER == 1)
-    Herkulex.setLed(M1M_ID, 0);
-#endif
-      blinkStatus = false;
+      if (blinkStatus == false) {
+        Herkulex.setLed(M0_ID, LED_GREEN);
+        Herkulex.setLed(M1_ID, LED_GREEN);
+        Herkulex.setLed(M2_ID, LED_GREEN);
+        Herkulex.setLed(M3_ID, LED_GREEN);
+        blinkStatus = true;
+      } else {
+        Herkulex.setLed(M0_ID, 0);
+        Herkulex.setLed(M1_ID, 0);
+        Herkulex.setLed(M2_ID, 0);
+        Herkulex.setLed(M3_ID, 0);
+        blinkStatus = false;
+      }
     }
-
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
   }
 }
